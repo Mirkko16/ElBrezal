@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
 namespace ElBrezal.Desktop.Forms.Main
@@ -13,6 +8,24 @@ namespace ElBrezal.Desktop.Forms.Main
         public MainForm()
         {
             InitializeComponent();
+
+            ActualizarFechaHora();
+
+            clockTimer.Tick += ClockTimer_Tick;
         }
+
+        private void ClockTimer_Tick(object? sender, EventArgs e)
+        {
+            ActualizarFechaHora();
+        }
+
+        private void ActualizarFechaHora()
+        {
+            var ahora = DateTime.Now;
+
+            toolStripStatusLabelFecha.Text = ahora.ToString("dd/MM/yyyy");
+            toolStripStatusLabelHora.Text = ahora.ToString("HH:mm");
+        }
+
     }
 }
