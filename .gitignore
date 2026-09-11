@@ -6,3 +6,5 @@
 # Build
 bin/
 obj/
+/database/scripts/.env
+/.gitignore
