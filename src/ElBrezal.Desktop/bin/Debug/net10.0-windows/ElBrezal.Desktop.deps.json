@@ -1,0 +1,56 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ElBrezal.Desktop/1.0.0": {
+        "dependencies": {
+          "ElBrezal.Application": "1.0.0",
+          "ElBrezal.Infrastructure": "1.0.0"
+        },
+        "runtime": {
+          "ElBrezal.Desktop.dll": {}
+        }
+      },
+      "ElBrezal.Application/1.0.0": {
+        "runtime": {
+          "ElBrezal.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ElBrezal.Infrastructure/1.0.0": {
+        "dependencies": {
+          "ElBrezal.Application": "1.0.0"
+        },
+        "runtime": {
+          "ElBrezal.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ElBrezal.Desktop/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ElBrezal.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ElBrezal.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,16 @@
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\bin\Debug\net10.0\ElBrezal.Infrastructure.deps.json
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\bin\Debug\net10.0\ElBrezal.Infrastructure.dll
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\bin\Debug\net10.0\ElBrezal.Infrastructure.pdb
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\bin\Debug\net10.0\ElBrezal.Application.dll
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\bin\Debug\net10.0\ElBrezal.Application.pdb
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.csproj.AssemblyReference.cache
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.AssemblyInfoInputs.cache
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.AssemblyInfo.cs
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.csproj.CoreCompileInputs.cache
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.sourcelink.json
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.1124086D.Up2Date
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.dll
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\refint\ElBrezal.Infrastructure.dll
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.pdb
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ref\ElBrezal.Infrastructure.dll

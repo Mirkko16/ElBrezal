@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ElBrezal.Application/ElBrezal.Application.csproj" />
+    <Project Path="src/ElBrezal.Desktop/ElBrezal.Desktop.csproj" />
+    <Project Path="src/ElBrezal.Infrastructure/ElBrezal.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ElBrezal.Tests/ElBrezal.Tests.csproj" />
+  </Folder>
+</Solution>
