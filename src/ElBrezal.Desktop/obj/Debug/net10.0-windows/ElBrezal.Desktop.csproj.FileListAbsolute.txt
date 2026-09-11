@@ -19,3 +19,6 @@ D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.pdb
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.genruntimeconfig.cache
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ref\ElBrezal.Desktop.dll
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.Forms.Main.MainForm.resources
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.Forms.Splash.SplashForm.resources
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.csproj.GenerateResource.cache
