@@ -1,4 +1,5 @@
-﻿using ElBrezal.Desktop.Forms.Tablas.Marcas;
+﻿using ElBrezal.Desktop.Forms.Tablas.Familias;
+using ElBrezal.Desktop.Forms.Tablas.Marcas;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Windows.Forms;
@@ -56,6 +57,34 @@ namespace ElBrezal.Desktop.Forms.Main
             };
 
             form.Show();
+        }
+
+        private void familiaToolStripMenuItem_Click(object sender, EventArgs e)
+
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<FamiliasForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider.GetRequiredService<FamiliasForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
         }
     }
 }
