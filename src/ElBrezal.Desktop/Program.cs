@@ -1,6 +1,7 @@
 using ElBrezal.Desktop.Forms.Main;
 using ElBrezal.Desktop.Forms.Splash;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
+using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
 using ElBrezal.Desktop.Forms.Tablas.Unidades;
 using ElBrezal.Infrastructure.DependencyInjection;
@@ -31,6 +32,7 @@ internal static class Program
                 services.AddTransient<MarcasForm>();
                 services.AddTransient<FamiliasForm>();
                 services.AddTransient<UnidadesForm>();
+                services.AddTransient<LocalidadesForm>();
             })
             .Build();
 

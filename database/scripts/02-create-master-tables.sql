@@ -35,16 +35,30 @@ CREATE TABLE dbo.Unidades
 );
 GO
 
+CREATE TABLE dbo.Provincias
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    Nombre VARCHAR(50) NOT NULL,
+
+    CONSTRAINT PK_Provincias PRIMARY KEY (Id),
+    CONSTRAINT UQ_Provincias_Nombre UNIQUE (Nombre)
+);
+GO
+
 CREATE TABLE dbo.Localidades
 (
     Id INT IDENTITY(1,1) NOT NULL,
-    CodigoPostal VARCHAR(10) NULL,
+    CodigoPostal VARCHAR(8) NOT NULL,
     Nombre VARCHAR(50) NOT NULL,
-    Provincia VARCHAR(50) NULL,
+    ProvinciaId INT NOT NULL,
     Eliminado BIT NOT NULL
         CONSTRAINT DF_Localidades_Eliminado DEFAULT 0,
 
-    CONSTRAINT PK_Localidades PRIMARY KEY (Id)
+    CONSTRAINT PK_Localidades PRIMARY KEY (Id),
+
+    CONSTRAINT FK_Localidades_Provincias
+        FOREIGN KEY (ProvinciaId)
+        REFERENCES dbo.Provincias(Id)
 );
 GO
 

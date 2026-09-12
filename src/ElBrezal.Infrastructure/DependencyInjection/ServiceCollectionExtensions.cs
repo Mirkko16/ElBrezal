@@ -21,6 +21,8 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<IMarcaService, MarcaService>();            
             services.AddTransient<IFamiliaService, FamiliaService>();
             services.AddTransient<IUnidadService, UnidadService>();
+            services.AddTransient<ILocalidadService, LocalidadService>();
+            services.AddTransient<IProvinciaService, ProvinciaService>();
 
             return services;
         }

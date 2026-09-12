@@ -1,4 +1,5 @@
 ﻿using ElBrezal.Desktop.Forms.Tablas.Familias;
+using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
 using ElBrezal.Desktop.Forms.Tablas.Unidades;
 using Microsoft.Extensions.DependencyInjection;
@@ -112,6 +113,33 @@ namespace ElBrezal.Desktop.Forms.Main
             };
 
             form.Show();
+        }
+
+        private void localidadesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<LocalidadesForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider.GetRequiredService<LocalidadesForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
         }
     }
 }

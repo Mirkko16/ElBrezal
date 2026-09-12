@@ -7,13 +7,15 @@ public partial class Localidades
 {
     public int Id { get; set; }
 
-    public string? CodigoPostal { get; set; }
+    public string CodigoPostal { get; set; } = null!;
 
     public string Nombre { get; set; } = null!;
 
-    public string? Provincia { get; set; }
-
     public bool Eliminado { get; set; }
+
+    public int ProvinciaId { get; set; }
+
+    public virtual Provincias Provincia { get; set; } = null!;
 
     public virtual ICollection<Vendedores> Vendedores { get; set; } = new List<Vendedores>();
 }

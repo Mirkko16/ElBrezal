@@ -18,6 +18,8 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<Marcas> Marcas { get; set; }
 
+    public virtual DbSet<Provincias> Provincias { get; set; }
+
     public virtual DbSet<Unidades> Unidades { get; set; }
 
     public virtual DbSet<Vendedores> Vendedores { get; set; }
@@ -40,13 +42,24 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Provincia)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+
+            entity.HasOne(d => d.Provincia).WithMany(p => p.Localidades)
+                .HasForeignKey(d => d.ProvinciaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Localidades_Provincias");
         });
 
         modelBuilder.Entity<Marcas>(entity =>
         {
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Provincias>(entity =>
+        {
+            entity.HasIndex(e => e.Nombre, "UQ_Provincias_Nombre").IsUnique();
+
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .IsUnicode(false);
