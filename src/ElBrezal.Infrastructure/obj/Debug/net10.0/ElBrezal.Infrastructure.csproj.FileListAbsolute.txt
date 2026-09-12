@@ -14,3 +14,5 @@ D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\refint\ElBrezal.Infrastructure.dll
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.pdb
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ref\ElBrezal.Infrastructure.dll
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\bin\Debug\net10.0\ElBrezal.Infrastructure.runtimeconfig.json
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Infrastructure\obj\Debug\net10.0\ElBrezal.Infrastructure.genruntimeconfig.cache
