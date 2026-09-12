@@ -18,8 +18,9 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddDbContext<ElBrezalDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            services.AddTransient<IMarcaService, MarcaService>();
+            services.AddTransient<IMarcaService, MarcaService>();            
             services.AddTransient<IFamiliaService, FamiliaService>();
+            services.AddTransient<IUnidadService, UnidadService>();
 
             return services;
         }

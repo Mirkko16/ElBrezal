@@ -393,6 +393,7 @@
             unidadesToolStripMenuItem.Name = "unidadesToolStripMenuItem";
             unidadesToolStripMenuItem.Size = new Size(194, 22);
             unidadesToolStripMenuItem.Text = "Unidades";
+            unidadesToolStripMenuItem.Click += unidadesToolStripMenuItem_Click;
             // 
             // origenesDestinosToolStripMenuItem
             // 

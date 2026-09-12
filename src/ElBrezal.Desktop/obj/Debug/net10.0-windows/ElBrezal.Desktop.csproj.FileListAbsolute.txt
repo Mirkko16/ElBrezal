@@ -100,3 +100,5 @@ D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\bin\Debug\net10.0-windows
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.Forms.Tablas.Marcas.MarcasForm.resources
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\bin\Debug\net10.0-windows\appsettings.json
 D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.Forms.Tablas.Familias.FamiliasForm.resources
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.Forms.Tablas.Localidades.LocalidadesForm.resources
+D:\Projects\ElBrezal 2.0\ElBrezal\src\ElBrezal.Desktop\obj\Debug\net10.0-windows\ElBrezal.Desktop.Forms.Tablas.Unidades.UnidadesForm.resources

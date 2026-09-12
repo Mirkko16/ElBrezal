@@ -10,7 +10,13 @@
     <Compile Update="Forms\Tablas\Familias\FamiliasForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\Tablas\Localidades\LocalidadesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\Tablas\Marcas\MarcasForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Tablas\Unidades\UnidadesForm.cs">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
