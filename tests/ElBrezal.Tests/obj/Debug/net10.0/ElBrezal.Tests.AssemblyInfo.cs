@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ElBrezal.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6310b46297d90984ee7a2bede0fefce7b6e6a8c8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+61bee49326107f3f501003ced4e015798d087ce6")]
 [assembly: System.Reflection.AssemblyProductAttribute("ElBrezal.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ElBrezal.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

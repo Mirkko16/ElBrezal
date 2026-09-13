@@ -19,5 +19,7 @@ public partial class Vendedores
 
     public bool Eliminado { get; set; }
 
+    public virtual ICollection<Clientes> Clientes { get; set; } = new List<Clientes>();
+
     public virtual Localidades? Localidad { get; set; }
 }

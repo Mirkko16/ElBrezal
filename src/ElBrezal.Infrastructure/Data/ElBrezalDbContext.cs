@@ -12,6 +12,10 @@ public partial class ElBrezalDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Clientes> Clientes { get; set; }
+
+    public virtual DbSet<EstadosCuentaCliente> EstadosCuentaCliente { get; set; }
+
     public virtual DbSet<Familias> Familias { get; set; }
 
     public virtual DbSet<Localidades> Localidades { get; set; }
@@ -20,12 +24,82 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<Provincias> Provincias { get; set; }
 
+    public virtual DbSet<SituacionesImpositivas> SituacionesImpositivas { get; set; }
+
     public virtual DbSet<Unidades> Unidades { get; set; }
 
     public virtual DbSet<Vendedores> Vendedores { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Clientes>(entity =>
+        {
+            entity.Property(e => e.CUIT)
+                .HasMaxLength(13)
+                .IsUnicode(false);
+            entity.Property(e => e.DNI)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Direccion)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+            entity.Property(e => e.Email)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+            entity.Property(e => e.Fax)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.IngresosBrutos)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            entity.Property(e => e.Matricula)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Observacion)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+            entity.Property(e => e.Ocupacion)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Telefono1)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Telefono2)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.EstadoCuenta).WithMany(p => p.Clientes)
+                .HasForeignKey(d => d.EstadoCuentaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Clientes_EstadosCuentaCliente");
+
+            entity.HasOne(d => d.Localidad).WithMany(p => p.Clientes)
+                .HasForeignKey(d => d.LocalidadId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Clientes_Localidades");
+
+            entity.HasOne(d => d.SituacionImpositiva).WithMany(p => p.Clientes)
+                .HasForeignKey(d => d.SituacionImpositivaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Clientes_SituacionesImpositivas");
+
+            entity.HasOne(d => d.Vendedor).WithMany(p => p.Clientes)
+                .HasForeignKey(d => d.VendedorId)
+                .HasConstraintName("FK_Clientes_Vendedores");
+        });
+
+        modelBuilder.Entity<EstadosCuentaCliente>(entity =>
+        {
+            entity.HasIndex(e => e.Nombre, "UQ_EstadosCuentaCliente_Nombre").IsUnique();
+
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<Familias>(entity =>
         {
             entity.Property(e => e.Nombre)
@@ -60,6 +134,18 @@ public partial class ElBrezalDbContext : DbContext
         {
             entity.HasIndex(e => e.Nombre, "UQ_Provincias_Nombre").IsUnique();
 
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<SituacionesImpositivas>(entity =>
+        {
+            entity.HasIndex(e => e.Nombre, "UQ_SituacionesImpositivas_Nombre").IsUnique();
+
+            entity.Property(e => e.Abreviatura)
+                .HasMaxLength(10)
+                .IsUnicode(false);
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .IsUnicode(false);

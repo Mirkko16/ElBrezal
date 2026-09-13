@@ -15,6 +15,8 @@ public partial class Localidades
 
     public int ProvinciaId { get; set; }
 
+    public virtual ICollection<Clientes> Clientes { get; set; } = new List<Clientes>();
+
     public virtual Provincias Provincia { get; set; } = null!;
 
     public virtual ICollection<Vendedores> Vendedores { get; set; } = new List<Vendedores>();

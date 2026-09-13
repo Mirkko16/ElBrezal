@@ -80,3 +80,78 @@ CREATE TABLE dbo.Vendedores
         REFERENCES dbo.Localidades(Id)
 );
 GO
+
+CREATE TABLE dbo.SituacionesImpositivas
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    Nombre VARCHAR(50) NOT NULL,
+    Abreviatura VARCHAR(10) NULL,
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_SituacionesImpositivas_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_SituacionesImpositivas PRIMARY KEY (Id),
+    CONSTRAINT UQ_SituacionesImpositivas_Nombre UNIQUE (Nombre)
+);
+GO
+
+CREATE TABLE dbo.EstadosCuentaCliente
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    Nombre VARCHAR(30) NOT NULL,
+
+    CONSTRAINT PK_EstadosCuentaCliente PRIMARY KEY (Id),
+    CONSTRAINT UQ_EstadosCuentaCliente_Nombre UNIQUE (Nombre)
+);
+GO
+
+CREATE TABLE dbo.Clientes
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+
+    Nombre VARCHAR(100) NOT NULL,
+
+    DNI VARCHAR(20) NULL,
+    CUIT VARCHAR(13) NULL,
+    IngresosBrutos VARCHAR(30) NULL,
+
+    Direccion VARCHAR(150) NULL,
+
+    LocalidadId INT NOT NULL,
+
+    Telefono1 VARCHAR(50) NULL,
+    Telefono2 VARCHAR(50) NULL,
+    Fax VARCHAR(50) NULL,
+    Email VARCHAR(150) NULL,
+
+    Ocupacion VARCHAR(100) NULL,
+    Matricula VARCHAR(50) NULL,
+
+    SituacionImpositivaId INT NOT NULL,
+    EstadoCuentaId INT NOT NULL,
+
+    VendedorId INT NULL,
+
+    Observacion VARCHAR(500) NULL,
+
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_Clientes_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_Clientes PRIMARY KEY (Id),
+
+    CONSTRAINT FK_Clientes_Localidades
+        FOREIGN KEY (LocalidadId)
+        REFERENCES dbo.Localidades(Id),
+
+    CONSTRAINT FK_Clientes_SituacionesImpositivas
+        FOREIGN KEY (SituacionImpositivaId)
+        REFERENCES dbo.SituacionesImpositivas(Id),
+
+    CONSTRAINT FK_Clientes_EstadosCuentaCliente
+        FOREIGN KEY (EstadoCuentaId)
+        REFERENCES dbo.EstadosCuentaCliente(Id),
+
+    CONSTRAINT FK_Clientes_Vendedores
+        FOREIGN KEY (VendedorId)
+        REFERENCES dbo.Vendedores(Id)
+);
+GO

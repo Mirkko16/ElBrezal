@@ -1,7 +1,9 @@
-﻿using ElBrezal.Desktop.Forms.Tablas.Familias;
+﻿using ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes;
+using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
 using ElBrezal.Desktop.Forms.Tablas.Unidades;
+using ElBrezal.Desktop.Forms.Tablas.Vendedores;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Windows.Forms;
@@ -130,6 +132,60 @@ namespace ElBrezal.Desktop.Forms.Main
             var scope = _serviceProvider.CreateScope();
 
             var form = scope.ServiceProvider.GetRequiredService<LocalidadesForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+        }
+
+        private void vendedoresToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<VendedoresForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider.GetRequiredService<VendedoresForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+        }
+
+        private void actualizacionClientesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<ClientesForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider.GetRequiredService<ClientesForm>();
 
             form.MdiParent = this;
 

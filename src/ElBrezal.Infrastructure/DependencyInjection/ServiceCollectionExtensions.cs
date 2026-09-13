@@ -23,6 +23,12 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<IUnidadService, UnidadService>();
             services.AddTransient<ILocalidadService, LocalidadService>();
             services.AddTransient<IProvinciaService, ProvinciaService>();
+            services.AddTransient<IEstadoCuentaClienteService, EstadoCuentaClienteService>();
+            services.AddTransient<ISituacionImpositivaService, SituacionImpositivaService>();
+            services.AddTransient<IClienteService, ClienteService>();
+            services.AddTransient<IVendedorService, VendedorService>();
+            
+
 
             return services;
         }

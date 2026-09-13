@@ -342,6 +342,7 @@
             actualizacionClientesToolStripMenuItem.Name = "actualizacionClientesToolStripMenuItem";
             actualizacionClientesToolStripMenuItem.Size = new Size(365, 26);
             actualizacionClientesToolStripMenuItem.Text = "Actualizacion Clientes";
+            actualizacionClientesToolStripMenuItem.Click += actualizacionClientesToolStripMenuItem_Click;
             // 
             // listadoDeClientesToolStripMenuItem
             // 
@@ -388,6 +389,7 @@
             vendedoresToolStripMenuItem.Name = "vendedoresToolStripMenuItem";
             vendedoresToolStripMenuItem.Size = new Size(236, 26);
             vendedoresToolStripMenuItem.Text = "Vendedores";
+            vendedoresToolStripMenuItem.Click += vendedoresToolStripMenuItem_Click;
             // 
             // unidadesToolStripMenuItem
             // 

@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LocalidadesForm));
             cmbProvincias = new ComboBox();
             lblZona = new Label();
             textBoxZona = new TextBox();
@@ -171,41 +172,45 @@
             // 
             // btnSiguiente
             // 
+            btnSiguiente.BackgroundImage = (Image)resources.GetObject("btnSiguiente.BackgroundImage");
+            btnSiguiente.BackgroundImageLayout = ImageLayout.Center;
             btnSiguiente.Location = new Point(254, 237);
             btnSiguiente.Name = "btnSiguiente";
             btnSiguiente.Size = new Size(36, 31);
             btnSiguiente.TabIndex = 15;
-            btnSiguiente.Text = "button4";
             btnSiguiente.UseVisualStyleBackColor = true;
             btnSiguiente.Click += btnSiguiente_Click;
             // 
             // btnAnterior
             // 
+            btnAnterior.BackgroundImage = (Image)resources.GetObject("btnAnterior.BackgroundImage");
+            btnAnterior.BackgroundImageLayout = ImageLayout.Center;
             btnAnterior.Location = new Point(71, 237);
             btnAnterior.Name = "btnAnterior";
             btnAnterior.Size = new Size(36, 31);
             btnAnterior.TabIndex = 16;
-            btnAnterior.Text = "button1";
             btnAnterior.UseVisualStyleBackColor = true;
             btnAnterior.Click += btnAnterior_Click;
             // 
             // btnPrimero
             // 
+            btnPrimero.BackgroundImage = (Image)resources.GetObject("btnPrimero.BackgroundImage");
+            btnPrimero.BackgroundImageLayout = ImageLayout.Center;
             btnPrimero.Location = new Point(23, 237);
             btnPrimero.Name = "btnPrimero";
             btnPrimero.Size = new Size(36, 31);
             btnPrimero.TabIndex = 17;
-            btnPrimero.Text = "button2";
             btnPrimero.UseVisualStyleBackColor = true;
             btnPrimero.Click += btnPrimero_Click;
             // 
             // btnUltimo
             // 
+            btnUltimo.BackgroundImage = (Image)resources.GetObject("btnUltimo.BackgroundImage");
+            btnUltimo.BackgroundImageLayout = ImageLayout.Center;
             btnUltimo.Location = new Point(296, 237);
             btnUltimo.Name = "btnUltimo";
             btnUltimo.Size = new Size(36, 31);
             btnUltimo.TabIndex = 18;
-            btnUltimo.Text = "button3";
             btnUltimo.UseVisualStyleBackColor = true;
             btnUltimo.Click += btnUltimo_Click;
             // 
@@ -214,9 +219,9 @@
             lblPosicion.AutoSize = true;
             lblPosicion.Location = new Point(150, 244);
             lblPosicion.Name = "lblPosicion";
-            lblPosicion.Size = new Size(50, 20);
+            lblPosicion.Size = new Size(15, 20);
             lblPosicion.TabIndex = 19;
-            lblPosicion.Text = "label1";
+            lblPosicion.Text = "-";
             // 
             // LocalidadesForm
             // 
