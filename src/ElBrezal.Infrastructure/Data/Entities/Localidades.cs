@@ -17,6 +17,8 @@ public partial class Localidades
 
     public virtual ICollection<Clientes> Clientes { get; set; } = new List<Clientes>();
 
+    public virtual ICollection<Proveedores> Proveedores { get; set; } = new List<Proveedores>();
+
     public virtual Provincias Provincia { get; set; } = null!;
 
     public virtual ICollection<Vendedores> Vendedores { get; set; } = new List<Vendedores>();

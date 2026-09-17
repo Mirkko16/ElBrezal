@@ -1,4 +1,7 @@
-﻿namespace ElBrezal.Infrastructure.Data.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace ElBrezal.Infrastructure.Data.Entities;
 
 public partial class EstadosCuentaCliente
 {

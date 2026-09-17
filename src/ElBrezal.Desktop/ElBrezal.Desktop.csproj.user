@@ -19,6 +19,9 @@
     <Compile Update="Forms\Tablas\Marcas\MarcasForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\Tablas\Proveedores\ProveedoresForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\Tablas\Unidades\UnidadesForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -22,6 +22,8 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<Marcas> Marcas { get; set; }
 
+    public virtual DbSet<Proveedores> Proveedores { get; set; }
+
     public virtual DbSet<Provincias> Provincias { get; set; }
 
     public virtual DbSet<SituacionesImpositivas> SituacionesImpositivas { get; set; }
@@ -128,6 +130,39 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Proveedores>(entity =>
+        {
+            entity.Property(e => e.CUIT)
+                .HasMaxLength(13)
+                .IsUnicode(false);
+            entity.Property(e => e.Direccion)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+            entity.Property(e => e.Email)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+            entity.Property(e => e.IngresosBrutos)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Observacion)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+            entity.Property(e => e.Telefono)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Localidad).WithMany(p => p.Proveedores)
+                .HasForeignKey(d => d.LocalidadId)
+                .HasConstraintName("FK_Proveedores_Localidades");
+
+            entity.HasOne(d => d.SituacionImpositiva).WithMany(p => p.Proveedores)
+                .HasForeignKey(d => d.SituacionImpositivaId)
+                .HasConstraintName("FK_Proveedores_SituacionesImpositivas");
         });
 
         modelBuilder.Entity<Provincias>(entity =>

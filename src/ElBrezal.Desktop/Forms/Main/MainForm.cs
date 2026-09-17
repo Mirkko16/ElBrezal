@@ -2,6 +2,7 @@
 using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
+using ElBrezal.Desktop.Forms.Tablas.Proveedores;
 using ElBrezal.Desktop.Forms.Tablas.Unidades;
 using ElBrezal.Desktop.Forms.Tablas.Vendedores;
 using Microsoft.Extensions.DependencyInjection;
@@ -186,6 +187,34 @@ namespace ElBrezal.Desktop.Forms.Main
             var scope = _serviceProvider.CreateScope();
 
             var form = scope.ServiceProvider.GetRequiredService<ClientesForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+        }
+
+        private void proveedoresToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            var formularioAbierto = MdiChildren
+                .OfType<ProveedoresForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider.GetRequiredService<ProveedoresForm>();
 
             form.MdiParent = this;
 

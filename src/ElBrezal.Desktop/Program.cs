@@ -4,6 +4,7 @@ using ElBrezal.Desktop.Forms.Splash;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
+using ElBrezal.Desktop.Forms.Tablas.Proveedores;
 using ElBrezal.Desktop.Forms.Tablas.Unidades;
 using ElBrezal.Desktop.Forms.Tablas.Vendedores;
 using ElBrezal.Infrastructure.DependencyInjection;
@@ -37,7 +38,7 @@ internal static class Program
                 services.AddTransient<LocalidadesForm>();
                 services.AddTransient<ClientesForm>();
                 services.AddTransient<VendedoresForm>();
-
+                services.AddTransient<ProveedoresForm>();
 
             })
             .Build();

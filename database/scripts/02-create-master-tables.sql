@@ -155,3 +155,37 @@ CREATE TABLE dbo.Clientes
         REFERENCES dbo.Vendedores(Id)
 );
 GO
+
+CREATE TABLE dbo.Proveedores
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    Nombre VARCHAR(100) NOT NULL,
+    Direccion VARCHAR(150) NULL,
+
+    LocalidadId INT NULL,
+
+    Telefono VARCHAR(50) NULL,
+
+    CUIT VARCHAR(13) NULL,
+    IngresosBrutos VARCHAR(30) NULL,
+    Email VARCHAR(150) NULL,
+
+    SituacionImpositivaId INT NULL,
+
+    Observacion VARCHAR(500) NULL,
+
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_Proveedores_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_Proveedores
+        PRIMARY KEY (Id),
+
+    CONSTRAINT FK_Proveedores_Localidades
+        FOREIGN KEY (LocalidadId)
+        REFERENCES dbo.Localidades(Id),
+
+    CONSTRAINT FK_Proveedores_SituacionesImpositivas
+        FOREIGN KEY (SituacionImpositivaId)
+        REFERENCES dbo.SituacionesImpositivas(Id)
+);
+GO

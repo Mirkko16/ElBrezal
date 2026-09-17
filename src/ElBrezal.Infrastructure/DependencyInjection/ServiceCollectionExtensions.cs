@@ -27,7 +27,7 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<ISituacionImpositivaService, SituacionImpositivaService>();
             services.AddTransient<IClienteService, ClienteService>();
             services.AddTransient<IVendedorService, VendedorService>();
-            
+            services.AddTransient<IProveedorService, ProveedorService>();
 
 
             return services;

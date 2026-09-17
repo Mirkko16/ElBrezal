@@ -90,6 +90,7 @@
             lblBackupDestino = new Label();
             lblBackupDestinoTitulo = new Label();
             lblBackupTitulo = new Label();
+            proveedoresToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             panel1.SuspendLayout();
@@ -145,7 +146,7 @@
             // 
             // articulosToolStripMenuItem
             // 
-            articulosToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { actualizacionesToolStripMenuItem, actualizDeCostosGlobalToolStripMenuItem, stockMinimosToolStripMenuItem, movimientoDeMercaderiaToolStripMenuItem, ajusteDeStockToolStripMenuItem, controlDeStockToolStripMenuItem, seguimientoToolStripMenuItem, estadisticaDeArticulosToolStripMenuItem, ventasValorizadasToolStripMenuItem });
+            articulosToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { actualizacionesToolStripMenuItem, actualizDeCostosGlobalToolStripMenuItem, stockMinimosToolStripMenuItem, movimientoDeMercaderiaToolStripMenuItem, ajusteDeStockToolStripMenuItem, controlDeStockToolStripMenuItem, seguimientoToolStripMenuItem, estadisticaDeArticulosToolStripMenuItem, ventasValorizadasToolStripMenuItem, proveedoresToolStripMenuItem });
             articulosToolStripMenuItem.Name = "articulosToolStripMenuItem";
             articulosToolStripMenuItem.Size = new Size(81, 24);
             articulosToolStripMenuItem.Text = "Articulos";
@@ -516,6 +517,13 @@
             lblBackupTitulo.TabIndex = 0;
             lblBackupTitulo.Text = "label1";
             // 
+            // proveedoresToolStripMenuItem
+            // 
+            proveedoresToolStripMenuItem.Name = "proveedoresToolStripMenuItem";
+            proveedoresToolStripMenuItem.Size = new Size(272, 26);
+            proveedoresToolStripMenuItem.Text = "Proveedores";
+            proveedoresToolStripMenuItem.Click += proveedoresToolStripMenuItem_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -603,5 +611,6 @@
         private ToolStripMenuItem listadoInconsiToolStripMenuItem;
         private ToolStripMenuItem actualizacionClientesToolStripMenuItem;
         private ToolStripMenuItem listadoDeClientesToolStripMenuItem;
+        private ToolStripMenuItem proveedoresToolStripMenuItem;
     }
 }
