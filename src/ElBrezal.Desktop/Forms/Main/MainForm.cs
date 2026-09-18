@@ -230,9 +230,26 @@ namespace ElBrezal.Desktop.Forms.Main
 
         private void actualizacionesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            AbrirArticulosForm();
+        }
+
+        private void MainForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F4)
+            {
+                AbrirArticulosForm();
+
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+
+        }
+
+        private void AbrirArticulosForm()
+        {
             var formularioAbierto = MdiChildren
-               .OfType<ArticulosForm>()
-               .FirstOrDefault();
+                .OfType<ArticulosForm>()
+                .FirstOrDefault();
 
             if (formularioAbierto is not null)
             {
@@ -242,7 +259,8 @@ namespace ElBrezal.Desktop.Forms.Main
 
             var scope = _serviceProvider.CreateScope();
 
-            var form = scope.ServiceProvider.GetRequiredService<ArticulosForm>();
+            var form = scope.ServiceProvider
+                .GetRequiredService<ArticulosForm>();
 
             form.MdiParent = this;
 
@@ -252,7 +270,6 @@ namespace ElBrezal.Desktop.Forms.Main
             };
 
             form.Show();
-
         }
     }
 }

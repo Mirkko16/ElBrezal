@@ -138,7 +138,7 @@
             btnNuevaMarca.Location = new Point(338, 83);
             btnNuevaMarca.Name = "btnNuevaMarca";
             btnNuevaMarca.Size = new Size(25, 23);
-            btnNuevaMarca.TabIndex = 50;
+            btnNuevaMarca.TabIndex = 5;
             btnNuevaMarca.Text = "...";
             btnNuevaMarca.UseVisualStyleBackColor = true;
             btnNuevaMarca.Click += btnNuevaMarca_Click;
@@ -148,7 +148,7 @@
             btnNuevaUnidad.Location = new Point(338, 113);
             btnNuevaUnidad.Name = "btnNuevaUnidad";
             btnNuevaUnidad.Size = new Size(25, 23);
-            btnNuevaUnidad.TabIndex = 49;
+            btnNuevaUnidad.TabIndex = 7;
             btnNuevaUnidad.Text = "...";
             btnNuevaUnidad.UseVisualStyleBackColor = true;
             btnNuevaUnidad.Click += btnNuevaUnidad_Click;
@@ -158,7 +158,7 @@
             btnNuevoProveedor.Location = new Point(338, 142);
             btnNuevoProveedor.Name = "btnNuevoProveedor";
             btnNuevoProveedor.Size = new Size(25, 23);
-            btnNuevoProveedor.TabIndex = 48;
+            btnNuevoProveedor.TabIndex = 9;
             btnNuevoProveedor.Text = "...";
             btnNuevoProveedor.UseVisualStyleBackColor = true;
             btnNuevoProveedor.Click += btnNuevoProveedor_Click;
@@ -168,7 +168,7 @@
             btnNuevaFamilia.Location = new Point(338, 54);
             btnNuevaFamilia.Name = "btnNuevaFamilia";
             btnNuevaFamilia.Size = new Size(25, 23);
-            btnNuevaFamilia.TabIndex = 47;
+            btnNuevaFamilia.TabIndex = 3;
             btnNuevaFamilia.Text = "...";
             btnNuevaFamilia.UseVisualStyleBackColor = true;
             btnNuevaFamilia.Click += btnNuevaFamilia_Click;
@@ -179,7 +179,7 @@
             comboBoxMarca.Location = new Point(101, 83);
             comboBoxMarca.Name = "comboBoxMarca";
             comboBoxMarca.Size = new Size(231, 23);
-            comboBoxMarca.TabIndex = 46;
+            comboBoxMarca.TabIndex = 4;
             // 
             // comboBoxUnidad
             // 
@@ -187,7 +187,7 @@
             comboBoxUnidad.Location = new Point(101, 112);
             comboBoxUnidad.Name = "comboBoxUnidad";
             comboBoxUnidad.Size = new Size(231, 23);
-            comboBoxUnidad.TabIndex = 45;
+            comboBoxUnidad.TabIndex = 6;
             // 
             // comboBoxProveedor
             // 
@@ -195,7 +195,7 @@
             comboBoxProveedor.Location = new Point(101, 142);
             comboBoxProveedor.Name = "comboBoxProveedor";
             comboBoxProveedor.Size = new Size(231, 23);
-            comboBoxProveedor.TabIndex = 44;
+            comboBoxProveedor.TabIndex = 8;
             // 
             // comboBoxFamilia
             // 
@@ -203,14 +203,14 @@
             comboBoxFamilia.Location = new Point(101, 55);
             comboBoxFamilia.Name = "comboBoxFamilia";
             comboBoxFamilia.Size = new Size(231, 23);
-            comboBoxFamilia.TabIndex = 43;
+            comboBoxFamilia.TabIndex = 2;
             // 
             // textBoxStock
             // 
             textBoxStock.Location = new Point(611, 121);
             textBoxStock.Name = "textBoxStock";
             textBoxStock.Size = new Size(100, 23);
-            textBoxStock.TabIndex = 42;
+            textBoxStock.TabIndex = 10;
             textBoxStock.KeyPress += textBoxStock_KeyPress;
             // 
             // textBoxFechaModificacion
@@ -235,7 +235,7 @@
             textBoxDescripcion.Location = new Point(234, 18);
             textBoxDescripcion.Name = "textBoxDescripcion";
             textBoxDescripcion.Size = new Size(477, 23);
-            textBoxDescripcion.TabIndex = 39;
+            textBoxDescripcion.TabIndex = 1;
             // 
             // textBoxCodigo
             // 
@@ -428,7 +428,7 @@
             comboBoxAlicuota.Location = new Point(385, 20);
             comboBoxAlicuota.Name = "comboBoxAlicuota";
             comboBoxAlicuota.Size = new Size(157, 23);
-            comboBoxAlicuota.TabIndex = 51;
+            comboBoxAlicuota.TabIndex = 12;
             comboBoxAlicuota.SelectedIndexChanged += comboBoxAlicuota_SelectedIndexChanged;
             // 
             // textBoxCostoArt
@@ -436,7 +436,7 @@
             textBoxCostoArt.Location = new Point(80, 20);
             textBoxCostoArt.Name = "textBoxCostoArt";
             textBoxCostoArt.Size = new Size(100, 23);
-            textBoxCostoArt.TabIndex = 58;
+            textBoxCostoArt.TabIndex = 11;
             textBoxCostoArt.KeyPress += textBoxCostoArt_KeyPress;
             textBoxCostoArt.Leave += textBoxCostoArt_Leave;
             // 
@@ -471,7 +471,7 @@
             textBoxReventaSIVA.Location = new Point(442, 103);
             textBoxReventaSIVA.Name = "textBoxReventaSIVA";
             textBoxReventaSIVA.Size = new Size(100, 23);
-            textBoxReventaSIVA.TabIndex = 56;
+            textBoxReventaSIVA.TabIndex = 16;
             textBoxReventaSIVA.KeyPress += textBoxReventaSIVA_KeyPress;
             textBoxReventaSIVA.Leave += textBoxReventaSIVA_Leave;
             // 
@@ -489,7 +489,7 @@
             textBoxCtaCteSIVA.Location = new Point(442, 132);
             textBoxCtaCteSIVA.Name = "textBoxCtaCteSIVA";
             textBoxCtaCteSIVA.Size = new Size(100, 23);
-            textBoxCtaCteSIVA.TabIndex = 55;
+            textBoxCtaCteSIVA.TabIndex = 18;
             textBoxCtaCteSIVA.KeyPress += textBoxCtaCteSIVA_KeyPress;
             textBoxCtaCteSIVA.Leave += textBoxCtaCteSIVA_Leave;
             // 
@@ -498,7 +498,7 @@
             textBoxContadoSIVA.Location = new Point(442, 74);
             textBoxContadoSIVA.Name = "textBoxContadoSIVA";
             textBoxContadoSIVA.Size = new Size(100, 23);
-            textBoxContadoSIVA.TabIndex = 54;
+            textBoxContadoSIVA.TabIndex = 14;
             textBoxContadoSIVA.KeyPress += textBoxContadoSIVA_KeyPress;
             textBoxContadoSIVA.Leave += textBoxContadoSIVA_Leave;
             // 
@@ -507,7 +507,7 @@
             textBoxrentaReventa.Location = new Point(263, 103);
             textBoxrentaReventa.Name = "textBoxrentaReventa";
             textBoxrentaReventa.Size = new Size(100, 23);
-            textBoxrentaReventa.TabIndex = 53;
+            textBoxrentaReventa.TabIndex = 15;
             textBoxrentaReventa.KeyPress += textBoxrentaReventa_KeyPress;
             textBoxrentaReventa.Leave += textBoxrentaReventa_Leave;
             // 
@@ -516,7 +516,7 @@
             textBoxRentaCtaCte.Location = new Point(263, 132);
             textBoxRentaCtaCte.Name = "textBoxRentaCtaCte";
             textBoxRentaCtaCte.Size = new Size(100, 23);
-            textBoxRentaCtaCte.TabIndex = 52;
+            textBoxRentaCtaCte.TabIndex = 17;
             textBoxRentaCtaCte.KeyPress += textBoxRentaCtaCte_KeyPress;
             textBoxRentaCtaCte.Leave += textBoxRentaCtaCte_Leave;
             // 
@@ -525,7 +525,7 @@
             textBoxRentaContado.Location = new Point(263, 74);
             textBoxRentaContado.Name = "textBoxRentaContado";
             textBoxRentaContado.Size = new Size(100, 23);
-            textBoxRentaContado.TabIndex = 51;
+            textBoxRentaContado.TabIndex = 13;
             textBoxRentaContado.KeyPress += textBoxRentaContado_KeyPress;
             textBoxRentaContado.Leave += textBoxRentaContado_Leave;
             // 
