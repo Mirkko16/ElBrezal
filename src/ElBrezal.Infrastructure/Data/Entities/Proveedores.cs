@@ -29,5 +29,7 @@ public partial class Proveedores
 
     public virtual Localidades? Localidad { get; set; }
 
+    public virtual ICollection<Productos> Productos { get; set; } = new List<Productos>();
+
     public virtual SituacionesImpositivas? SituacionImpositiva { get; set; }
 }

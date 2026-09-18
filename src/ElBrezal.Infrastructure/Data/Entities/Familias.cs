@@ -12,4 +12,6 @@ public partial class Familias
     public decimal? Porcentaje { get; set; }
 
     public bool Eliminado { get; set; }
+
+    public virtual ICollection<Productos> Productos { get; set; } = new List<Productos>();
 }

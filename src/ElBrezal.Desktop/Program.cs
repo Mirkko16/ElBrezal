@@ -1,3 +1,4 @@
+using ElBrezal.Desktop.Forms.Articulos.Actualizaciones;
 using ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes;
 using ElBrezal.Desktop.Forms.Main;
 using ElBrezal.Desktop.Forms.Splash;
@@ -39,6 +40,7 @@ internal static class Program
                 services.AddTransient<ClientesForm>();
                 services.AddTransient<VendedoresForm>();
                 services.AddTransient<ProveedoresForm>();
+                services.AddTransient<ArticulosForm>();
 
             })
             .Build();

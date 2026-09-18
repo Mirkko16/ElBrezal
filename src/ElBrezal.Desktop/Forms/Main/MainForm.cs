@@ -1,4 +1,5 @@
-﻿using ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes;
+﻿using ElBrezal.Desktop.Forms.Articulos.Actualizaciones;
+using ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
@@ -215,6 +216,33 @@ namespace ElBrezal.Desktop.Forms.Main
             var scope = _serviceProvider.CreateScope();
 
             var form = scope.ServiceProvider.GetRequiredService<ProveedoresForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+        }
+
+        private void actualizacionesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+               .OfType<ArticulosForm>()
+               .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider.GetRequiredService<ArticulosForm>();
 
             form.MdiParent = this;
 

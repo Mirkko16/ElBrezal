@@ -28,6 +28,8 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<IClienteService, ClienteService>();
             services.AddTransient<IVendedorService, VendedorService>();
             services.AddTransient<IProveedorService, ProveedorService>();
+            services.AddTransient<IProductoService, ProductoService>();
+            services.AddTransient<IAlicuotaIVAService, AlicuotaIVAService>();
 
 
             return services;

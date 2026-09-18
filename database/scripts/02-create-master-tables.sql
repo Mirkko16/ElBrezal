@@ -189,3 +189,92 @@ CREATE TABLE dbo.Proveedores
         REFERENCES dbo.SituacionesImpositivas(Id)
 );
 GO
+
+USE ElBrezalDB;
+GO
+
+CREATE TABLE dbo.Productos
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+
+    Nombre VARCHAR(150) NOT NULL,
+
+    FamiliaId INT NULL,
+    MarcaId INT NULL,
+    UnidadId INT NULL,
+    ProveedorId INT NULL,
+
+    Costo DECIMAL(18,4) NOT NULL
+        CONSTRAINT DF_Productos_Costo DEFAULT 0,
+
+    AlicuotaIVA DECIMAL(5,2) NOT NULL
+        CONSTRAINT DF_Productos_AlicuotaIVA DEFAULT 21,
+
+    RentabilidadContado DECIMAL(7,2) NOT NULL
+        CONSTRAINT DF_Productos_RentabilidadContado DEFAULT 0,
+
+    PrecioContado DECIMAL(18,4) NOT NULL
+        CONSTRAINT DF_Productos_PrecioContado DEFAULT 0,
+
+    RentabilidadReventa DECIMAL(7,2) NOT NULL
+        CONSTRAINT DF_Productos_RentabilidadReventa DEFAULT 0,
+
+    PrecioReventa DECIMAL(18,4) NOT NULL
+        CONSTRAINT DF_Productos_PrecioReventa DEFAULT 0,
+
+    RentabilidadCuentaCorriente DECIMAL(7,2) NOT NULL
+        CONSTRAINT DF_Productos_RentabilidadCuentaCorriente DEFAULT 0,
+
+    PrecioCuentaCorriente DECIMAL(18,4) NOT NULL
+        CONSTRAINT DF_Productos_PrecioCuentaCorriente DEFAULT 0,
+
+    Stock DECIMAL(18,4) NOT NULL
+        CONSTRAINT DF_Productos_Stock DEFAULT 0,
+
+    FechaAlta DATETIME2 NOT NULL
+        CONSTRAINT DF_Productos_FechaAlta DEFAULT SYSDATETIME(),
+
+    FechaModificacion DATETIME2 NULL,
+
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_Productos_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_Productos
+        PRIMARY KEY (Id),
+
+    CONSTRAINT FK_Productos_Familias
+        FOREIGN KEY (FamiliaId)
+        REFERENCES dbo.Familias(Id),
+
+    CONSTRAINT FK_Productos_Marcas
+        FOREIGN KEY (MarcaId)
+        REFERENCES dbo.Marcas(Id),
+
+    CONSTRAINT FK_Productos_Unidades
+        FOREIGN KEY (UnidadId)
+        REFERENCES dbo.Unidades(Id),
+
+    CONSTRAINT FK_Productos_Proveedores
+        FOREIGN KEY (ProveedorId)
+        REFERENCES dbo.Proveedores(Id)
+);
+GO
+
+ALTER TABLE dbo.Productos
+DROP CONSTRAINT DF_Productos_AlicuotaIVA;
+GO
+
+ALTER TABLE dbo.Productos
+DROP COLUMN AlicuotaIVA;
+GO
+
+ALTER TABLE dbo.Productos
+ADD AlicuotaIVAId INT NOT NULL
+    CONSTRAINT DF_Productos_AlicuotaIVAId DEFAULT 3;
+GO
+
+ALTER TABLE dbo.Productos
+ADD CONSTRAINT FK_Productos_AlicuotasIVA
+    FOREIGN KEY (AlicuotaIVAId)
+    REFERENCES dbo.AlicuotasIVA(Id);
+GO

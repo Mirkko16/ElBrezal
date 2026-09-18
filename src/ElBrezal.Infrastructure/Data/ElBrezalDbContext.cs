@@ -12,6 +12,8 @@ public partial class ElBrezalDbContext : DbContext
     {
     }
 
+    public virtual DbSet<AlicuotasIVA> AlicuotasIVA { get; set; }
+
     public virtual DbSet<Clientes> Clientes { get; set; }
 
     public virtual DbSet<EstadosCuentaCliente> EstadosCuentaCliente { get; set; }
@@ -21,6 +23,8 @@ public partial class ElBrezalDbContext : DbContext
     public virtual DbSet<Localidades> Localidades { get; set; }
 
     public virtual DbSet<Marcas> Marcas { get; set; }
+
+    public virtual DbSet<Productos> Productos { get; set; }
 
     public virtual DbSet<Proveedores> Proveedores { get; set; }
 
@@ -34,6 +38,16 @@ public partial class ElBrezalDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AlicuotasIVA>(entity =>
+        {
+            entity.HasIndex(e => e.Porcentaje, "UQ_AlicuotasIVA_Porcentaje").IsUnique();
+
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Porcentaje).HasColumnType("decimal(5, 2)");
+        });
+
         modelBuilder.Entity<Clientes>(entity =>
         {
             entity.Property(e => e.CUIT)
@@ -130,6 +144,44 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Productos>(entity =>
+        {
+            entity.Property(e => e.AlicuotaIVAId).HasDefaultValue(3, "DF_Productos_AlicuotaIVAId");
+            entity.Property(e => e.Costo).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.FechaAlta).HasDefaultValueSql("(sysdatetime())", "DF_Productos_FechaAlta");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+            entity.Property(e => e.PrecioContado).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.PrecioCuentaCorriente).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.PrecioReventa).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.RentabilidadContado).HasColumnType("decimal(7, 2)");
+            entity.Property(e => e.RentabilidadCuentaCorriente).HasColumnType("decimal(7, 2)");
+            entity.Property(e => e.RentabilidadReventa).HasColumnType("decimal(7, 2)");
+            entity.Property(e => e.Stock).HasColumnType("decimal(18, 4)");
+
+            entity.HasOne(d => d.AlicuotaIVA).WithMany(p => p.Productos)
+                .HasForeignKey(d => d.AlicuotaIVAId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Productos_AlicuotasIVA");
+
+            entity.HasOne(d => d.Familia).WithMany(p => p.Productos)
+                .HasForeignKey(d => d.FamiliaId)
+                .HasConstraintName("FK_Productos_Familias");
+
+            entity.HasOne(d => d.Marca).WithMany(p => p.Productos)
+                .HasForeignKey(d => d.MarcaId)
+                .HasConstraintName("FK_Productos_Marcas");
+
+            entity.HasOne(d => d.Proveedor).WithMany(p => p.Productos)
+                .HasForeignKey(d => d.ProveedorId)
+                .HasConstraintName("FK_Productos_Proveedores");
+
+            entity.HasOne(d => d.Unidad).WithMany(p => p.Productos)
+                .HasForeignKey(d => d.UnidadId)
+                .HasConstraintName("FK_Productos_Unidades");
         });
 
         modelBuilder.Entity<Proveedores>(entity =>
