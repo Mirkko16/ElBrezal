@@ -164,6 +164,7 @@
             actualizDeCostosGlobalToolStripMenuItem.Name = "actualizDeCostosGlobalToolStripMenuItem";
             actualizDeCostosGlobalToolStripMenuItem.Size = new Size(217, 22);
             actualizDeCostosGlobalToolStripMenuItem.Text = "Actualiz. de Costos Global";
+            actualizDeCostosGlobalToolStripMenuItem.Click += actualizDeCostosGlobalToolStripMenuItem_Click;
             // 
             // stockMinimosToolStripMenuItem
             // 

@@ -1,4 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
+﻿using ElBrezal.Application.ActualizacionCostos;
+using ElBrezal.Application.Interfaces;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,7 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<IProveedorService, ProveedorService>();
             services.AddTransient<IProductoService, ProductoService>();
             services.AddTransient<IAlicuotaIVAService, AlicuotaIVAService>();
+            services.AddScoped<IActualizacionCostosService, ActualizacionCostosService>();
 
 
             return services;
