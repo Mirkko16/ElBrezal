@@ -1,0 +1,5 @@
+IF DB_ID('ElBrezalDB') IS NULL
+BEGIN
+    CREATE DATABASE ElBrezalDB;
+END
+GO
