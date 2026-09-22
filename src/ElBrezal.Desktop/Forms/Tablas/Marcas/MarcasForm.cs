@@ -1,5 +1,6 @@
 ﻿using ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Models;
+using ElBrezal.Desktop.UI.Styles;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -27,6 +28,7 @@ namespace ElBrezal.Desktop.Forms.Tablas.Marcas
         {
             try
             {
+                ConfigurarGrilla();
                 await CargarMarcasAsync();
             }
             catch (Exception ex)
@@ -132,6 +134,22 @@ namespace ElBrezal.Desktop.Forms.Tablas.Marcas
             {
                 Close();
             }
+        }
+
+        private void ConfigurarGrilla()
+        {
+            // Estilo visual común de ElBrezal
+            DataGridViewStyles.AplicarEstiloBase(dataGridViewMarcas);
+
+            // Comportamiento particular de esta grilla
+            dataGridViewMarcas.AutoGenerateColumns = true;
+            dataGridViewMarcas.AllowUserToAddRows = false;
+            dataGridViewMarcas.AllowUserToDeleteRows = false;
+            dataGridViewMarcas.MultiSelect = false;
+            dataGridViewMarcas.ReadOnly = true;
+
+            dataGridViewMarcas.SelectionMode =
+                DataGridViewSelectionMode.FullRowSelect;
         }
 
     }

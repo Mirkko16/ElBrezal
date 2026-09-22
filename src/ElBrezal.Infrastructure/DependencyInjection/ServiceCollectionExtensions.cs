@@ -32,6 +32,7 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<IProductoService, ProductoService>();
             services.AddTransient<IAlicuotaIVAService, AlicuotaIVAService>();
             services.AddScoped<IActualizacionCostosService, ActualizacionCostosService>();
+            services.AddScoped<ICondicionVentaService, CondicionVentaService>();
 
 
             return services;

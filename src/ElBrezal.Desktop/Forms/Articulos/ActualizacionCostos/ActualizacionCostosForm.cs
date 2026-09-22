@@ -1,5 +1,6 @@
 ﻿using ElBrezal.Application.ActualizacionCostos;
 using ElBrezal.Application.Interfaces;
+using ElBrezal.Desktop.UI.Styles;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -81,18 +82,30 @@ namespace ElBrezal.Desktop.Forms.Articulos.ActualizacionCostos
 
         private void ConfigurarGrilla()
         {
+            // =========================================================
+            // ESTILO VISUAL COMÚN
+            // =========================================================
+
+            DataGridViewStyles.AplicarEstiloBase(dataGridViewProductos);
+
+            // =========================================================
+            // COMPORTAMIENTO DE ESTA GRILLA
+            // =========================================================
+
             dataGridViewProductos.AutoGenerateColumns = false;
             dataGridViewProductos.AllowUserToAddRows = false;
             dataGridViewProductos.AllowUserToDeleteRows = false;
             dataGridViewProductos.MultiSelect = false;
 
-            // IMPORTANTE:
-            // La grilla debe permitir edición.
-            // Después bloqueamos individualmente las columnas de texto.
+            // Debe permitir edición porque necesitamos editar el checkbox.
             dataGridViewProductos.ReadOnly = false;
 
             dataGridViewProductos.SelectionMode =
                 DataGridViewSelectionMode.FullRowSelect;
+
+            // =========================================================
+            // BINDING DE COLUMNAS
+            // =========================================================
 
             DataGridViewCheckBoxColumnSeleccionar.DataPropertyName =
                 nameof(ActualizacionCostoProductoDto.Seleccionado);
@@ -115,17 +128,24 @@ namespace ElBrezal.Desktop.Forms.Articulos.ActualizacionCostos
                 nameof(ActualizacionCostoProductoDto.Proveedor);
 
             DataGridViewTextBoxColumnPrecioContado.DataPropertyName =
-    nameof(ActualizacionCostoProductoDto.PrecioContado);
+                nameof(ActualizacionCostoProductoDto.PrecioContado);
 
-            DataGridViewTextBoxColumnPrecioContado.ReadOnly = true;
-            DataGridViewTextBoxColumnPrecioContado.DefaultCellStyle.Format = "N2";
+            // =========================================================
+            // CONFIGURACIÓN DE COLUMNAS
+            // =========================================================
 
             DataGridViewTextBoxColumnCodigo.ReadOnly = true;
             DataGridViewTextBoxColumnProducto.ReadOnly = true;
             DataGridViewTextBoxFamilia.ReadOnly = true;
             DataGridViewTextBoxColumnMarca.ReadOnly = true;
             DataGridViewTextBoxColumnProveedor.ReadOnly = true;
-            
+
+            DataGridViewTextBoxColumnPrecioContado.ReadOnly = true;
+            DataGridViewTextBoxColumnPrecioContado.DefaultCellStyle.Format = "N2";
+
+            // =========================================================
+            // DATASOURCE
+            // =========================================================
 
             bindingSourceProductos.DataSource = _productos;
             dataGridViewProductos.DataSource = bindingSourceProductos;

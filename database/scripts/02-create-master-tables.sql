@@ -278,3 +278,35 @@ ADD CONSTRAINT FK_Productos_AlicuotasIVA
     FOREIGN KEY (AlicuotaIVAId)
     REFERENCES dbo.AlicuotasIVA(Id);
 GO
+
+CREATE TABLE CondicionesVenta
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    Nombre NVARCHAR(50) NOT NULL,
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_CondicionesVenta_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_CondicionesVenta
+        PRIMARY KEY (Id)
+);
+GO
+
+ALTER TABLE Clientes
+DROP COLUMN
+    Telefono2,
+    Fax,
+    Ocupacion,
+    Matricula;
+
+EXEC sp_rename
+    'Clientes.Telefono1',
+    'Telefono',
+    'COLUMN';
+
+INSERT INTO CondicionesVenta (Nombre)
+VALUES
+    ('CONTADO'),
+    ('TARJETA DE DEBITO'),
+    ('TARJETA DE CREDITO'),
+    ('CUENTA CORRIENTE');
+GO

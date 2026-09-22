@@ -16,6 +16,8 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<Clientes> Clientes { get; set; }
 
+    public virtual DbSet<CondicionesVenta> CondicionesVenta { get; set; }
+
     public virtual DbSet<EstadosCuentaCliente> EstadosCuentaCliente { get; set; }
 
     public virtual DbSet<Familias> Familias { get; set; }
@@ -62,14 +64,8 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(150)
                 .IsUnicode(false);
-            entity.Property(e => e.Fax)
-                .HasMaxLength(50)
-                .IsUnicode(false);
             entity.Property(e => e.IngresosBrutos)
                 .HasMaxLength(30)
-                .IsUnicode(false);
-            entity.Property(e => e.Matricula)
-                .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
@@ -77,13 +73,7 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Observacion)
                 .HasMaxLength(500)
                 .IsUnicode(false);
-            entity.Property(e => e.Ocupacion)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.Telefono1)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Telefono2)
+            entity.Property(e => e.Telefono)
                 .HasMaxLength(50)
                 .IsUnicode(false);
 
@@ -105,6 +95,11 @@ public partial class ElBrezalDbContext : DbContext
             entity.HasOne(d => d.Vendedor).WithMany(p => p.Clientes)
                 .HasForeignKey(d => d.VendedorId)
                 .HasConstraintName("FK_Clientes_Vendedores");
+        });
+
+        modelBuilder.Entity<CondicionesVenta>(entity =>
+        {
+            entity.Property(e => e.Nombre).HasMaxLength(50);
         });
 
         modelBuilder.Entity<EstadosCuentaCliente>(entity =>

@@ -5,6 +5,7 @@ namespace ElBrezal.Application.Interfaces
     public interface IClienteService
     {
         Task<List<ClienteDto>> ObtenerTodosAsync();
+        Task<ClienteDto?> ObtenerPorIdAsync(int id);
 
         Task AgregarAsync(ClienteDto cliente);
 

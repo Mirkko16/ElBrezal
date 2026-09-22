@@ -19,17 +19,9 @@ public partial class Clientes
 
     public int LocalidadId { get; set; }
 
-    public string? Telefono1 { get; set; }
-
-    public string? Telefono2 { get; set; }
-
-    public string? Fax { get; set; }
+    public string? Telefono { get; set; }
 
     public string? Email { get; set; }
-
-    public string? Ocupacion { get; set; }
-
-    public string? Matricula { get; set; }
 
     public int SituacionImpositivaId { get; set; }
 

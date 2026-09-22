@@ -10,6 +10,9 @@
     <Compile Update="Forms\Clientes\ActualizacionClientes\ClientesForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\Clientes\Ventas\VentasForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\Main\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -33,6 +36,9 @@
     </Compile>
     <Compile Update="Forms\Tablas\Vendedores\VendedoresForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\HeaderPanel.cs">
+      <SubType>Component</SubType>
     </Compile>
   </ItemGroup>
 </Project>
