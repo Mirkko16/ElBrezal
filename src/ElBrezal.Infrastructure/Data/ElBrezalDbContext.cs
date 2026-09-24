@@ -34,6 +34,8 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<SituacionesImpositivas> SituacionesImpositivas { get; set; }
 
+    public virtual DbSet<TiposComprobante> TiposComprobante { get; set; }
+
     public virtual DbSet<Unidades> Unidades { get; set; }
 
     public virtual DbSet<Vendedores> Vendedores { get; set; }
@@ -231,6 +233,15 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.Porce).HasColumnType("decimal(5, 2)");
+        });
+
+        modelBuilder.Entity<TiposComprobante>(entity =>
+        {
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Abreviatura).HasMaxLength(10);
+            entity.Property(e => e.Nombre).HasMaxLength(50);
+            entity.Property(e => e.Signo).HasDefaultValue((short)1, "DF_TiposComprobante_Signo");
         });
 
         modelBuilder.Entity<Unidades>(entity =>

@@ -53,13 +53,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             groupBoxInfoVenta = new GroupBox();
             lblAlicuotaProcentaje = new Label();
             lblArticulosCantidad = new Label();
-            lblStockCantidad = new Label();
             button1 = new Button();
             lblImporteSaldo = new Label();
             lblSaldo = new Label();
             lblCategoria = new Label();
             lblCategoriaCliente = new Label();
-            lblStock = new Label();
             lblArticulos = new Label();
             lblAlicuota = new Label();
             groupBoxArticulosVendidos = new GroupBox();
@@ -68,7 +66,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             DataGridViewTextBoxColumnArticulo = new DataGridViewTextBoxColumn();
             DataGridViewTextBoxColumnDescripcion = new DataGridViewTextBoxColumn();
             DataGridViewTextBoxColumnPrecio = new DataGridViewTextBoxColumn();
-            DataGridViewTextBoxColumnDescuento = new DataGridViewTextBoxColumn();
             DataGridViewTextBoxColumnImporte = new DataGridViewTextBoxColumn();
             groupBoxTotales = new GroupBox();
             lblSubTotal = new Label();
@@ -82,7 +79,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             btnSalir = new Button();
             btnConfirmar = new Button();
             btnNuevaVenta = new Button();
-            textBox1 = new TextBox();
+            textBoxObservacion = new TextBox();
             lblObservacion = new Label();
             lblTitulo = new Label();
             gpDatosCliente.SuspendLayout();
@@ -174,6 +171,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxVariacionVenta.Name = "textBoxVariacionVenta";
             textBoxVariacionVenta.Size = new Size(48, 23);
             textBoxVariacionVenta.TabIndex = 27;
+            textBoxVariacionVenta.TextChanged += textBoxVariacionVenta_TextChanged;
             // 
             // textBoxTelCliente
             // 
@@ -247,6 +245,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             btnBuscarCliente.TabIndex = 22;
             btnBuscarCliente.Text = "...";
             btnBuscarCliente.UseVisualStyleBackColor = true;
+            btnBuscarCliente.Click += btnBuscarCliente_Click;
             // 
             // textBoxFecha
             // 
@@ -282,6 +281,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxVendedor.Name = "textBoxVendedor";
             textBoxVendedor.Size = new Size(110, 23);
             textBoxVendedor.TabIndex = 17;
+            textBoxVendedor.Enter += textBoxVendedor_Enter;
+            textBoxVendedor.KeyDown += textBoxVendedor_KeyDown;
             // 
             // comboBoxTipo
             // 
@@ -291,6 +292,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             comboBoxTipo.Name = "comboBoxTipo";
             comboBoxTipo.Size = new Size(158, 23);
             comboBoxTipo.TabIndex = 15;
+            comboBoxTipo.SelectedValueChanged += comboBoxTipo_SelectedValueChanged;
             // 
             // comboBoxCondicionVenta
             // 
@@ -396,13 +398,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // 
             groupBoxInfoVenta.Controls.Add(lblAlicuotaProcentaje);
             groupBoxInfoVenta.Controls.Add(lblArticulosCantidad);
-            groupBoxInfoVenta.Controls.Add(lblStockCantidad);
             groupBoxInfoVenta.Controls.Add(button1);
             groupBoxInfoVenta.Controls.Add(lblImporteSaldo);
             groupBoxInfoVenta.Controls.Add(lblSaldo);
             groupBoxInfoVenta.Controls.Add(lblCategoria);
             groupBoxInfoVenta.Controls.Add(lblCategoriaCliente);
-            groupBoxInfoVenta.Controls.Add(lblStock);
             groupBoxInfoVenta.Controls.Add(lblArticulos);
             groupBoxInfoVenta.Controls.Add(lblAlicuota);
             groupBoxInfoVenta.Location = new Point(709, 187);
@@ -418,7 +418,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             lblAlicuotaProcentaje.AutoSize = true;
             lblAlicuotaProcentaje.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblAlicuotaProcentaje.ForeColor = SystemColors.Highlight;
-            lblAlicuotaProcentaje.Location = new Point(100, 225);
+            lblAlicuotaProcentaje.Location = new Point(102, 171);
             lblAlicuotaProcentaje.Name = "lblAlicuotaProcentaje";
             lblAlicuotaProcentaje.Size = new Size(41, 15);
             lblAlicuotaProcentaje.TabIndex = 41;
@@ -429,22 +429,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             lblArticulosCantidad.AutoSize = true;
             lblArticulosCantidad.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblArticulosCantidad.ForeColor = SystemColors.Highlight;
-            lblArticulosCantidad.Location = new Point(83, 182);
+            lblArticulosCantidad.Location = new Point(88, 125);
             lblArticulosCantidad.Name = "lblArticulosCantidad";
             lblArticulosCantidad.Size = new Size(14, 15);
             lblArticulosCantidad.TabIndex = 40;
             lblArticulosCantidad.Text = "0";
-            // 
-            // lblStockCantidad
-            // 
-            lblStockCantidad.AutoSize = true;
-            lblStockCantidad.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            lblStockCantidad.ForeColor = SystemColors.Highlight;
-            lblStockCantidad.Location = new Point(68, 130);
-            lblStockCantidad.Name = "lblStockCantidad";
-            lblStockCantidad.Size = new Size(31, 15);
-            lblStockCantidad.TabIndex = 39;
-            lblStockCantidad.Text = "0,00";
             // 
             // button1
             // 
@@ -495,19 +484,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             lblCategoriaCliente.TabIndex = 14;
             lblCategoriaCliente.Text = "NORMAL";
             // 
-            // lblStock
-            // 
-            lblStock.AutoSize = true;
-            lblStock.Location = new Point(17, 130);
-            lblStock.Name = "lblStock";
-            lblStock.Size = new Size(39, 15);
-            lblStock.TabIndex = 13;
-            lblStock.Text = "Stock:";
-            // 
             // lblArticulos
             // 
             lblArticulos.AutoSize = true;
-            lblArticulos.Location = new Point(17, 182);
+            lblArticulos.Location = new Point(22, 125);
             lblArticulos.Name = "lblArticulos";
             lblArticulos.Size = new Size(57, 15);
             lblArticulos.TabIndex = 11;
@@ -516,7 +496,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // lblAlicuota
             // 
             lblAlicuota.AutoSize = true;
-            lblAlicuota.Location = new Point(17, 225);
+            lblAlicuota.Location = new Point(22, 171);
             lblAlicuota.Name = "lblAlicuota";
             lblAlicuota.Size = new Size(74, 15);
             lblAlicuota.TabIndex = 8;
@@ -537,11 +517,13 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // dataGridViewProductos
             // 
             dataGridViewProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewProductos.Columns.AddRange(new DataGridViewColumn[] { DataGridViewTextBoxColumnCantidad, DataGridViewTextBoxColumnArticulo, DataGridViewTextBoxColumnDescripcion, DataGridViewTextBoxColumnPrecio, DataGridViewTextBoxColumnDescuento, DataGridViewTextBoxColumnImporte });
+            dataGridViewProductos.Columns.AddRange(new DataGridViewColumn[] { DataGridViewTextBoxColumnCantidad, DataGridViewTextBoxColumnArticulo, DataGridViewTextBoxColumnDescripcion, DataGridViewTextBoxColumnPrecio, DataGridViewTextBoxColumnImporte });
             dataGridViewProductos.Location = new Point(6, 16);
             dataGridViewProductos.Name = "dataGridViewProductos";
             dataGridViewProductos.Size = new Size(677, 230);
             dataGridViewProductos.TabIndex = 1;
+            dataGridViewProductos.CellValueChanged += dataGridViewProductos_CellValueChanged;
+            dataGridViewProductos.KeyDown += dataGridViewProductos_KeyDown;
             // 
             // DataGridViewTextBoxColumnCantidad
             // 
@@ -563,11 +545,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // 
             DataGridViewTextBoxColumnPrecio.HeaderText = "Precio";
             DataGridViewTextBoxColumnPrecio.Name = "DataGridViewTextBoxColumnPrecio";
-            // 
-            // DataGridViewTextBoxColumnDescuento
-            // 
-            DataGridViewTextBoxColumnDescuento.HeaderText = "% Desc.";
-            DataGridViewTextBoxColumnDescuento.Name = "DataGridViewTextBoxColumnDescuento";
             // 
             // DataGridViewTextBoxColumnImporte
             // 
@@ -668,7 +645,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             groupBoxObservaciones.Controls.Add(btnSalir);
             groupBoxObservaciones.Controls.Add(btnConfirmar);
             groupBoxObservaciones.Controls.Add(btnNuevaVenta);
-            groupBoxObservaciones.Controls.Add(textBox1);
+            groupBoxObservaciones.Controls.Add(textBoxObservacion);
             groupBoxObservaciones.Controls.Add(lblObservacion);
             groupBoxObservaciones.Location = new Point(12, 497);
             groupBoxObservaciones.Margin = new Padding(3, 2, 3, 2);
@@ -686,6 +663,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             btnSalir.TabIndex = 2;
             btnSalir.Text = "Salir";
             btnSalir.UseVisualStyleBackColor = true;
+            btnSalir.Click += btnSalir_Click;
+            btnSalir.KeyDown += btnSalir_KeyDown;
             // 
             // btnConfirmar
             // 
@@ -704,14 +683,15 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             btnNuevaVenta.TabIndex = 4;
             btnNuevaVenta.Text = "Nueva - F9";
             btnNuevaVenta.UseVisualStyleBackColor = true;
+            btnNuevaVenta.Click += btnNuevaVenta_Click;
             // 
-            // textBox1
+            // textBoxObservacion
             // 
-            textBox1.Location = new Point(6, 28);
-            textBox1.Margin = new Padding(3, 2, 3, 2);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(351, 23);
-            textBox1.TabIndex = 30;
+            textBoxObservacion.Location = new Point(6, 28);
+            textBoxObservacion.Margin = new Padding(3, 2, 3, 2);
+            textBoxObservacion.Name = "textBoxObservacion";
+            textBoxObservacion.Size = new Size(351, 23);
+            textBoxObservacion.TabIndex = 30;
             // 
             // lblObservacion
             // 
@@ -744,6 +724,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             Controls.Add(groupBoxArticulosVendidos);
             Controls.Add(groupBoxObservaciones);
             Controls.Add(gpDatosCliente);
+            KeyPreview = true;
             Margin = new Padding(3, 2, 3, 2);
             Name = "VentaForm";
             StartPosition = FormStartPosition.CenterScreen;
@@ -799,7 +780,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private TextBox textBoxDNI;
         private Label lblCondicionVta;
         private Label lblObservacion;
-        private TextBox textBox1;
+        private TextBox textBoxObservacion;
         private GroupBox groupBoxTotales;
         private Label label1;
         private Label lblTotales;
@@ -811,13 +792,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private Label lblSaldo;
         private Label lblCategoria;
         private Label lblCategoriaCliente;
-        private Label lblStock;
         private Label lblArticulos;
         private Label label5;
         private Label label4;
         private Label lblAlicuota;
         private Label lblImporteSaldo;
-        private Label lblStockCantidad;
         private Label lblArticulosCantidad;
         private Label lblAlicuotaProcentaje;
         private Button button1;
@@ -825,13 +804,12 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private Button btnConfirmar;
         private Button btnNuevaVenta;
         private DataGridView dataGridViewProductos;
+        private MaskedTextBox maskedTextBoxNumeroComprob;
+        private MaskedTextBox maskedTextBoxPresupAsociado;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnCantidad;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnArticulo;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnDescripcion;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnPrecio;
-        private DataGridViewTextBoxColumn DataGridViewTextBoxColumnDescuento;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnImporte;
-        private MaskedTextBox maskedTextBoxNumeroComprob;
-        private MaskedTextBox maskedTextBoxPresupAsociado;
     }
 }

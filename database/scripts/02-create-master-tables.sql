@@ -86,8 +86,10 @@ CREATE TABLE dbo.SituacionesImpositivas
     Id INT IDENTITY(1,1) NOT NULL,
     Nombre VARCHAR(50) NOT NULL,
     Abreviatura VARCHAR(10) NULL,
+    Porce DECIMAL(5,2) NOT NULL,
     Eliminado BIT NOT NULL
         CONSTRAINT DF_SituacionesImpositivas_Eliminado DEFAULT 0,
+        CONSTRAINT DF_SituacionesImpositivas_Porce DEFAULT 0;
 
     CONSTRAINT PK_SituacionesImpositivas PRIMARY KEY (Id),
     CONSTRAINT UQ_SituacionesImpositivas_Nombre UNIQUE (Nombre)
@@ -310,3 +312,41 @@ VALUES
     ('TARJETA DE CREDITO'),
     ('CUENTA CORRIENTE');
 GO
+
+CREATE TABLE TiposComprobante
+(
+    Id INT NOT NULL,
+    Nombre NVARCHAR(50) NOT NULL,
+    Abreviatura NVARCHAR(10) NULL,
+
+    Signo SMALLINT NOT NULL
+        CONSTRAINT DF_TiposComprobante_Signo DEFAULT 1,
+
+    MovimientoStock SMALLINT NOT NULL
+        CONSTRAINT DF_TiposComprobante_MovimientoStock DEFAULT 0,
+
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_TiposComprobante_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_TiposComprobante
+        PRIMARY KEY (Id),
+
+    CONSTRAINT CK_TiposComprobante_Signo
+        CHECK (Signo IN (-1, 1)),
+
+    CONSTRAINT CK_TiposComprobante_MovimientoStock
+        CHECK (MovimientoStock IN (-1, 0, 1))
+);
+
+INSERT INTO TiposComprobante
+    (Id, Nombre, Abreviatura, Signo, MovimientoStock)
+VALUES
+    (1,  'FACTURA A',       'FA',   1, -1),
+    (3,  'N. CREDITO A',    'NCA', -1,  1),
+    (5,  'FACTURA B',       'FB',   1, -1),
+    (7,  'N. CREDITO B',    'NCB', -1,  1),
+    (9,  'FACTURA C',       'FC',   1, -1),
+    (11, 'N. CREDITO C',    'NCC', -1,  1),
+    (26, 'PRESUPUESTO',     'PRES', 1,  0),
+    (27, 'REMITO',          'REMI', 1, -1),
+    (28, 'DEVOLUCION',      'DEVO', -1, 1);

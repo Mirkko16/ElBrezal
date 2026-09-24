@@ -36,6 +36,19 @@ namespace ElBrezal.Infrastructure.Services
                 .ToListAsync();
         }
 
+        public async Task<VendedorDto?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Vendedores
+                .AsNoTracking()
+                .Where(x => x.Id == id && !x.Eliminado)
+                .Select(x => new VendedorDto
+                {
+                    Id = x.Id,
+                    Nombre = x.Nombre
+                })
+                .FirstOrDefaultAsync();
+        }
+
         public async Task AgregarAsync(VendedorDto vendedor)
         {
             var nuevoVendedor = new Vendedores

@@ -106,6 +106,25 @@ namespace ElBrezal.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task<ProductoDto?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Productos
+                .AsNoTracking()
+                .Where(x => x.Id == id && !x.Eliminado)
+                .Select(x => new ProductoDto
+                {
+                    Id = x.Id,
+                    Nombre = x.Nombre,
+
+                    // mismos campos de ObtenerTodosAsync
+                    PrecioContado = x.PrecioContado,
+                    Stock = x.Stock
+
+                    // etc.
+                })
+                .FirstOrDefaultAsync();
+        }
+
         public async Task ModificarAsync(ProductoDto producto)
         {
             var productoDb = await _context.Productos

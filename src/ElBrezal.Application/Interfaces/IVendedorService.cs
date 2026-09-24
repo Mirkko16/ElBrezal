@@ -9,6 +9,8 @@ namespace ElBrezal.Application.Interfaces
     {
         Task<List<VendedorDto>> ObtenerTodosAsync();
 
+        Task<VendedorDto?> ObtenerPorIdAsync(int id);
+
         Task AgregarAsync(VendedorDto vendedor);
 
         Task ModificarAsync(VendedorDto vendedor);

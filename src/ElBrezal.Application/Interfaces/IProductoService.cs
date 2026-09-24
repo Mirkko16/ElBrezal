@@ -13,6 +13,8 @@ namespace ElBrezal.Application.Interfaces
 
         Task ModificarAsync(ProductoDto producto);
 
+        Task<ProductoDto?> ObtenerPorIdAsync(int id);
+
         Task EliminarAsync(int id);
     }
 }

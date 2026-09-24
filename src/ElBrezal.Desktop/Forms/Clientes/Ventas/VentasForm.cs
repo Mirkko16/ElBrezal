@@ -1,6 +1,8 @@
 ﻿using ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Models;
+using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
 using ElBrezal.Desktop.UI.Styles;
+using ElBrezal.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,15 +20,25 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 
         private readonly IClienteService _clienteService;
         private readonly ISituacionImpositivaService _situacionImpositivaService;
+        private readonly ICondicionVentaService _condicionVentaService;
+        private readonly ITipoComprobanteService _tipoComprobanteService;
+        private readonly IProductoService _productoService;
+        private readonly IVendedorService _vendedorService;
+        private VendedorDto? _vendedorSeleccionado;
 
         private ClienteDto? _clienteSeleccionado;
 
-        public VentaForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService)
+        public VentaForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
+            ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService)
         {
             InitializeComponent();
 
             _clienteService = clienteService;
             _situacionImpositivaService = situacionImpositivaService;
+            _condicionVentaService = condicionVentaService;
+            _tipoComprobanteService = tipoComprobanteService;
+            _vendedorService = vendedorService;
+            _productoService = productoService;
         }
 
         private async void VentaForm_Load(object sender, EventArgs e)
@@ -41,51 +53,26 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         #region //PREPARACION DE FORMULARIO DE VENTA, CARGA DE CLIENTE, CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
         private void ConfigurarGrillaProductos()
         {
-            // =========================================================
-            // ESTILO VISUAL
-            // =========================================================
-
             DataGridViewStyles.AplicarEstiloVenta(dataGridViewProductos);
 
-            // =========================================================
-            // COMPORTAMIENTO ESPECÍFICO DE VENTAS
-            // =========================================================
-
-            dataGridViewProductos.AutoGenerateColumns = false;
-            dataGridViewProductos.AllowUserToAddRows = true;
+            dataGridViewProductos.AllowUserToAddRows = false;
             dataGridViewProductos.AllowUserToDeleteRows = true;
+
             dataGridViewProductos.MultiSelect = false;
             dataGridViewProductos.ReadOnly = false;
-
             dataGridViewProductos.SelectionMode =
                 DataGridViewSelectionMode.CellSelect;
 
             dataGridViewProductos.ScrollBars =
                 ScrollBars.Vertical;
 
-            // =========================================================
-            // COLUMNAS EDITABLES
-            // =========================================================
-
             DataGridViewTextBoxColumnCantidad.ReadOnly = false;
             DataGridViewTextBoxColumnArticulo.ReadOnly = false;
-            DataGridViewTextBoxColumnPrecio.ReadOnly = false;
-            DataGridViewTextBoxColumnDescuento.ReadOnly = false;
-
-            // =========================================================
-            // COLUMNAS INFORMATIVAS / CALCULADAS
-            // =========================================================
-
             DataGridViewTextBoxColumnDescripcion.ReadOnly = true;
+            DataGridViewTextBoxColumnPrecio.ReadOnly = false;
             DataGridViewTextBoxColumnImporte.ReadOnly = true;
 
-            // =========================================================
-            // FORMATOS
-            // =========================================================
-
-            DataGridViewTextBoxColumnCantidad.DefaultCellStyle.Format = "N2";
             DataGridViewTextBoxColumnPrecio.DefaultCellStyle.Format = "N2";
-            DataGridViewTextBoxColumnDescuento.DefaultCellStyle.Format = "N2";
             DataGridViewTextBoxColumnImporte.DefaultCellStyle.Format = "N2";
 
             DataGridViewTextBoxColumnCantidad.DefaultCellStyle.Alignment =
@@ -94,25 +81,32 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             DataGridViewTextBoxColumnPrecio.DefaultCellStyle.Alignment =
                 DataGridViewContentAlignment.MiddleRight;
 
-            DataGridViewTextBoxColumnDescuento.DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleRight;
-
             DataGridViewTextBoxColumnImporte.DefaultCellStyle.Alignment =
                 DataGridViewContentAlignment.MiddleRight;
 
-            // =========================================================
-            // DISTRIBUCIÓN
-            // =========================================================
-
             DataGridViewTextBoxColumnCantidad.FillWeight = 10;
-            DataGridViewTextBoxColumnArticulo.FillWeight = 16;
+            DataGridViewTextBoxColumnArticulo.FillWeight = 26;
             DataGridViewTextBoxColumnDescripcion.FillWeight = 42;
             DataGridViewTextBoxColumnPrecio.FillWeight = 14;
-            DataGridViewTextBoxColumnDescuento.FillWeight = 10;
             DataGridViewTextBoxColumnImporte.FillWeight = 16;
 
-
+            // IMPORTANTE: ahora nosotros administramos las filas.
+            AgregarFilaProducto();
         }
+        private void btnBuscarCliente_Click(object sender, EventArgs e)
+        {
+            using var buscarClientesForm =
+                new BuscarClientesForm(_clienteService);
+
+            if (buscarClientesForm.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            if (buscarClientesForm.ClienteSeleccionado is null)
+                return;
+
+            MostrarCliente(buscarClientesForm.ClienteSeleccionado);
+        }
+
         #endregion
 
         #region // Configuracion de groupBox Cliente
@@ -126,6 +120,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxDNI.ReadOnly = true;
             textBoxZona.ReadOnly = true;
             comboBoxTipo.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxCondicionVenta.DropDownStyle = ComboBoxStyle.DropDownList;
         }
 
         private async Task CargarClienteAsync(int numeroCuenta)
@@ -171,7 +166,61 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxZona.Text = cliente.Localidad;
 
             comboBoxTipo.SelectedValue = cliente.SituacionImpositivaId;
+
+            if (cliente.VendedorId.HasValue)
+            {
+                _vendedorSeleccionado = new VendedorDto
+                {
+                    Id = cliente.VendedorId.Value,
+                    Nombre = cliente.Vendedor ?? string.Empty
+                };
+
+                MostrarVendedor(_vendedorSeleccionado);
+            }
+            else
+            {
+                LimpiarVendedor();
+            }
+
         }
+
+        private void MostrarVendedor(VendedorDto vendedor)
+        {
+            _vendedorSeleccionado = vendedor;
+
+            textBoxVendedor.Text =
+                $"{vendedor.Id} - {vendedor.Nombre}";
+        }
+
+
+        private async Task CargarVendedorAsync(int vendedorId)
+        {
+            var vendedor =
+                await _vendedorService.ObtenerPorIdAsync(vendedorId);
+
+            if (vendedor is null)
+            {
+                MessageBox.Show(
+                    $"No existe el vendedor N° {vendedorId}.",
+                    "Vendedor no encontrado",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxVendedor.Focus();
+                textBoxVendedor.SelectAll();
+
+                return;
+            }
+
+            MostrarVendedor(vendedor);
+        }
+
+        private void LimpiarVendedor()
+        {
+            _vendedorSeleccionado = null;
+            textBoxVendedor.Clear();
+        }
+
 
         private void ActivarClienteManual()
         {
@@ -186,9 +235,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxZona.ReadOnly = false;
 
             comboBoxTipo.Enabled = true;
+            comboBoxCondicionVenta.Enabled = true;
 
             // Por defecto: Consumidor Final
             comboBoxTipo.SelectedValue = 2;
+            comboBoxCondicionVenta.SelectedValue = 1;
 
             textBoxNombreCLiente.Focus();
         }
@@ -211,6 +262,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxZona.Clear();
 
             comboBoxTipo.SelectedIndex = -1;
+            comboBoxCondicionVenta.SelectedIndex = -1;
         }
         private async void textBoxNumCuenta_KeyDown(object sender, KeyEventArgs e)
         {
@@ -247,6 +299,39 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 
             comboBoxTipo.SelectedIndex = -1;
         }
+
+        private async Task CargarCondicionesVentaAsync()
+        {
+            var condiciones =
+                await _condicionVentaService.ObtenerTodasAsync();
+
+            comboBoxCondicionVenta.DataSource = condiciones;
+            comboBoxCondicionVenta.DisplayMember =
+                nameof(CondicionVentaDto.Nombre);
+            comboBoxCondicionVenta.ValueMember =
+                nameof(CondicionVentaDto.Id);
+
+            comboBoxCondicionVenta.DropDownStyle =
+                ComboBoxStyle.DropDownList;
+        }
+
+        private async Task CargarTiposComprobanteAsync()
+        {
+            var tipos =
+                await _tipoComprobanteService.ObtenerTodosAsync();
+
+            comboBoxTipoComprobante.DataSource = tipos;
+            comboBoxTipoComprobante.DisplayMember =
+                nameof(TipoComprobanteDto.Nombre);
+            comboBoxTipoComprobante.ValueMember =
+                nameof(TipoComprobanteDto.Id);
+
+            comboBoxTipoComprobante.DropDownStyle =
+                ComboBoxStyle.DropDownList;
+        }
+
+
+
         #endregion
 
         #region // CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
@@ -255,12 +340,286 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxFecha.Text = DateTime.Now.ToString("dd/MM/yyyy");
 
             await CargarSituacionesImpositivasAsync();
+            await CargarCondicionesVentaAsync();
+            await CargarTiposComprobanteAsync();
 
             textBoxNumCuenta.Text =
                 CuentaConsumidorFinal.ToString();
 
             await CargarClienteAsync(CuentaConsumidorFinal);
         }
+
+        private void CargarProductoEnFila(DataGridViewRow fila, ProductoDto producto)
+        {
+            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = 1;
+
+            fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value =
+                producto.Id;
+
+            fila.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value =
+                producto.Nombre.ToUpperInvariant();
+
+            fila.Cells[DataGridViewTextBoxColumnPrecio.Name].Value =
+                producto.PrecioContado;
+
+
+            RecalcularFila(fila);
+
+            IrASiguienteFilaProducto(fila.Index);
+        }
+
+
+
+        private void IrASiguienteFilaProducto(int filaActual)
+        {
+            int siguienteFila = filaActual + 1;
+
+            if (siguienteFila >= dataGridViewProductos.Rows.Count)
+            {
+                AgregarFilaProducto();
+            }
+
+            dataGridViewProductos.CurrentCell =
+                dataGridViewProductos.Rows[siguienteFila]
+                    .Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+            dataGridViewProductos.Focus();
+        }
+
+        private void AbrirBuscadorProductos()
+        {
+            if (dataGridViewProductos.CurrentRow is null)
+                return;
+
+            var fila = dataGridViewProductos.CurrentRow;
+
+            using var buscarProductosForm =
+                new BuscarProductosForm(_productoService);
+
+            if (buscarProductosForm.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            if (buscarProductosForm.ProductoSeleccionado is null)
+                return;
+
+            CargarProductoEnFila(fila, buscarProductosForm.ProductoSeleccionado);
+        }
+
+        private async void dataGridViewProductos_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (dataGridViewProductos.CurrentCell?.OwningColumn
+                != DataGridViewTextBoxColumnArticulo)
+                return;
+
+            if (e.KeyCode == Keys.F1)
+            {
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+
+                AbrirBuscadorProductos();
+                return;
+            }
+
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+
+                dataGridViewProductos.EndEdit();
+
+                await CargarProductoIngresadoAsync();
+            }
+        }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape)
+            {
+                DialogResult = DialogResult.Cancel;
+                Close();
+
+                return true;
+            }
+
+            if (keyData == Keys.Tab &&
+                dataGridViewProductos.ContainsFocus &&
+                dataGridViewProductos.CurrentCell?.OwningColumn
+                    == DataGridViewTextBoxColumnArticulo)
+            {
+                ProcesarArticuloConTab();
+
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void ActualizarAlicuotaCliente()
+        {
+            if (comboBoxTipo.SelectedItem is SituacionImpositivaDto situacion)
+            {
+                lblAlicuotaProcentaje.Text =
+                    $"{situacion.Porce:N2}%";
+            }
+            else
+            {
+                lblAlicuotaProcentaje.Text = "0,00%";
+            }
+        }
+
+        private async void ProcesarArticuloConTab()
+        {
+            dataGridViewProductos.EndEdit();
+
+            await CargarProductoIngresadoAsync();
+        }
+
+        private async Task<bool> CargarProductoIngresadoAsync()
+        {
+            if (dataGridViewProductos.CurrentRow is null)
+                return false;
+
+            var fila = dataGridViewProductos.CurrentRow;
+
+            var valor = fila
+                .Cells[DataGridViewTextBoxColumnArticulo.Name]
+                .Value?
+                .ToString()
+                ?.Trim();
+
+            if (!int.TryParse(valor, out int productoId))
+            {
+                MessageBox.Show(
+                    "Ingrese un número de artículo válido.",
+                    "Artículo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                PosicionarEnArticulo(fila);
+
+                return false;
+            }
+
+            var producto = await _productoService.ObtenerPorIdAsync(productoId);
+
+            if (producto is null)
+            {
+                MessageBox.Show(
+                    $"No existe el artículo N° {productoId}.",
+                    "Artículo no encontrado",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                PosicionarEnArticulo(fila);
+
+                return false;
+            }
+
+            CargarProductoEnFila(fila, producto);
+
+            return true;
+        }
+
+        private void PosicionarEnArticulo(DataGridViewRow fila)
+        {
+            dataGridViewProductos.CurrentCell =
+                fila.Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+            dataGridViewProductos.Focus();
+
+            dataGridViewProductos.BeginEdit(true);
+        }
+
+        private void AgregarFilaProducto()
+        {
+            int indice = dataGridViewProductos.Rows.Add();
+
+            var fila = dataGridViewProductos.Rows[indice];
+
+            //fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = 1;
+        }
+
+        private void RecalcularFila(DataGridViewRow fila)
+        {
+            decimal cantidad = ObtenerDecimalCelda(
+                fila,
+                DataGridViewTextBoxColumnCantidad.Name);
+
+            decimal precio = ObtenerDecimalCelda(
+                fila,
+                DataGridViewTextBoxColumnPrecio.Name);
+
+            decimal importe = cantidad * precio;
+
+            fila.Cells[DataGridViewTextBoxColumnImporte.Name].Value =
+                importe;
+
+            RecalcularTotales();
+        }
+
+        private void RecalcularTotales()
+        {
+            decimal subtotal = 0m;
+            int cantidadArticulos = 0;
+
+            foreach (DataGridViewRow fila in dataGridViewProductos.Rows)
+            {
+                var articulo = fila
+                    .Cells[DataGridViewTextBoxColumnArticulo.Name]
+                    .Value;
+
+                // La fila vacía para el próximo producto no cuenta.
+                if (articulo is null ||
+                    string.IsNullOrWhiteSpace(articulo.ToString()))
+                {
+                    continue;
+                }
+
+                subtotal += ObtenerDecimalCelda(
+                    fila,
+                    DataGridViewTextBoxColumnImporte.Name);
+
+                cantidadArticulos++;
+            }
+
+            decimal porcentajeVariacion = 0m;
+
+            decimal.TryParse(
+                textBoxVariacionVenta.Text,
+                out porcentajeVariacion);
+
+            decimal montoVariacion =
+                subtotal * porcentajeVariacion / 100m;
+
+            decimal total =
+                subtotal - montoVariacion;
+
+            lblArticulosCantidad.Text =
+                cantidadArticulos.ToString();
+
+            lblSubTotal.Text =
+                subtotal.ToString("N2");
+
+            lblVariacion.Text =
+                montoVariacion.ToString("N2");
+
+            lblMontoTotal.Text =
+                total.ToString("N2");
+        }
+
+        private decimal ObtenerDecimalCelda(DataGridViewRow fila, string nombreColumna)
+        {
+            var valor = fila.Cells[nombreColumna].Value;
+
+            if (valor is null)
+                return 0m;
+
+            return decimal.TryParse(
+                valor.ToString(),
+                out decimal resultado)
+                    ? resultado
+                    : 0m;
+        }
+
         #endregion
 
 
@@ -271,7 +630,128 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
                 e.Handled = true;
             }
         }
+
+
+        private async void textBoxVendedor_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F1)
+            {
+                e.SuppressKeyPress = true;
+
+                // Próximamente:
+                // AbrirBuscarVendedores();
+
+                return;
+            }
+
+            if (e.KeyCode != Keys.Enter)
+                return;
+
+            e.SuppressKeyPress = true;
+
+            if (!int.TryParse(textBoxVendedor.Text.Trim(), out int vendedorId))
+            {
+                MessageBox.Show(
+                    "Ingrese un número de vendedor válido.",
+                    "Vendedor",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxVendedor.Focus();
+                textBoxVendedor.SelectAll();
+
+                return;
+            }
+
+            await CargarVendedorAsync(vendedorId);
+        }
+
+
+        private void textBoxVendedor_Enter(object sender, EventArgs e)
+        {
+            textBoxVendedor.SelectAll();
+        }
+
+        private void btnSalir_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+
+        private void btnSalir_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                Close();
+            }
+        }
+
+        private void dataGridViewProductos_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0)
+                return;
+
+            var columna = dataGridViewProductos.Columns[e.ColumnIndex];
+
+            if (columna != DataGridViewTextBoxColumnCantidad &&
+                columna != DataGridViewTextBoxColumnPrecio)
+            {
+                return;
+            }
+
+            RecalcularFila(dataGridViewProductos.Rows[e.RowIndex]);
+        }
+
+        private void textBoxVariacionVenta_TextChanged(object sender, EventArgs e)
+        {
+            RecalcularTotales();
+        }
+
+        private void comboBoxTipo_SelectedValueChanged(object sender, EventArgs e)
+        {
+            ActualizarAlicuotaCliente();
+        }
+
+        private async void btnNuevaVenta_Click(object sender, EventArgs e)
+        {
+            await NuevaVentaAsync();
+        }
+
+        private async Task NuevaVentaAsync()
+        {
+            // Datos generales
+            textBoxFecha.Text = DateTime.Now.ToString("dd/MM/yyyy");
+
+            //maskedTextBoxNumeroComprob.Clear();
+            //maskedTextBoxPresupAsociado.Clear();
+
+            textBoxVariacionVenta.Clear();
+
+            // Si este es el TextBox de observaciones:
+            textBoxObservacion.Clear();
+
+            // Productos
+            dataGridViewProductos.Rows.Clear();
+            AgregarFilaProducto();
+
+            // Totales
+            lblArticulosCantidad.Text = "0";
+            lblSubTotal.Text = 0m.ToString("N2");
+            lblVariacion.Text = 0m.ToString("N2");
+            lblMontoTotal.Text = 0m.ToString("N2");
+
+            // Cliente por defecto
+            textBoxNumCuenta.Text = CuentaConsumidorFinal.ToString();
+
+            await CargarClienteAsync(CuentaConsumidorFinal);
+
+            // Posicionar para comenzar la nueva venta
+            dataGridViewProductos.CurrentCell =
+                dataGridViewProductos.Rows[0]
+                    .Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+            dataGridViewProductos.Focus();
+        }
     }
-
-
 }
+
