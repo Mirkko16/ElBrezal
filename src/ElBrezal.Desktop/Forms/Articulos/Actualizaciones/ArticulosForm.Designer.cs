@@ -90,6 +90,8 @@
             bindingSourceFamilia = new BindingSource(components);
             bindingSourceMarca = new BindingSource(components);
             bindingSourceUnidad = new BindingSource(components);
+            textBoxStockMinimo = new TextBox();
+            label1 = new Label();
             gpDatosArticulo.SuspendLayout();
             gpPrecios.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)bindingSourceArticulos).BeginInit();
@@ -102,6 +104,8 @@
             // 
             // gpDatosArticulo
             // 
+            gpDatosArticulo.Controls.Add(textBoxStockMinimo);
+            gpDatosArticulo.Controls.Add(label1);
             gpDatosArticulo.Controls.Add(btnNuevaMarca);
             gpDatosArticulo.Controls.Add(btnNuevaUnidad);
             gpDatosArticulo.Controls.Add(btnNuevoProveedor);
@@ -652,6 +656,23 @@
             // 
             bindingSourceArticulos.PositionChanged += bindingSourceArticulos_PositionChanged;
             // 
+            // textBoxStockMinimo
+            // 
+            textBoxStockMinimo.Location = new Point(611, 150);
+            textBoxStockMinimo.Name = "textBoxStockMinimo";
+            textBoxStockMinimo.Size = new Size(100, 23);
+            textBoxStockMinimo.TabIndex = 42;
+            textBoxStockMinimo.KeyPress += textBoxStockMinimo_KeyPress;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(477, 158);
+            label1.Name = "label1";
+            label1.Size = new Size(84, 15);
+            label1.TabIndex = 43;
+            label1.Text = "Stock Minimo:";
+            // 
             // ArticulosForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -750,5 +771,7 @@
         private BindingSource bindingSourceFamilia;
         private BindingSource bindingSourceMarca;
         private BindingSource bindingSourceUnidad;
+        private TextBox textBoxStockMinimo;
+        private Label label1;
     }
 }

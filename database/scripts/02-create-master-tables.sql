@@ -375,3 +375,8 @@ CREATE TABLE NumeracionesComprobante
     CONSTRAINT UQ_NumeracionesComprobante_Tipo_PuntoVenta
         UNIQUE (TipoComprobanteId, PuntoVenta)
 );
+
+ALTER TABLE dbo.Productos
+ADD StockMinimo DECIMAL(18,4) NOT NULL
+    CONSTRAINT DF_Productos_StockMinimo DEFAULT (0);
+GO

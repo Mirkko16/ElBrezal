@@ -171,6 +171,7 @@
             stockMinimosToolStripMenuItem.Name = "stockMinimosToolStripMenuItem";
             stockMinimosToolStripMenuItem.Size = new Size(217, 22);
             stockMinimosToolStripMenuItem.Text = "Stock Minimos";
+            stockMinimosToolStripMenuItem.Click += stockMinimosToolStripMenuItem_Click;
             // 
             // movimientoDeMercaderiaToolStripMenuItem
             // 

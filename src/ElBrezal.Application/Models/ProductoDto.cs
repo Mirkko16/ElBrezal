@@ -38,6 +38,7 @@ namespace ElBrezal.Application.Models
         public decimal PrecioCuentaCorriente { get; set; }
 
         public decimal Stock { get; set; }
+        public decimal StockMinimo { get; set; }
 
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaModificacion { get; set; }

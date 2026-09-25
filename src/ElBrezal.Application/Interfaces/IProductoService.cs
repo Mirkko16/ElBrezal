@@ -12,7 +12,7 @@ namespace ElBrezal.Application.Interfaces
         Task AgregarAsync(ProductoDto producto);
 
         Task ModificarAsync(ProductoDto producto);
-
+        Task<List<ProductoDto>> ObtenerConStockMinimoAsync();
         Task<ProductoDto?> ObtenerPorIdAsync(int id);
 
         Task EliminarAsync(int id);

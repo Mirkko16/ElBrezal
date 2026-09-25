@@ -41,6 +41,8 @@ public partial class Productos
 
     public int AlicuotaIVAId { get; set; }
 
+    public decimal StockMinimo { get; set; }
+
     public virtual AlicuotasIVA AlicuotaIVA { get; set; } = null!;
 
     public virtual Familias? Familia { get; set; }

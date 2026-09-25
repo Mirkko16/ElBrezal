@@ -1,5 +1,6 @@
 using ElBrezal.Desktop.Forms.Articulos.ActualizacionCostos;
 using ElBrezal.Desktop.Forms.Articulos.Actualizaciones;
+using ElBrezal.Desktop.Forms.Articulos.StockMinimo;
 using ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes;
 using ElBrezal.Desktop.Forms.Clientes.Presupuesto;
 using ElBrezal.Desktop.Forms.Clientes.Remitos;
@@ -49,6 +50,7 @@ internal static class Program
                 services.AddTransient<VentaForm>();
                 services.AddTransient<PresupuestoForm>();
                 services.AddTransient<RemitoForm>();
+                services.AddTransient<StockMinimoForm>();
 
             })
             .Build();

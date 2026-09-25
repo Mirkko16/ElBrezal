@@ -10,6 +10,9 @@
     <Compile Update="Forms\Articulos\BusquedaArticulos\BuscarProductosForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\Articulos\StockMinimo\StockMinimoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\Clientes\ActualizacionClientes\ClientesForm.cs">
       <SubType>Form</SubType>
     </Compile>

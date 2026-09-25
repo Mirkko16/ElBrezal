@@ -170,6 +170,7 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.RentabilidadCuentaCorriente).HasColumnType("decimal(7, 2)");
             entity.Property(e => e.RentabilidadReventa).HasColumnType("decimal(7, 2)");
             entity.Property(e => e.Stock).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.StockMinimo).HasColumnType("decimal(18, 4)");
 
             entity.HasOne(d => d.AlicuotaIVA).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.AlicuotaIVAId)
