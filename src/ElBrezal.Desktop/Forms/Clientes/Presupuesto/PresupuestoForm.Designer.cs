@@ -54,9 +54,9 @@
             lblTotales = new Label();
             btnSalir = new Button();
             btnConfirmar = new Button();
-            btnNuevaVenta = new Button();
+            btnNuevoPresupuesto = new Button();
             textBoxObservacion = new TextBox();
-            groupBoxInfoVenta = new GroupBox();
+            groupBoxInfoPresupuesto = new GroupBox();
             gpDatosCliente = new GroupBox();
             maskedTextBoxPresupAsociado = new MaskedTextBox();
             maskedTextBoxNumeroComprob = new MaskedTextBox();
@@ -91,7 +91,7 @@
             groupBoxArticulosVendidos = new GroupBox();
             ((System.ComponentModel.ISupportInitialize)dataGridViewProductos).BeginInit();
             groupBoxTotales.SuspendLayout();
-            groupBoxInfoVenta.SuspendLayout();
+            groupBoxInfoPresupuesto.SuspendLayout();
             gpDatosCliente.SuspendLayout();
             groupBoxObservaciones.SuspendLayout();
             groupBoxArticulosVendidos.SuspendLayout();
@@ -352,15 +352,15 @@
             btnConfirmar.Text = "Confirmar - F11";
             btnConfirmar.UseVisualStyleBackColor = true;
             // 
-            // btnNuevaVenta
+            // btnNuevoPresupuesto
             // 
-            btnNuevaVenta.Location = new Point(479, 27);
-            btnNuevaVenta.Name = "btnNuevaVenta";
-            btnNuevaVenta.Size = new Size(118, 23);
-            btnNuevaVenta.TabIndex = 4;
-            btnNuevaVenta.Text = "Nueva - F9";
-            btnNuevaVenta.UseVisualStyleBackColor = true;
-            btnNuevaVenta.Click += btnNuevaVenta_Click;
+            btnNuevoPresupuesto.Location = new Point(479, 27);
+            btnNuevoPresupuesto.Name = "btnNuevoPresupuesto";
+            btnNuevoPresupuesto.Size = new Size(118, 23);
+            btnNuevoPresupuesto.TabIndex = 4;
+            btnNuevoPresupuesto.Text = "Nuevo - F9";
+            btnNuevoPresupuesto.UseVisualStyleBackColor = true;
+            btnNuevoPresupuesto.Click += btnNuevaVenta_Click;
             // 
             // textBoxObservacion
             // 
@@ -370,24 +370,24 @@
             textBoxObservacion.Size = new Size(351, 23);
             textBoxObservacion.TabIndex = 30;
             // 
-            // groupBoxInfoVenta
+            // groupBoxInfoPresupuesto
             // 
-            groupBoxInfoVenta.Controls.Add(lblAlicuotaProcentaje);
-            groupBoxInfoVenta.Controls.Add(lblArticulosCantidad);
-            groupBoxInfoVenta.Controls.Add(button1);
-            groupBoxInfoVenta.Controls.Add(lblImporteSaldo);
-            groupBoxInfoVenta.Controls.Add(lblSaldo);
-            groupBoxInfoVenta.Controls.Add(lblCategoria);
-            groupBoxInfoVenta.Controls.Add(lblCategoriaCliente);
-            groupBoxInfoVenta.Controls.Add(lblArticulos);
-            groupBoxInfoVenta.Controls.Add(lblAlicuota);
-            groupBoxInfoVenta.Location = new Point(709, 187);
-            groupBoxInfoVenta.Margin = new Padding(3, 2, 3, 2);
-            groupBoxInfoVenta.Name = "groupBoxInfoVenta";
-            groupBoxInfoVenta.Padding = new Padding(3, 2, 3, 2);
-            groupBoxInfoVenta.Size = new Size(154, 315);
-            groupBoxInfoVenta.TabIndex = 4;
-            groupBoxInfoVenta.TabStop = false;
+            groupBoxInfoPresupuesto.Controls.Add(lblAlicuotaProcentaje);
+            groupBoxInfoPresupuesto.Controls.Add(lblArticulosCantidad);
+            groupBoxInfoPresupuesto.Controls.Add(button1);
+            groupBoxInfoPresupuesto.Controls.Add(lblImporteSaldo);
+            groupBoxInfoPresupuesto.Controls.Add(lblSaldo);
+            groupBoxInfoPresupuesto.Controls.Add(lblCategoria);
+            groupBoxInfoPresupuesto.Controls.Add(lblCategoriaCliente);
+            groupBoxInfoPresupuesto.Controls.Add(lblArticulos);
+            groupBoxInfoPresupuesto.Controls.Add(lblAlicuota);
+            groupBoxInfoPresupuesto.Location = new Point(709, 187);
+            groupBoxInfoPresupuesto.Margin = new Padding(3, 2, 3, 2);
+            groupBoxInfoPresupuesto.Name = "groupBoxInfoPresupuesto";
+            groupBoxInfoPresupuesto.Padding = new Padding(3, 2, 3, 2);
+            groupBoxInfoPresupuesto.Size = new Size(154, 315);
+            groupBoxInfoPresupuesto.TabIndex = 4;
+            groupBoxInfoPresupuesto.TabStop = false;
             // 
             // gpDatosCliente
             // 
@@ -700,7 +700,7 @@
             // 
             groupBoxObservaciones.Controls.Add(btnSalir);
             groupBoxObservaciones.Controls.Add(btnConfirmar);
-            groupBoxObservaciones.Controls.Add(btnNuevaVenta);
+            groupBoxObservaciones.Controls.Add(btnNuevoPresupuesto);
             groupBoxObservaciones.Controls.Add(textBoxObservacion);
             groupBoxObservaciones.Controls.Add(lblObservacion);
             groupBoxObservaciones.Location = new Point(12, 497);
@@ -728,7 +728,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(897, 569);
-            Controls.Add(groupBoxInfoVenta);
+            Controls.Add(groupBoxInfoPresupuesto);
             Controls.Add(gpDatosCliente);
             Controls.Add(groupBoxObservaciones);
             Controls.Add(groupBoxArticulosVendidos);
@@ -740,8 +740,8 @@
             ((System.ComponentModel.ISupportInitialize)dataGridViewProductos).EndInit();
             groupBoxTotales.ResumeLayout(false);
             groupBoxTotales.PerformLayout();
-            groupBoxInfoVenta.ResumeLayout(false);
-            groupBoxInfoVenta.PerformLayout();
+            groupBoxInfoPresupuesto.ResumeLayout(false);
+            groupBoxInfoPresupuesto.PerformLayout();
             gpDatosCliente.ResumeLayout(false);
             gpDatosCliente.PerformLayout();
             groupBoxObservaciones.ResumeLayout(false);
@@ -778,9 +778,9 @@
         private Label lblTotales;
         private Button btnSalir;
         private Button btnConfirmar;
-        private Button btnNuevaVenta;
+        private Button btnNuevoPresupuesto;
         private TextBox textBoxObservacion;
-        private GroupBox groupBoxInfoVenta;
+        private GroupBox groupBoxInfoPresupuesto;
         private GroupBox gpDatosCliente;
         private MaskedTextBox maskedTextBoxNumeroComprob;
         private Label lblCondicionVta;

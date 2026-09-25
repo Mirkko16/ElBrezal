@@ -278,6 +278,7 @@
             emisionDeRemitosToolStripMenuItem.ShortcutKeys = Keys.F5;
             emisionDeRemitosToolStripMenuItem.Size = new Size(293, 22);
             emisionDeRemitosToolStripMenuItem.Text = "Emision de Remitos";
+            emisionDeRemitosToolStripMenuItem.Click += emisionDeRemitosToolStripMenuItem_Click;
             // 
             // facturacionElectronicaToolStripMenuItem
             // 

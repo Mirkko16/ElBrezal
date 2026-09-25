@@ -12,10 +12,11 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
+namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 {
-    public partial class PresupuestoForm : Form
+    public partial class RemitoForm : Form
     {
+
         private const int CuentaConsumidorFinal = 1;
         private const int CuentaClienteManual = 9999;
 
@@ -34,7 +35,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         private ClienteDto? _clienteSeleccionado;
 
         private bool _inicializandoFormulario;
-        public PresupuestoForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
+        public RemitoForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
             ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService, INumeracionComprobanteService numeracionComprobanteService)
         {
             InitializeComponent();
@@ -48,7 +49,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             _numeracionComprobanteService = numeracionComprobanteService;
         }
 
-        private async void PresupuestoForm_Load(object sender, EventArgs e)
+        private async void RemitoForm_Load(object sender, EventArgs e)
         {
             ConfigurarGrillaProductos();
             ConfigurarDatosCliente();
@@ -57,7 +58,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             try
             {
-                await InicializarPresupuestoAsync();
+                await InicializarRemitoAsync();
             }
             finally
             {
@@ -65,8 +66,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             }
 
             await CargarNumeracionComprobanteAsync();
-        }
 
+        }
         #region //PREPARACION DE FORMULARIO DE PRESUPUESTO, CARGA DE CLIENTE, CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
         private void ConfigurarGrillaProductos()
         {
@@ -86,26 +87,14 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             DataGridViewTextBoxColumnCantidad.ReadOnly = false;
             DataGridViewTextBoxColumnArticulo.ReadOnly = false;
             DataGridViewTextBoxColumnDescripcion.ReadOnly = true;
-            DataGridViewTextBoxColumnPrecio.ReadOnly = false;
-            DataGridViewTextBoxColumnImporte.ReadOnly = true;
-
-            DataGridViewTextBoxColumnPrecio.DefaultCellStyle.Format = "N2";
-            DataGridViewTextBoxColumnImporte.DefaultCellStyle.Format = "N2";
 
             DataGridViewTextBoxColumnCantidad.DefaultCellStyle.Alignment =
                 DataGridViewContentAlignment.MiddleRight;
 
-            DataGridViewTextBoxColumnPrecio.DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleRight;
-
-            DataGridViewTextBoxColumnImporte.DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleRight;
 
             DataGridViewTextBoxColumnCantidad.FillWeight = 10;
             DataGridViewTextBoxColumnArticulo.FillWeight = 26;
             DataGridViewTextBoxColumnDescripcion.FillWeight = 42;
-            DataGridViewTextBoxColumnPrecio.FillWeight = 14;
-            DataGridViewTextBoxColumnImporte.FillWeight = 16;
 
             // IMPORTANTE: ahora nosotros administramos las filas.
             AgregarFilaProducto();
@@ -133,11 +122,9 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             textBoxNombreCLiente.ReadOnly = true;
             textBoxDireccion.ReadOnly = true;
-            textBoxTelCliente.ReadOnly = true;
             textBoxDNI.ReadOnly = true;
             textBoxZona.ReadOnly = true;
             comboBoxTipo.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBoxCondicionVenta.DropDownStyle = ComboBoxStyle.DropDownList;
         }
 
         private async Task CargarClienteAsync(int numeroCuenta)
@@ -177,7 +164,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             textBoxNumCuenta.Text = cliente.Id.ToString();
             textBoxNombreCLiente.Text = cliente.Nombre;
             textBoxDireccion.Text = cliente.Direccion ?? string.Empty;
-            textBoxTelCliente.Text = cliente.Telefono ?? string.Empty;
             textBoxDNI.Text = cliente.DNI ?? string.Empty;
 
             textBoxZona.Text = cliente.Localidad;
@@ -247,16 +233,13 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             textBoxNombreCLiente.ReadOnly = false;
             textBoxDireccion.ReadOnly = false;
-            textBoxTelCliente.ReadOnly = false;
             textBoxDNI.ReadOnly = false;
             textBoxZona.ReadOnly = false;
 
             comboBoxTipo.Enabled = true;
-            comboBoxCondicionVenta.Enabled = true;
 
             // Por defecto: Consumidor Final
             comboBoxTipo.SelectedValue = 2;
-            comboBoxCondicionVenta.SelectedValue = 1;
 
             textBoxNombreCLiente.Focus();
         }
@@ -265,7 +248,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         {
             textBoxNombreCLiente.ReadOnly = true;
             textBoxDireccion.ReadOnly = true;
-            textBoxTelCliente.ReadOnly = true;
             textBoxDNI.ReadOnly = true;
             textBoxZona.ReadOnly = true;
         }
@@ -274,12 +256,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         {
             textBoxNombreCLiente.Clear();
             textBoxDireccion.Clear();
-            textBoxTelCliente.Clear();
             textBoxDNI.Clear();
             textBoxZona.Clear();
 
             comboBoxTipo.SelectedIndex = -1;
-            comboBoxCondicionVenta.SelectedIndex = -1;
         }
         private async void textBoxNumCuenta_KeyDown(object sender, KeyEventArgs e)
         {
@@ -317,20 +297,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             comboBoxTipo.SelectedIndex = -1;
         }
 
-        private async Task CargarCondicionesVentaAsync()
-        {
-            var condiciones =
-                await _condicionVentaService.ObtenerTodasAsync();
 
-            comboBoxCondicionVenta.DataSource = condiciones;
-            comboBoxCondicionVenta.DisplayMember =
-                nameof(CondicionVentaDto.Nombre);
-            comboBoxCondicionVenta.ValueMember =
-                nameof(CondicionVentaDto.Id);
-
-            comboBoxCondicionVenta.DropDownStyle =
-                ComboBoxStyle.DropDownList;
-        }
 
         private async Task CargarTiposComprobanteAsync()
         {
@@ -344,7 +311,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             var presupuesto = tipos.FirstOrDefault(x =>
                 x.Nombre.Equals(
-                    "PRESUPUESTO",
+                    "REMITO",
                     StringComparison.OrdinalIgnoreCase));
 
             if (presupuesto is not null)
@@ -387,12 +354,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         #endregion
 
         #region // CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
-        private async Task InicializarPresupuestoAsync()
+        private async Task InicializarRemitoAsync()
         {
             textBoxFecha.Text = DateTime.Now.ToString("dd/MM/yyyy");
 
             await CargarSituacionesImpositivasAsync();
-            await CargarCondicionesVentaAsync();
             await CargarTiposComprobanteAsync();
 
             textBoxNumCuenta.Text =
@@ -410,12 +376,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             fila.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value =
                 producto.Nombre.ToUpperInvariant();
-
-            fila.Cells[DataGridViewTextBoxColumnPrecio.Name].Value =
-                producto.PrecioContado;
-
-
-            RecalcularFila(fila);
 
             IrASiguienteFilaProducto(fila.Index);
         }
@@ -502,18 +462,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
-        private void ActualizarAlicuotaCliente()
-        {
-            if (comboBoxTipo.SelectedItem is SituacionImpositivaDto situacion)
-            {
-                lblAlicuotaProcentaje.Text =
-                    $"{situacion.Porce:N2}%";
-            }
-            else
-            {
-                lblAlicuotaProcentaje.Text = "0,00%";
-            }
-        }
+
 
         private async void ProcesarArticuloConTab()
         {
@@ -583,76 +532,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             int indice = dataGridViewProductos.Rows.Add();
 
             var fila = dataGridViewProductos.Rows[indice];
-
         }
 
-        private void RecalcularFila(DataGridViewRow fila)
-        {
-            decimal cantidad = ObtenerDecimalCelda(fila, DataGridViewTextBoxColumnCantidad.Name);
-
-            decimal precio = ObtenerDecimalCelda(fila, DataGridViewTextBoxColumnPrecio.Name);
-
-            decimal importe = OperacionComercialCalculations.CalcularImporte(cantidad, precio);
-
-            fila.Cells[DataGridViewTextBoxColumnImporte.Name].Value = importe;
-
-            RecalcularTotales();
-        }
-
-        private void RecalcularTotales()
-        {
-            decimal subtotal = 0m;
-            int cantidadArticulos = 0;
-
-            foreach (DataGridViewRow fila in dataGridViewProductos.Rows)
-            {
-                var articulo = fila
-                    .Cells[DataGridViewTextBoxColumnArticulo.Name]
-                    .Value;
-
-                if (articulo is null ||
-                    string.IsNullOrWhiteSpace(articulo.ToString()))
-                {
-                    continue;
-                }
-
-                subtotal += ObtenerDecimalCelda(
-                    fila,
-                    DataGridViewTextBoxColumnImporte.Name);
-
-                cantidadArticulos++;
-            }
-
-            decimal porcentajeVariacion = 0m;
-
-            decimal.TryParse(textBoxVariacionPresupuesto.Text, out porcentajeVariacion);
-
-            decimal montoVariacion = OperacionComercialCalculations.CalcularMontoVariacion(subtotal, porcentajeVariacion);
-
-            decimal total = OperacionComercialCalculations.CalcularTotal(subtotal, montoVariacion);
-
-            lblArticulosCantidad.Text = cantidadArticulos.ToString();
-
-            lblSubTotal.Text = subtotal.ToString("N2");
-
-            lblVariacion.Text = montoVariacion.ToString("N2");
-
-            lblMontoTotal.Text = total.ToString("N2");
-        }
-
-        private decimal ObtenerDecimalCelda(DataGridViewRow fila, string nombreColumna)
-        {
-            var valor = fila.Cells[nombreColumna].Value;
-
-            if (valor is null)
-                return 0m;
-
-            return decimal.TryParse(
-                valor.ToString(),
-                out decimal resultado)
-                    ? resultado
-                    : 0m;
-        }
 
         #endregion
 
@@ -727,26 +608,23 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             var columna = dataGridViewProductos.Columns[e.ColumnIndex];
 
-            if (columna != DataGridViewTextBoxColumnCantidad &&
-                columna != DataGridViewTextBoxColumnPrecio)
+            if (columna != DataGridViewTextBoxColumnCantidad)
             {
                 return;
             }
 
-            RecalcularFila(dataGridViewProductos.Rows[e.RowIndex]);
         }
 
         private void textBoxVariacionVenta_TextChanged(object sender, EventArgs e)
         {
-            RecalcularTotales();
         }
 
         private void comboBoxTipo_SelectedValueChanged(object sender, EventArgs e)
         {
-            ActualizarAlicuotaCliente();
+
         }
 
-        private async void btnNuevaVenta_Click(object sender, EventArgs e)
+        private async void btnNuevoRemito_Click(object sender, EventArgs e)
         {
             await NuevaVentaAsync();
         }
@@ -757,7 +635,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             textBoxFecha.Text = DateTime.Now.ToString("dd/MM/yyyy");
 
             await CargarNumeracionComprobanteAsync();
-            textBoxVariacionPresupuesto.Clear();
 
             // Si este es el TextBox de observaciones:
             textBoxObservacion.Clear();
@@ -765,12 +642,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             // Productos
             dataGridViewProductos.Rows.Clear();
             AgregarFilaProducto();
-
-            // Totales
-            lblArticulosCantidad.Text = "0";
-            lblSubTotal.Text = 0m.ToString("N2");
-            lblVariacion.Text = 0m.ToString("N2");
-            lblMontoTotal.Text = 0m.ToString("N2");
 
             // Cliente por defecto
             textBoxNumCuenta.Text = CuentaConsumidorFinal.ToString();
@@ -795,15 +666,9 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
         private void textBoxVariacionPresupuesto_TextChanged(object sender, EventArgs e)
         {
-            RecalcularTotales();
         }
 
-        private void dataGridViewProductos_KeyDown_1(object sender, KeyEventArgs e)
-        {
-
-        }
-
-        private void textBoxVendedor_Enter_1(object sender, EventArgs e)
+        private void textBoxVendedor_KeyDown_1(object sender, KeyEventArgs e)
         {
 
         }
