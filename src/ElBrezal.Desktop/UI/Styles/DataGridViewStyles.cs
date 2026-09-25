@@ -68,7 +68,7 @@ namespace ElBrezal.Desktop.UI.Styles
             dataGridView.ColumnHeadersHeightSizeMode =
                 DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
-            dataGridView.ColumnHeadersHeight = 22;
+            dataGridView.ColumnHeadersHeight = 26;
 
             dataGridView.AutoSizeColumnsMode =
                 DataGridViewAutoSizeColumnsMode.Fill;

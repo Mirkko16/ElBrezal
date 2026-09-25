@@ -350,3 +350,28 @@ VALUES
     (26, 'PRESUPUESTO',     'PRES', 1,  0),
     (27, 'REMITO',          'REMI', 1, -1),
     (28, 'DEVOLUCION',      'DEVO', -1, 1);
+
+CREATE TABLE NumeracionesComprobante
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+
+    TipoComprobanteId INT NOT NULL,
+
+    PuntoVenta INT NOT NULL,
+
+    UltimoNumero INT NOT NULL
+        CONSTRAINT DF_NumeracionesComprobante_UltimoNumero DEFAULT 0,
+
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_NumeracionesComprobante_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_NumeracionesComprobante
+        PRIMARY KEY (Id),
+
+    CONSTRAINT FK_NumeracionesComprobante_TiposComprobante
+        FOREIGN KEY (TipoComprobanteId)
+        REFERENCES TiposComprobante(Id),
+
+    CONSTRAINT UQ_NumeracionesComprobante_Tipo_PuntoVenta
+        UNIQUE (TipoComprobanteId, PuntoVenta)
+);

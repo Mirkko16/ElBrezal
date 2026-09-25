@@ -311,6 +311,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             comboBoxTipoComprobante.Name = "comboBoxTipoComprobante";
             comboBoxTipoComprobante.Size = new Size(158, 23);
             comboBoxTipoComprobante.TabIndex = 13;
+            comboBoxTipoComprobante.SelectedValueChanged += comboBoxTipoComprobante_SelectedValueChanged;
             // 
             // lblFecha
             // 
@@ -520,6 +521,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             dataGridViewProductos.Columns.AddRange(new DataGridViewColumn[] { DataGridViewTextBoxColumnCantidad, DataGridViewTextBoxColumnArticulo, DataGridViewTextBoxColumnDescripcion, DataGridViewTextBoxColumnPrecio, DataGridViewTextBoxColumnImporte });
             dataGridViewProductos.Location = new Point(6, 16);
             dataGridViewProductos.Name = "dataGridViewProductos";
+            dataGridViewProductos.RowHeadersWidth = 51;
             dataGridViewProductos.Size = new Size(677, 230);
             dataGridViewProductos.TabIndex = 1;
             dataGridViewProductos.CellValueChanged += dataGridViewProductos_CellValueChanged;
@@ -528,29 +530,39 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // DataGridViewTextBoxColumnCantidad
             // 
             DataGridViewTextBoxColumnCantidad.HeaderText = "Cant.";
+            DataGridViewTextBoxColumnCantidad.MinimumWidth = 6;
             DataGridViewTextBoxColumnCantidad.Name = "DataGridViewTextBoxColumnCantidad";
+            DataGridViewTextBoxColumnCantidad.Width = 125;
             // 
             // DataGridViewTextBoxColumnArticulo
             // 
             DataGridViewTextBoxColumnArticulo.HeaderText = "Articulo";
+            DataGridViewTextBoxColumnArticulo.MinimumWidth = 6;
             DataGridViewTextBoxColumnArticulo.Name = "DataGridViewTextBoxColumnArticulo";
+            DataGridViewTextBoxColumnArticulo.Width = 125;
             // 
             // DataGridViewTextBoxColumnDescripcion
             // 
             DataGridViewTextBoxColumnDescripcion.HeaderText = "Descripción";
+            DataGridViewTextBoxColumnDescripcion.MinimumWidth = 6;
             DataGridViewTextBoxColumnDescripcion.Name = "DataGridViewTextBoxColumnDescripcion";
             DataGridViewTextBoxColumnDescripcion.ReadOnly = true;
+            DataGridViewTextBoxColumnDescripcion.Width = 125;
             // 
             // DataGridViewTextBoxColumnPrecio
             // 
             DataGridViewTextBoxColumnPrecio.HeaderText = "Precio";
+            DataGridViewTextBoxColumnPrecio.MinimumWidth = 6;
             DataGridViewTextBoxColumnPrecio.Name = "DataGridViewTextBoxColumnPrecio";
+            DataGridViewTextBoxColumnPrecio.Width = 125;
             // 
             // DataGridViewTextBoxColumnImporte
             // 
             DataGridViewTextBoxColumnImporte.HeaderText = "Importe";
+            DataGridViewTextBoxColumnImporte.MinimumWidth = 6;
             DataGridViewTextBoxColumnImporte.Name = "DataGridViewTextBoxColumnImporte";
             DataGridViewTextBoxColumnImporte.ReadOnly = true;
+            DataGridViewTextBoxColumnImporte.Width = 125;
             // 
             // groupBoxTotales
             // 

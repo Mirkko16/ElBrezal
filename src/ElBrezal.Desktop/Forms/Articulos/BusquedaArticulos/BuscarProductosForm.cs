@@ -60,12 +60,16 @@ namespace ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos
             dataGridViewTextBoxColumnStock.DataPropertyName =
                 nameof(ProductoDto.Stock);
 
+            // Formato numérico para el stock (2 decimales)
+            dataGridViewTextBoxColumnStock.DefaultCellStyle.Format = "N2";
+            // Alinea el número a la derecha (opcional, pero recomendado para números)
+            dataGridViewTextBoxColumnStock.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+
             // Distribución
             dataGridViewTextBoxColumnCodigo.FillWeight = 12;
             dataGridViewTextBoxColumnDescripcion.FillWeight = 45;
             dataGridViewTextBoxColumnStock.FillWeight = 20;
         }
-
         private void MostrarProductos(IEnumerable<ProductoDto> productos)
         {
             dataGridViewProductos.DataSource = productos.ToList();

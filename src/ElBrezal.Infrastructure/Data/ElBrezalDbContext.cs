@@ -26,6 +26,8 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<Marcas> Marcas { get; set; }
 
+    public virtual DbSet<NumeracionesComprobante> NumeracionesComprobante { get; set; }
+
     public virtual DbSet<Productos> Productos { get; set; }
 
     public virtual DbSet<Proveedores> Proveedores { get; set; }
@@ -141,6 +143,16 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<NumeracionesComprobante>(entity =>
+        {
+            entity.HasIndex(e => new { e.TipoComprobanteId, e.PuntoVenta }, "UQ_NumeracionesComprobante_Tipo_PuntoVenta").IsUnique();
+
+            entity.HasOne(d => d.TipoComprobante).WithMany(p => p.NumeracionesComprobante)
+                .HasForeignKey(d => d.TipoComprobanteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_NumeracionesComprobante_TiposComprobante");
         });
 
         modelBuilder.Entity<Productos>(entity =>

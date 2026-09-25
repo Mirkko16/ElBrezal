@@ -16,4 +16,6 @@ public partial class TiposComprobante
     public short MovimientoStock { get; set; }
 
     public bool Eliminado { get; set; }
+
+    public virtual ICollection<NumeracionesComprobante> NumeracionesComprobante { get; set; } = new List<NumeracionesComprobante>();
 }
