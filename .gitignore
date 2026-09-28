@@ -8,3 +8,6 @@ bin/
 obj/
 /database/scripts/.env
 /.gitignore
+
+# Text files
+*.txt
