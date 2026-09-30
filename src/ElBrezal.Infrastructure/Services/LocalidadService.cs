@@ -62,6 +62,22 @@ namespace ElBrezal.Infrastructure.Services
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<LocalidadDto?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Localidades
+                .AsNoTracking()
+                .Where(x => x.Id == id && !x.Eliminado)
+                .Select(x => new LocalidadDto
+                {
+                    Id = x.Id,
+                    Nombre = x.Nombre,
+                    CodigoPostal = x.CodigoPostal,
+                    ProvinciaId = x.ProvinciaId,
+                    Provincia = x.Provincia.Nombre
+                })
+                .FirstOrDefaultAsync();
+        }
         public async Task ModificarAsync( int id, string nombre, string codigoPostal, int provinciaId)
         {
             var localidad = await _context.Localidades

@@ -16,6 +16,10 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<Clientes> Clientes { get; set; }
 
+    public virtual DbSet<Comprobantes> Comprobantes { get; set; }
+
+    public virtual DbSet<ComprobantesDetalle> ComprobantesDetalle { get; set; }
+
     public virtual DbSet<CondicionesVenta> CondicionesVenta { get; set; }
 
     public virtual DbSet<EstadosCuentaCliente> EstadosCuentaCliente { get; set; }
@@ -99,6 +103,61 @@ public partial class ElBrezalDbContext : DbContext
             entity.HasOne(d => d.Vendedor).WithMany(p => p.Clientes)
                 .HasForeignKey(d => d.VendedorId)
                 .HasConstraintName("FK_Clientes_Vendedores");
+        });
+
+        modelBuilder.Entity<Comprobantes>(entity =>
+        {
+            entity.HasIndex(e => new { e.TipoComprobanteId, e.PuntoVenta, e.Numero }, "UQ_Comprobantes_Numeracion").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())", "DF_Comprobantes_CreatedAt");
+            entity.Property(e => e.MontoVariacion).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Observacion).HasMaxLength(500);
+            entity.Property(e => e.PorcentajeVariacion).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.Cliente).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.ClienteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_Clientes");
+
+            entity.HasOne(d => d.CondicionVenta).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.CondicionVentaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_CondicionesVenta");
+
+            entity.HasOne(d => d.SituacionImpositiva).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.SituacionImpositivaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_SituacionesImpositivas");
+
+            entity.HasOne(d => d.TipoComprobante).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.TipoComprobanteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_TiposComprobante");
+
+            entity.HasOne(d => d.Vendedor).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.VendedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_Vendedores");
+        });
+
+        modelBuilder.Entity<ComprobantesDetalle>(entity =>
+        {
+            entity.Property(e => e.Cantidad).HasColumnType("decimal(18, 3)");
+            entity.Property(e => e.Descripcion).HasMaxLength(200);
+            entity.Property(e => e.Importe).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.Comprobante).WithMany(p => p.ComprobantesDetalle)
+                .HasForeignKey(d => d.ComprobanteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ComprobantesDetalle_Comprobantes");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.ComprobantesDetalle)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ComprobantesDetalle_Productos");
         });
 
         modelBuilder.Entity<CondicionesVenta>(entity =>

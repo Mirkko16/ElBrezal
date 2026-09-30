@@ -33,6 +33,8 @@ public partial class Clientes
 
     public bool Eliminado { get; set; }
 
+    public virtual ICollection<Comprobantes> Comprobantes { get; set; } = new List<Comprobantes>();
+
     public virtual EstadosCuentaCliente EstadoCuenta { get; set; } = null!;
 
     public virtual Localidades Localidad { get; set; } = null!;

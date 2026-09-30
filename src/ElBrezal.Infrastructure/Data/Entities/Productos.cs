@@ -45,6 +45,8 @@ public partial class Productos
 
     public virtual AlicuotasIVA AlicuotaIVA { get; set; } = null!;
 
+    public virtual ICollection<ComprobantesDetalle> ComprobantesDetalle { get; set; } = new List<ComprobantesDetalle>();
+
     public virtual Familias? Familia { get; set; }
 
     public virtual Marcas? Marca { get; set; }

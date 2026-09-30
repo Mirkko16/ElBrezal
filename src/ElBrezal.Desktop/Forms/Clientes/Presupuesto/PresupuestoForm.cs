@@ -2,7 +2,9 @@
 using ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Models;
+using ElBrezal.Application.Validators;
 using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
+using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.UI.Styles;
 using System;
 using System.Collections.Generic;
@@ -26,6 +28,15 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         private readonly IProductoService _productoService;
         private readonly IVendedorService _vendedorService;
         private readonly INumeracionComprobanteService _numeracionComprobanteService;
+        private readonly ILocalidadService _localidadService;
+
+        private readonly IComprobanteService _comprobanteService;
+
+        private const int LocalidadPredeterminada = 1;
+
+        private bool _guardandoPresupuesto;
+
+        private LocalidadDto? _localidadSeleccionada;
 
         private const int PuntoVenta = 1;
 
@@ -35,7 +46,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
         private bool _inicializandoFormulario;
         public PresupuestoForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
-            ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService, INumeracionComprobanteService numeracionComprobanteService)
+            ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService,
+            INumeracionComprobanteService numeracionComprobanteService, ILocalidadService localidadService, IComprobanteService comprobanteService)
         {
             InitializeComponent();
 
@@ -46,6 +58,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             _vendedorService = vendedorService;
             _productoService = productoService;
             _numeracionComprobanteService = numeracionComprobanteService;
+            _localidadService = localidadService;
+            _comprobanteService = comprobanteService;
         }
 
         private async void PresupuestoForm_Load(object sender, EventArgs e)
@@ -179,8 +193,15 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             textBoxDireccion.Text = cliente.Direccion ?? string.Empty;
             textBoxTelCliente.Text = cliente.Telefono ?? string.Empty;
             textBoxDNI.Text = cliente.DNI ?? string.Empty;
+            textBoxCUIT.Text = cliente.CUIT ?? string.Empty;
 
-            textBoxZona.Text = cliente.Localidad;
+            _localidadSeleccionada = new LocalidadDto
+            {
+                Id = cliente.LocalidadId,
+                Nombre = cliente.Localidad ?? string.Empty
+            };
+
+            MostrarLocalidad(_localidadSeleccionada);
 
             comboBoxTipo.SelectedValue = cliente.SituacionImpositivaId;
 
@@ -198,7 +219,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             {
                 LimpiarVendedor();
             }
-
         }
 
         private void MostrarVendedor(VendedorDto vendedor)
@@ -384,6 +404,37 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
                 numeracion.ProximoNumeroFormateado;
         }
 
+
+        private void MostrarLocalidad(LocalidadDto localidad)
+        {
+            _localidadSeleccionada = localidad;
+
+            textBoxZona.Text =
+                $"{localidad.Id} - {localidad.Nombre}";
+        }
+
+        private async Task CargarLocalidadAsync(int localidadId)
+        {
+            var localidad =
+                await _localidadService.ObtenerPorIdAsync(localidadId);
+
+            if (localidad is null)
+            {
+                MessageBox.Show(
+                    $"No existe la localidad N° {localidadId}.",
+                    "Localidad no encontrada",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxZona.Focus();
+                textBoxZona.SelectAll();
+
+                return;
+            }
+
+            MostrarLocalidad(localidad);
+        }
+
         #endregion
 
         #region // CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
@@ -403,6 +454,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
         private void CargarProductoEnFila(DataGridViewRow fila, ProductoDto producto)
         {
+
+            if (VerificarProductoYaCargado(producto.Id, fila))
+                return;
+
             fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = 1;
 
             fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value =
@@ -736,22 +791,18 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             RecalcularFila(dataGridViewProductos.Rows[e.RowIndex]);
         }
 
-        private void textBoxVariacionVenta_TextChanged(object sender, EventArgs e)
-        {
-            RecalcularTotales();
-        }
 
         private void comboBoxTipo_SelectedValueChanged(object sender, EventArgs e)
         {
             ActualizarAlicuotaCliente();
         }
 
-        private async void btnNuevaVenta_Click(object sender, EventArgs e)
+        private async void btnNuevoPresupuesto_Click(object sender, EventArgs e)
         {
-            await NuevaVentaAsync();
+            await NuevoPresupuestoAsync();
         }
 
-        private async Task NuevaVentaAsync()
+        private async Task NuevoPresupuestoAsync()
         {
             // Datos generales
             textBoxFecha.Text = DateTime.Now.ToString("dd/MM/yyyy");
@@ -774,7 +825,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             // Cliente por defecto
             textBoxNumCuenta.Text = CuentaConsumidorFinal.ToString();
-
+            textBoxCUIT.Clear();
             await CargarClienteAsync(CuentaConsumidorFinal);
 
             // Posicionar para comenzar el nuevo poresupuesto
@@ -798,14 +849,525 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             RecalcularTotales();
         }
 
-        private void dataGridViewProductos_KeyDown_1(object sender, KeyEventArgs e)
+        private void textBoxCUIT_Leave(object sender, EventArgs e)
         {
+            ValidarCuitIngresado();
+        }
+        private bool ValidarCuitIngresado()
+        {
+            var cuit = ObtenerCuit();
 
+            if (string.IsNullOrWhiteSpace(cuit))
+                return true;
+
+            if (CuitValidator.Validar(cuit))
+                return true;
+
+            MessageBox.Show(
+                "El CUIT ingresado no es válido.",
+                "Verificación de CUIT",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+
+            textBoxCUIT.Focus();
+            textBoxCUIT.SelectAll();
+
+            return false;
         }
 
-        private void textBoxVendedor_Enter_1(object sender, EventArgs e)
+        private string? ObtenerCuit()
         {
+            var formatoActual = textBoxCUIT.TextMaskFormat;
 
+            textBoxCUIT.TextMaskFormat =
+                MaskFormat.ExcludePromptAndLiterals;
+
+            string cuitSinFormato = textBoxCUIT.Text;
+
+            textBoxCUIT.TextMaskFormat = formatoActual;
+
+            if (string.IsNullOrWhiteSpace(cuitSinFormato))
+                return null;
+
+            if (cuitSinFormato.Length != 11)
+                return textBoxCUIT.Text.Trim();
+
+            return
+                $"{cuitSinFormato[..2]}-" +
+                $"{cuitSinFormato.Substring(2, 8)}-" +
+                $"{cuitSinFormato[10]}";
         }
+
+        private async void textBoxZona_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F1)
+            {
+                e.SuppressKeyPress = true;
+
+                AbrirBuscarLocalidades();
+
+                return;
+            }
+
+            if (e.KeyCode != Keys.Enter)
+                return;
+
+            e.SuppressKeyPress = true;
+
+            var texto = textBoxZona.Text
+                .Split('-')[0]
+                .Trim();
+
+            if (!int.TryParse(texto, out int localidadId))
+            {
+                MessageBox.Show(
+                    "Ingrese un número de localidad válido.",
+                    "Localidad",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxZona.Focus();
+                textBoxZona.SelectAll();
+
+                return;
+            }
+
+            await CargarLocalidadAsync(localidadId);
+        }
+
+        private void AbrirBuscarLocalidades()
+        {
+            using var form = new BuscarLocalidadesForm(_localidadService);
+
+            if (form.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            if (form.LocalidadSeleccionada is null)
+                return;
+
+            MostrarLocalidad(form.LocalidadSeleccionada);
+        }
+
+
+        #region //VALIDACION DE PRESUPUESTO
+        private bool ValidarPresupuesto()
+        {
+            if (comboBoxTipoComprobante.SelectedValue is not int tipoComprobanteId ||
+                tipoComprobanteId <= 0)
+            {
+                MessageBox.Show(
+                    "No se pudo determinar el tipo de comprobante.",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return false;
+            }
+
+            if (_clienteSeleccionado is null &&
+                textBoxNumCuenta.Text.Trim() != CuentaClienteManual.ToString())
+            {
+                MessageBox.Show(
+                    "Debe seleccionar un cliente válido.",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxNumCuenta.Focus();
+                return false;
+            }
+
+            if (_vendedorSeleccionado is null)
+            {
+                MessageBox.Show(
+                    "Debe seleccionar un vendedor.",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxVendedor.Focus();
+                return false;
+            }
+
+            if (comboBoxCondicionVenta.SelectedValue is not int condicionVentaId ||
+                condicionVentaId <= 0)
+            {
+                MessageBox.Show(
+                    "Debe seleccionar una condición de venta.",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                comboBoxCondicionVenta.Focus();
+                return false;
+            }
+
+            if (comboBoxTipo.SelectedValue is not int situacionImpositivaId ||
+                situacionImpositivaId <= 0)
+            {
+                MessageBox.Show(
+                    "Debe seleccionar una situación impositiva.",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                comboBoxTipo.Focus();
+                return false;
+            }
+
+            var tieneArticulos = dataGridViewProductos.Rows.Cast<DataGridViewRow>().Any(row =>
+                            !row.IsNewRow &&
+                            int.TryParse(row.Cells["DataGridViewTextBoxColumnArticulo"].Value?.ToString(), out var productoId) &&
+                            productoId > 0);
+
+            if (!tieneArticulos)
+            {
+                MessageBox.Show(
+                    "Debe ingresar al menos un artículo.",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                dataGridViewProductos.Focus();
+                return false;
+            }
+
+            if (textBoxNumCuenta.Text.Trim() == CuentaClienteManual.ToString())
+            {
+                if (string.IsNullOrWhiteSpace(textBoxNombreCLiente.Text))
+                {
+                    MessageBox.Show(
+                        "Debe ingresar el nombre del cliente.",
+                        "Alta rápida de cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxNombreCLiente.Focus();
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(textBoxDireccion.Text))
+                {
+                    MessageBox.Show(
+                        "Debe ingresar la dirección del cliente.",
+                        "Alta rápida de cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxDireccion.Focus();
+                    return false;
+                }
+
+                var dni = textBoxDNI.Text.Trim();
+                var cuit = ObtenerCuit();
+
+                if (string.IsNullOrWhiteSpace(dni) &&
+                    string.IsNullOrWhiteSpace(cuit))
+                {
+                    MessageBox.Show(
+                        "Debe ingresar DNI y/o CUIT.",
+                        "Alta rápida de cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxDNI.Focus();
+                    return false;
+                }
+
+                if (!string.IsNullOrWhiteSpace(cuit) &&
+                    !CuitValidator.Validar(cuit))
+                {
+                    MessageBox.Show(
+                        "El CUIT ingresado no es válido.",
+                        "Alta rápida de cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxCUIT.Focus();
+                    return false;
+                }
+
+                if (_localidadSeleccionada is null)
+                {
+                    MessageBox.Show(
+                        "Debe seleccionar una localidad.",
+                        "Alta rápida de cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxZona.Focus();
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        #endregion
+
+        #region //CONSTRUCCION DEL COMPROBANTE
+        private CrearComprobanteDto ConstruirComprobante()
+        {
+            var esClienteRapido =
+                textBoxNumCuenta.Text.Trim() ==
+                CuentaClienteManual.ToString();
+
+            var dto = new CrearComprobanteDto
+            {
+                TipoComprobanteId =
+                    Convert.ToInt32(comboBoxTipoComprobante.SelectedValue),
+
+                PuntoVenta = PuntoVenta,
+                Fecha = DateTime.Now,
+
+                ClienteId = esClienteRapido
+                    ? null
+                    : _clienteSeleccionado!.Id,
+
+                VendedorId = _vendedorSeleccionado!.Id,
+
+                CondicionVentaId =
+                    Convert.ToInt32(comboBoxCondicionVenta.SelectedValue),
+
+                SituacionImpositivaId =
+                    Convert.ToInt32(comboBoxTipo.SelectedValue),
+
+                PorcentajeVariacion = decimal.TryParse(textBoxVariacionPresupuesto.Text, out var porcentajeVariacion) ? porcentajeVariacion : 0m,
+
+                Observacion = string.IsNullOrWhiteSpace(textBoxObservacion.Text)
+                    ? null
+                    : textBoxObservacion.Text.Trim()
+            };
+
+            if (esClienteRapido)
+            {
+                var cuit = ObtenerCuit();
+
+                dto.ClienteRapido = new ClienteRapidoDto
+                {
+                    Nombre = textBoxNombreCLiente.Text.Trim(),
+
+                    DNI = string.IsNullOrWhiteSpace(textBoxDNI.Text)
+                        ? null
+                        : textBoxDNI.Text.Trim(),
+
+                    CUIT = string.IsNullOrWhiteSpace(cuit)
+                        ? null
+                        : cuit,
+
+                    Direccion = string.IsNullOrWhiteSpace(textBoxDireccion.Text)
+                        ? null
+                        : textBoxDireccion.Text.Trim(),
+
+                    Telefono = string.IsNullOrWhiteSpace(textBoxTelCliente.Text)
+                        ? null
+                        : textBoxTelCliente.Text.Trim(),
+
+                    LocalidadId = _localidadSeleccionada!.Id,
+
+                    SituacionImpositivaId =
+                        Convert.ToInt32(comboBoxTipo.SelectedValue),
+
+                    EstadoCuentaId = 1,
+
+                    VendedorId = _vendedorSeleccionado!.Id
+                };
+            }
+            foreach (DataGridViewRow row in dataGridViewProductos.Rows)
+            {
+                if (row.IsNewRow)
+                    continue;
+
+                if (!int.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnArticulo"].Value?.ToString(),
+                        out var productoId) ||
+                    productoId <= 0)
+                {
+                    continue;
+                }
+
+                if (!decimal.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnCantidad"].Value?.ToString(),
+                        out var cantidad))
+                {
+                    cantidad = 0m;
+                }
+
+                if (!decimal.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnPrecio"].Value?.ToString(),
+                        out var precio))
+                {
+                    precio = 0m;
+                }
+
+                var descripcion =
+                    row.Cells["DataGridViewTextBoxColumnDescripcion"].Value?.ToString()
+                    ?? string.Empty;
+
+                var importe =
+                    OperacionComercialCalculations.CalcularImporte(
+                        cantidad,
+                        precio);
+
+                dto.Detalles.Add(new ComprobanteDetalleDto
+                {
+                    ProductoId = productoId,
+                    Descripcion = descripcion,
+                    Cantidad = cantidad,
+                    PrecioUnitario = precio,
+                    Importe = importe
+                });
+            }
+
+            dto.Subtotal = dto.Detalles.Sum(x => x.Importe);
+
+            dto.MontoVariacion =
+                OperacionComercialCalculations.CalcularMontoVariacion(
+                    dto.Subtotal,
+                    dto.PorcentajeVariacion);
+
+            dto.Total =
+                OperacionComercialCalculations.CalcularTotal(
+                    dto.Subtotal,
+                    dto.MontoVariacion);
+
+            return dto;
+        }
+        #endregion
+
+        private async void btnConfirmar_Click(object sender, EventArgs e)
+        {
+            await GuardarPresupuestoAsync();
+        }
+
+        private async Task GuardarPresupuestoAsync()
+        {
+            if (_guardandoPresupuesto)
+                return;
+
+            if (!ValidarPresupuesto())
+                return;
+
+            try
+            {
+                _guardandoPresupuesto = true;
+
+                btnConfirmar.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                var dto = ConstruirComprobante();
+
+                var resultado = await _comprobanteService.CrearAsync(dto);
+
+                MessageBox.Show(
+                    $"Presupuesto guardado correctamente.\n\n" +
+                    $"Número: {resultado.PuntoVenta:0000}-{resultado.Numero:000000}",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                await NuevoPresupuestoAsync();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "No se pudo guardar el presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Ocurrió un error al guardar el presupuesto.\n\n{ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _guardandoPresupuesto = false;
+
+                btnConfirmar.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
+
+        private async void PresupuestoForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.F11)
+                return;
+
+            e.SuppressKeyPress = true;
+            e.Handled = true;
+
+            await GuardarPresupuestoAsync();
+        }
+
+
+        private DataGridViewRow? BuscarFilaProducto(
+    int productoId,
+    DataGridViewRow? filaExcluir = null)
+        {
+            foreach (DataGridViewRow row in dataGridViewProductos.Rows)
+            {
+                if (row.IsNewRow || row == filaExcluir)
+                    continue;
+
+                if (!int.TryParse(
+                        row.Cells[DataGridViewTextBoxColumnArticulo.Name].Value?.ToString(),
+                        out var productoIdFila))
+                {
+                    continue;
+                }
+
+                if (productoIdFila == productoId)
+                    return row;
+            }
+
+            return null;
+        }
+
+        private bool VerificarProductoYaCargado(
+    int productoId,
+    DataGridViewRow filaActual)
+        {
+            var filaExistente =
+                BuscarFilaProducto(productoId, filaActual);
+
+            if (filaExistente is null)
+                return false;
+
+            MessageBox.Show(
+                "El producto ya se encuentra cargado en el presupuesto.\n\n" +
+                "Modifique la cantidad en el renglón existente.",
+                "Producto ya cargado",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+
+            // Limpio el renglón donde se intentó cargar el producto repetido.
+            filaActual.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = null;
+            filaActual.Cells[DataGridViewTextBoxColumnArticulo.Name].Value = null;
+            filaActual.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value = null;
+            filaActual.Cells[DataGridViewTextBoxColumnPrecio.Name].Value = null;
+            filaActual.Cells[DataGridViewTextBoxColumnImporte.Name].Value = null;
+
+            // Actualizo los totales por si la fila tenía algún valor previo.
+            RecalcularTotales();
+
+            dataGridViewProductos.ClearSelection();
+
+            var celdaCantidad =
+                filaExistente.Cells[DataGridViewTextBoxColumnCantidad.Name];
+
+            dataGridViewProductos.CurrentCell = celdaCantidad;
+            celdaCantidad.Selected = true;
+
+            dataGridViewProductos.Focus();
+            dataGridViewProductos.BeginEdit(true);
+
+            return true;
+        }
+
+
     }
 }

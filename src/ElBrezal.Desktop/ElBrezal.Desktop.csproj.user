@@ -16,7 +16,7 @@
     <Compile Update="Forms\Clientes\ActualizacionClientes\ClientesForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Forms\Clientes\BuscarClientesForm.cs">
+    <Compile Update="Forms\Clientes\ActualizacionClientes\BuscarClientesForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\Clientes\Presupuesto\PresupuestoForm.cs">
@@ -35,6 +35,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\Tablas\Familias\FamiliasForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Tablas\Localidades\BuscarLocalidadesForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\Tablas\Localidades\LocalidadesForm.cs">

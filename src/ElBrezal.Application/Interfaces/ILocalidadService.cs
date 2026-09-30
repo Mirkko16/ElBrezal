@@ -13,6 +13,8 @@ namespace ElBrezal.Application.Interfaces
 
         Task ModificarAsync( int id, string nombre, string codigoPostal, int provinciaId);
 
+        Task<LocalidadDto?> ObtenerPorIdAsync(int id);
+
         Task EliminarAsync(int id);
 
     }

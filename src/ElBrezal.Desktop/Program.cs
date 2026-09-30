@@ -51,6 +51,7 @@ internal static class Program
                 services.AddTransient<PresupuestoForm>();
                 services.AddTransient<RemitoForm>();
                 services.AddTransient<StockMinimoForm>();
+                services.AddTransient<BuscarLocalidadesForm>();
 
             })
             .Build();

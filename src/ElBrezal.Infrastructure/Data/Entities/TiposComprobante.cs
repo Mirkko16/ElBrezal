@@ -17,5 +17,7 @@ public partial class TiposComprobante
 
     public bool Eliminado { get; set; }
 
+    public virtual ICollection<Comprobantes> Comprobantes { get; set; } = new List<Comprobantes>();
+
     public virtual ICollection<NumeracionesComprobante> NumeracionesComprobante { get; set; } = new List<NumeracionesComprobante>();
 }

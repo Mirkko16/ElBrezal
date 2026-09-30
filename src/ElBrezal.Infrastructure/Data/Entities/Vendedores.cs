@@ -21,5 +21,7 @@ public partial class Vendedores
 
     public virtual ICollection<Clientes> Clientes { get; set; } = new List<Clientes>();
 
+    public virtual ICollection<Comprobantes> Comprobantes { get; set; } = new List<Comprobantes>();
+
     public virtual Localidades? Localidad { get; set; }
 }

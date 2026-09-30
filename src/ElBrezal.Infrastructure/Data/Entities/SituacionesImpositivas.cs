@@ -17,5 +17,7 @@ public partial class SituacionesImpositivas
 
     public virtual ICollection<Clientes> Clientes { get; set; } = new List<Clientes>();
 
+    public virtual ICollection<Comprobantes> Comprobantes { get; set; } = new List<Comprobantes>();
+
     public virtual ICollection<Proveedores> Proveedores { get; set; } = new List<Proveedores>();
 }

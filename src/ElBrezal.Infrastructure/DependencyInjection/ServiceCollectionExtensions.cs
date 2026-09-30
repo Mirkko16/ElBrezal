@@ -36,6 +36,7 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<ICondicionVentaService, CondicionVentaService>();
             services.AddTransient<ITipoComprobanteService, TipoComprobanteService>();
             services.AddTransient<INumeracionComprobanteService, NumeracionComprobanteService>();
+            services.AddTransient<IComprobanteService, ComprobanteService>();
 
 
             return services;

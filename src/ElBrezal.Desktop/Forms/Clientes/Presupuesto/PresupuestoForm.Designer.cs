@@ -58,8 +58,10 @@
             textBoxObservacion = new TextBox();
             groupBoxInfoPresupuesto = new GroupBox();
             gpDatosCliente = new GroupBox();
+            textBoxCUIT = new MaskedTextBox();
             maskedTextBoxPresupAsociado = new MaskedTextBox();
             maskedTextBoxNumeroComprob = new MaskedTextBox();
+            lblCuit = new Label();
             lblCondicionVta = new Label();
             textBoxDNI = new TextBox();
             textBoxVariacionPresupuesto = new TextBox();
@@ -351,6 +353,7 @@
             btnConfirmar.TabIndex = 3;
             btnConfirmar.Text = "Confirmar - F11";
             btnConfirmar.UseVisualStyleBackColor = true;
+            btnConfirmar.Click += btnConfirmar_Click;
             // 
             // btnNuevoPresupuesto
             // 
@@ -360,7 +363,7 @@
             btnNuevoPresupuesto.TabIndex = 4;
             btnNuevoPresupuesto.Text = "Nuevo - F9";
             btnNuevoPresupuesto.UseVisualStyleBackColor = true;
-            btnNuevoPresupuesto.Click += btnNuevaVenta_Click;
+            btnNuevoPresupuesto.Click += btnNuevoPresupuesto_Click;
             // 
             // textBoxObservacion
             // 
@@ -391,8 +394,10 @@
             // 
             // gpDatosCliente
             // 
+            gpDatosCliente.Controls.Add(textBoxCUIT);
             gpDatosCliente.Controls.Add(maskedTextBoxPresupAsociado);
             gpDatosCliente.Controls.Add(maskedTextBoxNumeroComprob);
+            gpDatosCliente.Controls.Add(lblCuit);
             gpDatosCliente.Controls.Add(lblCondicionVta);
             gpDatosCliente.Controls.Add(textBoxDNI);
             gpDatosCliente.Controls.Add(textBoxVariacionPresupuesto);
@@ -428,6 +433,16 @@
             gpDatosCliente.TabIndex = 3;
             gpDatosCliente.TabStop = false;
             // 
+            // textBoxCUIT
+            // 
+            textBoxCUIT.Location = new Point(278, 65);
+            textBoxCUIT.Margin = new Padding(3, 2, 3, 2);
+            textBoxCUIT.Mask = "00-00000000-0";
+            textBoxCUIT.Name = "textBoxCUIT";
+            textBoxCUIT.Size = new Size(100, 23);
+            textBoxCUIT.TabIndex = 32;
+            textBoxCUIT.Leave += textBoxCUIT_Leave;
+            // 
             // maskedTextBoxPresupAsociado
             // 
             maskedTextBoxPresupAsociado.Location = new Point(721, 38);
@@ -447,10 +462,19 @@
             maskedTextBoxNumeroComprob.TabIndex = 2;
             maskedTextBoxNumeroComprob.Text = "0000000000";
             // 
+            // lblCuit
+            // 
+            lblCuit.AutoSize = true;
+            lblCuit.Location = new Point(241, 70);
+            lblCuit.Name = "lblCuit";
+            lblCuit.Size = new Size(36, 15);
+            lblCuit.TabIndex = 31;
+            lblCuit.Text = "CUIT:";
+            // 
             // lblCondicionVta
             // 
             lblCondicionVta.AutoSize = true;
-            lblCondicionVta.Location = new Point(435, 70);
+            lblCondicionVta.Location = new Point(259, 100);
             lblCondicionVta.Name = "lblCondicionVta";
             lblCondicionVta.Size = new Size(65, 15);
             lblCondicionVta.TabIndex = 29;
@@ -493,7 +517,7 @@
             // lblTipo
             // 
             lblTipo.AutoSize = true;
-            lblTipo.Location = new Point(230, 70);
+            lblTipo.Location = new Point(439, 70);
             lblTipo.Name = "lblTipo";
             lblTipo.Size = new Size(34, 15);
             lblTipo.TabIndex = 3;
@@ -572,6 +596,7 @@
             textBoxZona.Name = "textBoxZona";
             textBoxZona.Size = new Size(110, 23);
             textBoxZona.TabIndex = 18;
+            textBoxZona.KeyDown += textBoxZona_KeyDown;
             // 
             // textBoxVendedor
             // 
@@ -587,7 +612,7 @@
             // comboBoxTipo
             // 
             comboBoxTipo.FormattingEnabled = true;
-            comboBoxTipo.Location = new Point(272, 66);
+            comboBoxTipo.Location = new Point(479, 66);
             comboBoxTipo.Margin = new Padding(3, 2, 3, 2);
             comboBoxTipo.Name = "comboBoxTipo";
             comboBoxTipo.Size = new Size(158, 23);
@@ -597,7 +622,7 @@
             // comboBoxCondicionVenta
             // 
             comboBoxCondicionVenta.FormattingEnabled = true;
-            comboBoxCondicionVenta.Location = new Point(507, 66);
+            comboBoxCondicionVenta.Location = new Point(330, 95);
             comboBoxCondicionVenta.Margin = new Padding(3, 2, 3, 2);
             comboBoxCondicionVenta.Name = "comboBoxCondicionVenta";
             comboBoxCondicionVenta.Size = new Size(129, 23);
@@ -737,6 +762,7 @@
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Presupuesto";
             Load += PresupuestoForm_Load;
+            KeyDown += PresupuestoForm_KeyDown;
             ((System.ComponentModel.ISupportInitialize)dataGridViewProductos).EndInit();
             groupBoxTotales.ResumeLayout(false);
             groupBoxTotales.PerformLayout();
@@ -813,5 +839,7 @@
         private GroupBox groupBoxArticulosVendidos;
         private MaskedTextBox maskedTextBoxPresupAsociado;
         private Label lblPresup;
+        private MaskedTextBox textBoxCUIT;
+        private Label lblCuit;
     }
 }
