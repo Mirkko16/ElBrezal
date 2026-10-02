@@ -22,6 +22,8 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<CondicionesVenta> CondicionesVenta { get; set; }
 
+    public virtual DbSet<Config> Config { get; set; }
+
     public virtual DbSet<EstadosCuentaCliente> EstadosCuentaCliente { get; set; }
 
     public virtual DbSet<Familias> Familias { get; set; }
@@ -163,6 +165,17 @@ public partial class ElBrezalDbContext : DbContext
         modelBuilder.Entity<CondicionesVenta>(entity =>
         {
             entity.Property(e => e.Nombre).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Config>(entity =>
+        {
+            entity.HasIndex(e => e.Clave, "UQ_Config_Clave").IsUnique();
+
+            entity.Property(e => e.Clave)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Descripcion).HasMaxLength(200);
+            entity.Property(e => e.Valor).HasMaxLength(500);
         });
 
         modelBuilder.Entity<EstadosCuentaCliente>(entity =>

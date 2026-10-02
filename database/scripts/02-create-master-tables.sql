@@ -380,3 +380,85 @@ ALTER TABLE dbo.Productos
 ADD StockMinimo DECIMAL(18,4) NOT NULL
     CONSTRAINT DF_Productos_StockMinimo DEFAULT (0);
 GO
+
+CREATE TABLE Comprobantes
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    TipoComprobanteId INT NOT NULL,
+    PuntoVenta INT NOT NULL,
+    Numero INT NOT NULL,
+    Fecha DATETIME2 NOT NULL,
+
+    ClienteId INT NOT NULL,
+    VendedorId INT NOT NULL,
+    CondicionVentaId INT NOT NULL,
+    SituacionImpositivaId INT NOT NULL,
+
+    PorcentajeVariacion DECIMAL(10,2) NOT NULL
+        CONSTRAINT DF_Comprobantes_PorcentajeVariacion DEFAULT 0,
+
+    Subtotal DECIMAL(18,2) NOT NULL,
+
+    MontoVariacion DECIMAL(18,2) NOT NULL
+        CONSTRAINT DF_Comprobantes_MontoVariacion DEFAULT 0,
+
+    Total DECIMAL(18,2) NOT NULL,
+
+    Observacion NVARCHAR(500) NULL,
+
+    Anulado BIT NOT NULL
+        CONSTRAINT DF_Comprobantes_Anulado DEFAULT 0,
+
+    CreatedAt DATETIME2 NOT NULL
+        CONSTRAINT DF_Comprobantes_CreatedAt DEFAULT SYSDATETIME(),
+
+    CONSTRAINT PK_Comprobantes
+        PRIMARY KEY (Id),
+
+    CONSTRAINT FK_Comprobantes_TiposComprobante
+        FOREIGN KEY (TipoComprobanteId)
+        REFERENCES TiposComprobante(Id),
+
+    CONSTRAINT FK_Comprobantes_Clientes
+        FOREIGN KEY (ClienteId)
+        REFERENCES Clientes(Id),
+
+    CONSTRAINT FK_Comprobantes_Vendedores
+        FOREIGN KEY (VendedorId)
+        REFERENCES Vendedores(Id),
+
+    CONSTRAINT FK_Comprobantes_CondicionesVenta
+        FOREIGN KEY (CondicionVentaId)
+        REFERENCES CondicionesVenta(Id),
+
+    CONSTRAINT FK_Comprobantes_SituacionesImpositivas
+        FOREIGN KEY (SituacionImpositivaId)
+        REFERENCES SituacionesImpositivas(Id),
+
+    CONSTRAINT UQ_Comprobantes_Numeracion
+        UNIQUE (TipoComprobanteId, PuntoVenta, Numero)
+);
+
+CREATE TABLE ComprobantesDetalle
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    ComprobanteId INT NOT NULL,
+    ProductoId INT NOT NULL,
+
+    Descripcion NVARCHAR(200) NOT NULL,
+
+    Cantidad DECIMAL(18,3) NOT NULL,
+    PrecioUnitario DECIMAL(18,2) NOT NULL,
+    Importe DECIMAL(18,2) NOT NULL,
+
+    CONSTRAINT PK_ComprobantesDetalle
+        PRIMARY KEY (Id),
+
+    CONSTRAINT FK_ComprobantesDetalle_Comprobantes
+        FOREIGN KEY (ComprobanteId)
+        REFERENCES Comprobantes(Id),
+
+    CONSTRAINT FK_ComprobantesDetalle_Productos
+        FOREIGN KEY (ProductoId)
+        REFERENCES Productos(Id)
+);
