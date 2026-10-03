@@ -3,6 +3,7 @@ using ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Models;
 using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
+using ElBrezal.Desktop.Helpers;
 using ElBrezal.Desktop.UI.Styles;
 using System;
 using System.Collections.Generic;
@@ -87,14 +88,26 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             DataGridViewTextBoxColumnCantidad.ReadOnly = false;
             DataGridViewTextBoxColumnArticulo.ReadOnly = false;
             DataGridViewTextBoxColumnDescripcion.ReadOnly = true;
+            DataGridViewTextBoxColumnPrecio.ReadOnly = false;
+            DataGridViewTextBoxColumnImporte.ReadOnly = true;
+
+            DataGridViewTextBoxColumnPrecio.DefaultCellStyle.Format = "N2";
+            DataGridViewTextBoxColumnImporte.DefaultCellStyle.Format = "N2";
 
             DataGridViewTextBoxColumnCantidad.DefaultCellStyle.Alignment =
                 DataGridViewContentAlignment.MiddleRight;
 
+            DataGridViewTextBoxColumnPrecio.DefaultCellStyle.Alignment =
+                DataGridViewContentAlignment.MiddleRight;
+
+            DataGridViewTextBoxColumnImporte.DefaultCellStyle.Alignment =
+                DataGridViewContentAlignment.MiddleRight;
 
             DataGridViewTextBoxColumnCantidad.FillWeight = 10;
-            DataGridViewTextBoxColumnArticulo.FillWeight = 26;
+            DataGridViewTextBoxColumnArticulo.FillWeight = 15;
             DataGridViewTextBoxColumnDescripcion.FillWeight = 42;
+            DataGridViewTextBoxColumnPrecio.FillWeight = 14;
+            DataGridViewTextBoxColumnImporte.FillWeight = 16;
 
             // IMPORTANTE: ahora nosotros administramos las filas.
             AgregarFilaProducto();
@@ -367,17 +380,63 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             await CargarClienteAsync(CuentaConsumidorFinal);
         }
 
-        private void CargarProductoEnFila(DataGridViewRow fila, ProductoDto producto)
+        private void CargarProductoEnFila(
+    DataGridViewRow fila,
+    ProductoDto producto)
         {
-            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = 1;
+            if (VerificarProductoYaCargado(producto.Id, fila))
+                return;
 
-            fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value =
-                producto.Id;
+            var cantidad =
+                ObtenerDecimalCelda(fila, DataGridViewTextBoxColumnCantidad.Name);
 
-            fila.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value =
-                producto.Nombre.ToUpperInvariant();
+            if (cantidad <= 0)
+                cantidad = 1;
+
+            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = cantidad;
+
+            fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value = producto.Id;
+
+            fila.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value = producto.Nombre.ToUpperInvariant();
 
             IrASiguienteFilaProducto(fila.Index);
+        }
+
+        private bool VerificarProductoYaCargado(
+    int productoId,
+    DataGridViewRow filaActual)
+        {
+            var filaExistente =
+                OperacionProductosGridHelper.BuscarFilaProducto(
+                    dataGridViewProductos,
+                    DataGridViewTextBoxColumnArticulo,
+                    productoId,
+                    filaActual);
+
+            if (filaExistente is null)
+                return false;
+
+            MessageBox.Show(
+                "El producto ya se encuentra cargado en el presupuesto.\n\n" +
+                "Modifique la cantidad en el renglón existente.",
+                "Producto ya cargado",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+
+            OperacionProductosGridHelper.LimpiarFila(
+                filaActual,
+                DataGridViewTextBoxColumnCantidad,
+                DataGridViewTextBoxColumnArticulo,
+                DataGridViewTextBoxColumnDescripcion,
+                DataGridViewTextBoxColumnPrecio,
+                DataGridViewTextBoxColumnImporte);
+
+            OperacionProductosGridHelper.PosicionarEnCantidad(
+                dataGridViewProductos,
+                filaExistente,
+                DataGridViewTextBoxColumnCantidad);
+
+            return true;
         }
 
         private void IrASiguienteFilaProducto(int filaActual)
@@ -391,9 +450,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
             dataGridViewProductos.CurrentCell =
                 dataGridViewProductos.Rows[siguienteFila]
-                    .Cells[DataGridViewTextBoxColumnArticulo.Name];
+                    .Cells[DataGridViewTextBoxColumnCantidad.Name];
 
             dataGridViewProductos.Focus();
+            dataGridViewProductos.BeginEdit(true);
         }
 
         private void AbrirBuscadorProductos()
@@ -415,22 +475,51 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             CargarProductoEnFila(fila, buscarProductosForm.ProductoSeleccionado);
         }
 
-        private async void dataGridViewProductos_KeyDown(object sender, KeyEventArgs e)
+        private async void dataGridViewProductos_KeyDown(  object sender, KeyEventArgs e)
         {
-            if (dataGridViewProductos.CurrentCell?.OwningColumn
-                != DataGridViewTextBoxColumnArticulo)
+            if (dataGridViewProductos.CurrentCell is null)
                 return;
 
-            if (e.KeyCode == Keys.F1)
+            var columnaActual =
+                dataGridViewProductos.CurrentCell.OwningColumn;
+
+            // CANTIDAD -> ENTER lleva a ARTÍCULO
+            if (columnaActual == DataGridViewTextBoxColumnCantidad &&
+                e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+
+                dataGridViewProductos.EndEdit();
+
+                var fila = dataGridViewProductos.CurrentRow;
+
+                if (fila is null)
+                    return;
+
+                dataGridViewProductos.CurrentCell =
+                    fila.Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+                dataGridViewProductos.BeginEdit(true);
+
+                return;
+            }
+
+            // ARTÍCULO -> F1 abre buscador
+            if (columnaActual == DataGridViewTextBoxColumnArticulo &&
+                e.KeyCode == Keys.F1)
             {
                 e.SuppressKeyPress = true;
                 e.Handled = true;
 
                 AbrirBuscadorProductos();
+
                 return;
             }
 
-            if (e.KeyCode == Keys.Enter)
+            // ARTÍCULO -> ENTER carga producto
+            if (columnaActual == DataGridViewTextBoxColumnArticulo &&
+                e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
                 e.Handled = true;
@@ -438,9 +527,13 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                 dataGridViewProductos.EndEdit();
 
                 await CargarProductoIngresadoAsync();
+
+                return;
             }
         }
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        protected override bool ProcessCmdKey(
+    ref Message msg,
+    Keys keyData)
         {
             if (keyData == Keys.Escape)
             {
@@ -451,13 +544,36 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             }
 
             if (keyData == Keys.Tab &&
-                dataGridViewProductos.ContainsFocus &&
-                dataGridViewProductos.CurrentCell?.OwningColumn
-                    == DataGridViewTextBoxColumnArticulo)
+                dataGridViewProductos.ContainsFocus)
             {
-                ProcesarArticuloConTab();
+                var columnaActual =
+                    dataGridViewProductos.CurrentCell?.OwningColumn;
 
-                return true;
+                // CANTIDAD -> TAB -> ARTÍCULO
+                if (columnaActual == DataGridViewTextBoxColumnCantidad)
+                {
+                    dataGridViewProductos.EndEdit();
+
+                    var fila = dataGridViewProductos.CurrentRow;
+
+                    if (fila is null)
+                        return true;
+
+                    dataGridViewProductos.CurrentCell =
+                        fila.Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+                    dataGridViewProductos.BeginEdit(true);
+
+                    return true;
+                }
+
+                // ARTÍCULO -> TAB -> CARGAR PRODUCTO
+                if (columnaActual == DataGridViewTextBoxColumnArticulo)
+                {
+                    ProcesarArticuloConTab();
+
+                    return true;
+                }
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -672,5 +788,19 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
         {
 
         }
+        private decimal ObtenerDecimalCelda(DataGridViewRow fila, string nombreColumna)
+        {
+            var valor = fila.Cells[nombreColumna].Value;
+
+            if (valor is null)
+                return 0m;
+
+            return decimal.TryParse(
+                valor.ToString(),
+                out decimal resultado)
+                    ? resultado
+                    : 0m;
+        }
     }
+
 }

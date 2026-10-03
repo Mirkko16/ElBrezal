@@ -14,8 +14,7 @@ namespace ElBrezal.Infrastructure.Services
             _context = context;
         }
 
-        public async Task<ComprobanteCreadoDto> CrearAsync(
-    CrearComprobanteDto dto)
+        public async Task<ComprobanteCreadoDto> CrearAsync(CrearComprobanteDto dto)
         {
             ValidarComprobante(dto);
 
@@ -97,6 +96,7 @@ namespace ElBrezal.Infrastructure.Services
                 // - la actualización de UltimoNumero
                 // - el encabezado del comprobante
                 // - todos sus detalles
+                await AplicarMovimientoStockAsync(dto);
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
@@ -117,8 +117,7 @@ namespace ElBrezal.Infrastructure.Services
                 throw;
             }
         }
-        private async Task<int> ObtenerClienteIdAsync(
-    CrearComprobanteDto dto)
+        private async Task<int> ObtenerClienteIdAsync(CrearComprobanteDto dto)
         {
             if (dto.ClienteId.HasValue)
             {
@@ -168,8 +167,7 @@ namespace ElBrezal.Infrastructure.Services
             return nuevoCliente.Id;
         }
 
-        private static void ValidarComprobante(
-    CrearComprobanteDto dto)
+        private static void ValidarComprobante( CrearComprobanteDto dto)
         {
             if (dto.TipoComprobanteId <= 0)
                 throw new InvalidOperationException(
@@ -222,6 +220,53 @@ namespace ElBrezal.Infrastructure.Services
             return string.IsNullOrWhiteSpace(valor)
                 ? null
                 : valor.Trim().ToUpperInvariant();
+        }
+
+        private async Task AplicarMovimientoStockAsync(CrearComprobanteDto dto)
+        {
+            var tipoComprobante = await _context.TiposComprobante
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.Id == dto.TipoComprobanteId &&
+                    !x.Eliminado);
+
+            if (tipoComprobante is null)
+            {
+                throw new InvalidOperationException(
+                    "El tipo de comprobante seleccionado no existe.");
+            }
+
+            // Este tipo de comprobante no afecta stock.
+            // Ejemplo: Presupuesto.
+            if (tipoComprobante.MovimientoStock == 0)
+                return;
+
+            var productosIds = dto.Detalles
+                .Select(x => x.ProductoId)
+                .Distinct()
+                .ToList();
+
+            var productos = await _context.Productos
+                .Where(x =>
+                    productosIds.Contains(x.Id) &&
+                    !x.Eliminado)
+                .ToDictionaryAsync(x => x.Id);
+
+            foreach (var detalle in dto.Detalles)
+            {
+                if (!productos.TryGetValue(
+                        detalle.ProductoId,
+                        out var producto))
+                {
+                    throw new InvalidOperationException(
+                        $"El producto N° {detalle.ProductoId} no existe.");
+                }
+
+                var movimiento =
+                    detalle.Cantidad * tipoComprobante.MovimientoStock;
+
+                producto.Stock += movimiento;
+            }
         }
     }
 }

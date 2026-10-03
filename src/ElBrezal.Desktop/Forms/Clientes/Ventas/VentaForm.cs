@@ -2,7 +2,9 @@
 using ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Models;
+using ElBrezal.Application.Validators;
 using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
+using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.UI.Styles;
 using ElBrezal.Infrastructure.Services;
 using System;
@@ -12,6 +14,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using ElBrezal.Desktop.Helpers;
 
 namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 {
@@ -27,17 +30,22 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private readonly IProductoService _productoService;
         private readonly IVendedorService _vendedorService;
         private readonly INumeracionComprobanteService _numeracionComprobanteService;
+        private readonly ILocalidadService _localidadService;
+        private readonly IComprobanteService _comprobanteService;
 
         private const int PuntoVenta = 1;
         private VendedorDto? _vendedorSeleccionado;
 
         private bool _inicializandoFormulario;
-
+        private bool _guardandoVenta;
         private ClienteDto? _clienteSeleccionado;
+        private LocalidadDto? _localidadSeleccionada;
 
         public VentaForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
-            ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService, INumeracionComprobanteService numeracionComprobanteService)
+            ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService,
+            INumeracionComprobanteService numeracionComprobanteService, ILocalidadService localidadService, IComprobanteService comprobanteService)
         {
+
             InitializeComponent();
 
             _clienteService = clienteService;
@@ -47,12 +55,15 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             _vendedorService = vendedorService;
             _productoService = productoService;
             _numeracionComprobanteService = numeracionComprobanteService;
+            _localidadService = localidadService;
+            _comprobanteService = comprobanteService;
         }
 
         private async void VentaForm_Load(object sender, EventArgs e)
         {
             ConfigurarGrillaProductos();
             ConfigurarDatosCliente();
+            textBoxCUIT.ReadOnly = true;
 
             _inicializandoFormulario = true;
 
@@ -104,7 +115,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
                 DataGridViewContentAlignment.MiddleRight;
 
             DataGridViewTextBoxColumnCantidad.FillWeight = 10;
-            DataGridViewTextBoxColumnArticulo.FillWeight = 26;
+            DataGridViewTextBoxColumnArticulo.FillWeight = 15;
             DataGridViewTextBoxColumnDescripcion.FillWeight = 42;
             DataGridViewTextBoxColumnPrecio.FillWeight = 14;
             DataGridViewTextBoxColumnImporte.FillWeight = 16;
@@ -146,18 +157,14 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         {
             if (numeroCuenta == CuentaClienteManual)
             {
-                ActivarClienteManual();
+                await ActivarClienteManualAsync();
                 return;
             }
-
-            var cliente =
-                await _clienteService.ObtenerPorIdAsync(numeroCuenta);
+            var cliente = await _clienteService.ObtenerPorIdAsync(numeroCuenta);
 
             if (cliente is null)
             {
-                MessageBox.Show(
-                    $"No existe el cliente N° {numeroCuenta}.",
-                    "Cliente no encontrado",
+                MessageBox.Show($"No existe el cliente N° {numeroCuenta}.", "Cliente no encontrado",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
 
@@ -181,8 +188,15 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxDireccion.Text = cliente.Direccion ?? string.Empty;
             textBoxTelCliente.Text = cliente.Telefono ?? string.Empty;
             textBoxDNI.Text = cliente.DNI ?? string.Empty;
+            textBoxCUIT.Text = cliente.CUIT ?? string.Empty;
 
-            textBoxZona.Text = cliente.Localidad;
+            _localidadSeleccionada = new LocalidadDto
+            {
+                Id = cliente.LocalidadId,
+                Nombre = cliente.Localidad ?? string.Empty
+            };
+
+            MostrarLocalidad(_localidadSeleccionada);
 
             comboBoxTipo.SelectedValue = cliente.SituacionImpositivaId;
 
@@ -201,6 +215,39 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
                 LimpiarVendedor();
             }
 
+        }
+
+        private void MostrarLocalidad(LocalidadDto localidad)
+        {
+            _localidadSeleccionada = localidad;
+
+            textBoxZona.Text =
+                $"{localidad.Id} - {localidad.Nombre}";
+        }
+
+        private async Task ActivarClienteManualAsync()
+        {
+            _clienteSeleccionado = null;
+
+            LimpiarDatosCliente();
+
+            textBoxNombreCLiente.ReadOnly = false;
+            textBoxDireccion.ReadOnly = false;
+            textBoxTelCliente.ReadOnly = false;
+            textBoxDNI.ReadOnly = false;
+            textBoxCUIT.ReadOnly = false;
+            textBoxZona.ReadOnly = false;
+
+            comboBoxTipo.Enabled = true;
+            comboBoxCondicionVenta.Enabled = true;
+
+            comboBoxTipo.SelectedValue = 2;
+            comboBoxCondicionVenta.SelectedValue = 1;
+
+            await CargarLocalidadAsync(1);
+            await CargarVendedorAsync(1);
+
+            textBoxNombreCLiente.Focus();
         }
 
         private void MostrarVendedor(VendedorDto vendedor)
@@ -241,27 +288,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         }
 
 
-        private void ActivarClienteManual()
-        {
-            _clienteSeleccionado = null;
 
-            LimpiarDatosCliente();
-
-            textBoxNombreCLiente.ReadOnly = false;
-            textBoxDireccion.ReadOnly = false;
-            textBoxTelCliente.ReadOnly = false;
-            textBoxDNI.ReadOnly = false;
-            textBoxZona.ReadOnly = false;
-
-            comboBoxTipo.Enabled = true;
-            comboBoxCondicionVenta.Enabled = true;
-
-            // Por defecto: Consumidor Final
-            comboBoxTipo.SelectedValue = 2;
-            comboBoxCondicionVenta.SelectedValue = 1;
-
-            textBoxNombreCLiente.Focus();
-        }
 
         private void DesactivarClienteManual()
         {
@@ -278,7 +305,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxDireccion.Clear();
             textBoxTelCliente.Clear();
             textBoxDNI.Clear();
+            textBoxCUIT.Clear();
             textBoxZona.Clear();
+
+            _localidadSeleccionada = null;
 
             comboBoxTipo.SelectedIndex = -1;
             comboBoxCondicionVenta.SelectedIndex = -1;
@@ -380,6 +410,78 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
                 numeracion.ProximoNumeroFormateado;
         }
 
+        private async void textBoxZona_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F1)
+            {
+                e.SuppressKeyPress = true;
+
+                AbrirBuscarLocalidades();
+
+                return;
+            }
+
+            if (e.KeyCode != Keys.Enter)
+                return;
+
+            e.SuppressKeyPress = true;
+
+            var texto = textBoxZona.Text
+                .Split('-')[0]
+                .Trim();
+
+            if (!int.TryParse(texto, out int localidadId))
+            {
+                MessageBox.Show(
+                    "Ingrese un número de localidad válido.",
+                    "Localidad",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxZona.Focus();
+                textBoxZona.SelectAll();
+
+                return;
+            }
+
+            await CargarLocalidadAsync(localidadId);
+        }
+
+        private void AbrirBuscarLocalidades()
+        {
+            using var form = new BuscarLocalidadesForm(_localidadService);
+
+            if (form.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            if (form.LocalidadSeleccionada is null)
+                return;
+
+            MostrarLocalidad(form.LocalidadSeleccionada);
+        }
+
+        private async Task CargarLocalidadAsync(int localidadId)
+        {
+            var localidad =
+                await _localidadService.ObtenerPorIdAsync(localidadId);
+
+            if (localidad is null)
+            {
+                MessageBox.Show(
+                    $"No existe la localidad N° {localidadId}.",
+                    "Localidad no encontrada",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxZona.Focus();
+                textBoxZona.SelectAll();
+
+                return;
+            }
+
+            MostrarLocalidad(localidad);
+        }
+
         #endregion
 
         #region // CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
@@ -399,7 +501,19 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 
         private void CargarProductoEnFila(DataGridViewRow fila, ProductoDto producto)
         {
-            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = 1;
+            if (VerificarProductoYaCargado(producto.Id, fila))
+                return;
+
+            var cantidad =
+                ObtenerDecimalCelda(
+                    fila,
+                    DataGridViewTextBoxColumnCantidad.Name);
+
+            if (cantidad <= 0)
+                cantidad = 1;
+
+            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value =
+                cantidad;
 
             fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value =
                 producto.Id;
@@ -410,10 +524,46 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             fila.Cells[DataGridViewTextBoxColumnPrecio.Name].Value =
                 producto.PrecioContado;
 
-
             RecalcularFila(fila);
 
             IrASiguienteFilaProducto(fila.Index);
+        }
+
+        private bool VerificarProductoYaCargado(int productoId, DataGridViewRow filaActual)
+        {
+            var filaExistente =
+                OperacionProductosGridHelper.BuscarFilaProducto(
+                    dataGridViewProductos,
+                    DataGridViewTextBoxColumnArticulo,
+                    productoId,
+                    filaActual);
+
+            if (filaExistente is null)
+                return false;
+
+            MessageBox.Show(
+                "El producto ya se encuentra cargado en la venta.\n\n" +
+                "Modifique la cantidad en el renglón existente.",
+                "Producto ya cargado",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+
+            OperacionProductosGridHelper.LimpiarFila(
+                filaActual,
+                DataGridViewTextBoxColumnCantidad,
+                DataGridViewTextBoxColumnArticulo,
+                DataGridViewTextBoxColumnDescripcion,
+                DataGridViewTextBoxColumnPrecio,
+                DataGridViewTextBoxColumnImporte);
+
+            RecalcularTotales();
+
+            OperacionProductosGridHelper.PosicionarEnCantidad(
+                dataGridViewProductos,
+                filaExistente,
+                DataGridViewTextBoxColumnCantidad);
+
+            return true;
         }
 
         private void IrASiguienteFilaProducto(int filaActual)
@@ -427,9 +577,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 
             dataGridViewProductos.CurrentCell =
                 dataGridViewProductos.Rows[siguienteFila]
-                    .Cells[DataGridViewTextBoxColumnArticulo.Name];
+                    .Cells[DataGridViewTextBoxColumnCantidad.Name];
 
             dataGridViewProductos.Focus();
+            dataGridViewProductos.BeginEdit(true);
         }
 
         private void AbrirBuscadorProductos()
@@ -451,22 +602,53 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             CargarProductoEnFila(fila, buscarProductosForm.ProductoSeleccionado);
         }
 
-        private async void dataGridViewProductos_KeyDown(object sender, KeyEventArgs e)
+        private async void dataGridViewProductos_KeyDown(
+    object sender,
+    KeyEventArgs e)
         {
-            if (dataGridViewProductos.CurrentCell?.OwningColumn
-                != DataGridViewTextBoxColumnArticulo)
+            if (dataGridViewProductos.CurrentCell is null)
                 return;
 
-            if (e.KeyCode == Keys.F1)
+            var columnaActual =
+                dataGridViewProductos.CurrentCell.OwningColumn;
+
+            // CANTIDAD -> ENTER lleva a ARTÍCULO
+            if (columnaActual == DataGridViewTextBoxColumnCantidad &&
+                e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+
+                dataGridViewProductos.EndEdit();
+
+                var fila = dataGridViewProductos.CurrentRow;
+
+                if (fila is null)
+                    return;
+
+                dataGridViewProductos.CurrentCell =
+                    fila.Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+                dataGridViewProductos.BeginEdit(true);
+
+                return;
+            }
+
+            // ARTÍCULO -> F1 abre buscador
+            if (columnaActual == DataGridViewTextBoxColumnArticulo &&
+                e.KeyCode == Keys.F1)
             {
                 e.SuppressKeyPress = true;
                 e.Handled = true;
 
                 AbrirBuscadorProductos();
+
                 return;
             }
 
-            if (e.KeyCode == Keys.Enter)
+            // ARTÍCULO -> ENTER carga producto
+            if (columnaActual == DataGridViewTextBoxColumnArticulo &&
+                e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
                 e.Handled = true;
@@ -474,6 +656,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
                 dataGridViewProductos.EndEdit();
 
                 await CargarProductoIngresadoAsync();
+
+                return;
             }
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -486,14 +670,43 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
                 return true;
             }
 
-            if (keyData == Keys.Tab &&
-                dataGridViewProductos.ContainsFocus &&
-                dataGridViewProductos.CurrentCell?.OwningColumn
-                    == DataGridViewTextBoxColumnArticulo)
+            if (keyData == Keys.F11)
             {
-                ProcesarArticuloConTab();
-
+                _ = GuardarVentaAsync();
                 return true;
+            }
+
+            if (keyData == Keys.Tab &&
+                dataGridViewProductos.ContainsFocus)
+            {
+                var columnaActual =
+                    dataGridViewProductos.CurrentCell?.OwningColumn;
+
+                // CANTIDAD -> TAB -> ARTÍCULO
+                if (columnaActual == DataGridViewTextBoxColumnCantidad)
+                {
+                    dataGridViewProductos.EndEdit();
+
+                    var fila = dataGridViewProductos.CurrentRow;
+
+                    if (fila is null)
+                        return true;
+
+                    dataGridViewProductos.CurrentCell =
+                        fila.Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+                    dataGridViewProductos.BeginEdit(true);
+
+                    return true;
+                }
+
+                // ARTÍCULO -> TAB -> CARGAR PRODUCTO
+                if (columnaActual == DataGridViewTextBoxColumnArticulo)
+                {
+                    ProcesarArticuloConTab();
+
+                    return true;
+                }
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -754,6 +967,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 
             await CargarNumeracionComprobanteAsync();
             textBoxVariacionVenta.Clear();
+            textBoxCUIT.Clear();
 
             // Si este es el TextBox de observaciones:
             textBoxObservacion.Clear();
@@ -781,14 +995,411 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             dataGridViewProductos.Focus();
         }
 
-        private async void comboBoxTipoComprobante_SelectedValueChanged( object sender, EventArgs e)
+        private async void comboBoxTipoComprobante_SelectedValueChanged(object sender, EventArgs e)
         {
             if (_inicializandoFormulario)
                 return;
 
             await CargarNumeracionComprobanteAsync();
         }
-        
-    }
-}
 
+        private void textBoxCUIT_Leave(object sender, EventArgs e)
+        {
+            ValidarCuitIngresado();
+        }
+        private bool ValidarCuitIngresado()
+        {
+            var cuit = ObtenerCuit();
+
+            if (string.IsNullOrWhiteSpace(cuit))
+                return true;
+
+            if (CuitValidator.Validar(cuit))
+                return true;
+
+            MessageBox.Show(
+                "El CUIT ingresado no es válido.",
+                "Verificación de CUIT",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+
+            textBoxCUIT.Focus();
+            textBoxCUIT.SelectAll();
+
+            return false;
+        }
+
+        private string? ObtenerCuit()
+        {
+            var formatoActual = textBoxCUIT.TextMaskFormat;
+
+            textBoxCUIT.TextMaskFormat =
+                MaskFormat.ExcludePromptAndLiterals;
+
+            string cuitSinFormato = textBoxCUIT.Text;
+
+            textBoxCUIT.TextMaskFormat = formatoActual;
+
+            if (string.IsNullOrWhiteSpace(cuitSinFormato))
+                return null;
+
+            if (cuitSinFormato.Length != 11)
+                return textBoxCUIT.Text.Trim();
+
+            return
+                $"{cuitSinFormato[..2]}-" +
+                $"{cuitSinFormato.Substring(2, 8)}-" +
+                $"{cuitSinFormato[10]}";
+        }
+
+        private bool ValidarVenta()
+        {
+            if (comboBoxTipoComprobante.SelectedValue is not int tipoComprobanteId ||
+                tipoComprobanteId <= 0)
+            {
+                MessageBox.Show(
+                    "Seleccione un tipo de comprobante.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                comboBoxTipoComprobante.Focus();
+                return false;
+            }
+
+            if (_clienteSeleccionado is null &&
+                textBoxNumCuenta.Text.Trim() != CuentaClienteManual.ToString())
+            {
+                MessageBox.Show(
+                    "Seleccione un cliente válido.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxNumCuenta.Focus();
+                textBoxNumCuenta.SelectAll();
+
+                return false;
+            }
+
+            if (_vendedorSeleccionado is null)
+            {
+                MessageBox.Show(
+                    "Seleccione un vendedor.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxVendedor.Focus();
+                return false;
+            }
+
+            if (comboBoxCondicionVenta.SelectedValue is not int condicionVentaId ||
+                condicionVentaId <= 0)
+            {
+                MessageBox.Show(
+                    "Seleccione una condición de venta.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                comboBoxCondicionVenta.Focus();
+                return false;
+            }
+
+            if (comboBoxTipo.SelectedValue is not int situacionImpositivaId ||
+                situacionImpositivaId <= 0)
+            {
+                MessageBox.Show(
+                    "Seleccione una situación impositiva.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                comboBoxTipo.Focus();
+                return false;
+            }
+
+            var tieneArticulos = dataGridViewProductos.Rows
+                .Cast<DataGridViewRow>()
+                .Any(row =>
+                    !row.IsNewRow &&
+                    int.TryParse(
+                        row.Cells[DataGridViewTextBoxColumnArticulo.Name]
+                            .Value?.ToString(),
+                        out var productoId) &&
+                    productoId > 0);
+
+            if (!tieneArticulos)
+            {
+                MessageBox.Show(
+                    "Debe ingresar al menos un producto.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                dataGridViewProductos.Focus();
+                return false;
+            }
+
+            if (textBoxNumCuenta.Text.Trim() ==
+                CuentaClienteManual.ToString())
+            {
+                if (string.IsNullOrWhiteSpace(textBoxNombreCLiente.Text))
+                {
+                    MessageBox.Show(
+                        "Ingrese el nombre del cliente.",
+                        "Cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxNombreCLiente.Focus();
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(textBoxDireccion.Text))
+                {
+                    MessageBox.Show(
+                        "Ingrese la dirección del cliente.",
+                        "Cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxDireccion.Focus();
+                    return false;
+                }
+
+                var dni = textBoxDNI.Text.Trim();
+                var cuit = ObtenerCuit();
+
+                if (string.IsNullOrWhiteSpace(dni) &&
+                    string.IsNullOrWhiteSpace(cuit))
+                {
+                    MessageBox.Show(
+                        "Ingrese DNI o CUIT del cliente.",
+                        "Cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxDNI.Focus();
+                    return false;
+                }
+
+                if (!string.IsNullOrWhiteSpace(cuit) &&
+                    !CuitValidator.Validar(cuit))
+                {
+                    MessageBox.Show(
+                        "El CUIT ingresado no es válido.",
+                        "CUIT",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxCUIT.Focus();
+                    return false;
+                }
+
+                if (_localidadSeleccionada is null)
+                {
+                    MessageBox.Show(
+                        "Seleccione una localidad.",
+                        "Cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxZona.Focus();
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private CrearComprobanteDto ConstruirComprobante()
+        {
+            var esClienteRapido =
+                textBoxNumCuenta.Text.Trim() ==
+                CuentaClienteManual.ToString();
+
+            var dto = new CrearComprobanteDto
+            {
+                TipoComprobanteId =
+                    Convert.ToInt32(comboBoxTipoComprobante.SelectedValue),
+
+                PuntoVenta = PuntoVenta,
+                Fecha = DateTime.Now,
+
+                ClienteId = esClienteRapido
+                    ? null
+                    : _clienteSeleccionado!.Id,
+
+                VendedorId = _vendedorSeleccionado!.Id,
+
+                CondicionVentaId =
+                    Convert.ToInt32(comboBoxCondicionVenta.SelectedValue),
+
+                SituacionImpositivaId =
+                    Convert.ToInt32(comboBoxTipo.SelectedValue),
+
+                PorcentajeVariacion = decimal.TryParse(textBoxVariacionVenta.Text, out var porcentajeVariacion) ? porcentajeVariacion : 0m,
+
+                Observacion = string.IsNullOrWhiteSpace(textBoxObservacion.Text)
+                    ? null
+                    : textBoxObservacion.Text.Trim()
+            };
+
+            if (esClienteRapido)
+            {
+                var cuit = ObtenerCuit();
+
+                dto.ClienteRapido = new ClienteRapidoDto
+                {
+                    Nombre = textBoxNombreCLiente.Text.Trim(),
+
+                    DNI = string.IsNullOrWhiteSpace(textBoxDNI.Text)
+                        ? null
+                        : textBoxDNI.Text.Trim(),
+
+                    CUIT = string.IsNullOrWhiteSpace(cuit)
+                        ? null
+                        : cuit,
+
+                    Direccion = string.IsNullOrWhiteSpace(textBoxDireccion.Text)
+                        ? null
+                        : textBoxDireccion.Text.Trim(),
+
+                    Telefono = string.IsNullOrWhiteSpace(textBoxTelCliente.Text)
+                        ? null
+                        : textBoxTelCliente.Text.Trim(),
+
+                    LocalidadId = _localidadSeleccionada!.Id,
+
+                    SituacionImpositivaId =
+                        Convert.ToInt32(comboBoxTipo.SelectedValue),
+
+                    EstadoCuentaId = 1,
+
+                    VendedorId = _vendedorSeleccionado!.Id
+                };
+            }
+            foreach (DataGridViewRow row in dataGridViewProductos.Rows)
+            {
+                if (row.IsNewRow)
+                    continue;
+
+                if (!int.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnArticulo"].Value?.ToString(),
+                        out var productoId) ||
+                    productoId <= 0)
+                {
+                    continue;
+                }
+
+                if (!decimal.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnCantidad"].Value?.ToString(),
+                        out var cantidad))
+                {
+                    cantidad = 0m;
+                }
+
+                if (!decimal.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnPrecio"].Value?.ToString(),
+                        out var precio))
+                {
+                    precio = 0m;
+                }
+
+                var descripcion =
+                    row.Cells["DataGridViewTextBoxColumnDescripcion"].Value?.ToString()
+                    ?? string.Empty;
+
+                var importe =
+                    OperacionComercialCalculations.CalcularImporte(
+                        cantidad,
+                        precio);
+
+                dto.Detalles.Add(new ComprobanteDetalleDto
+                {
+                    ProductoId = productoId,
+                    Descripcion = descripcion,
+                    Cantidad = cantidad,
+                    PrecioUnitario = precio,
+                    Importe = importe
+                });
+            }
+
+            dto.Subtotal = dto.Detalles.Sum(x => x.Importe);
+
+            dto.MontoVariacion =
+                OperacionComercialCalculations.CalcularMontoVariacion(
+                    dto.Subtotal,
+                    dto.PorcentajeVariacion);
+
+            dto.Total =
+                OperacionComercialCalculations.CalcularTotal(
+                    dto.Subtotal,
+                    dto.MontoVariacion);
+
+            return dto;
+        }
+
+        private async Task GuardarVentaAsync()
+        {
+            if (_guardandoVenta)
+                return;
+
+            if (!ValidarVenta())
+                return;
+
+            try
+            {
+                _guardandoVenta = true;
+
+                btnConfirmar.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                var dto = ConstruirComprobante();
+
+                var resultado =
+                    await _comprobanteService.CrearAsync(dto);
+
+                MessageBox.Show(
+                    $"Venta guardada correctamente.\n\n" +
+                    $"Número: {resultado.PuntoVenta:0000}-{resultado.Numero:000000}",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                await NuevaVentaAsync();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "No se pudo guardar la venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Ocurrió un error al guardar la venta.\n\n{ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _guardandoVenta = false;
+
+                btnConfirmar.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
+
+        private async void btnConfirmar_Click( object sender, EventArgs e)
+        {
+            await GuardarVentaAsync();
+        }
+    }
+
+}

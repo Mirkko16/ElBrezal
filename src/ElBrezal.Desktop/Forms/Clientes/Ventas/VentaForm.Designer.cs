@@ -21,6 +21,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private void InitializeComponent()
         {
             gpDatosCliente = new GroupBox();
+            textBoxCUIT = new MaskedTextBox();
+            lblCuit = new Label();
             maskedTextBoxPresupAsociado = new MaskedTextBox();
             maskedTextBoxNumeroComprob = new MaskedTextBox();
             lblCondicionVta = new Label();
@@ -92,6 +94,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // 
             // gpDatosCliente
             // 
+            gpDatosCliente.Controls.Add(textBoxCUIT);
+            gpDatosCliente.Controls.Add(lblCuit);
             gpDatosCliente.Controls.Add(maskedTextBoxPresupAsociado);
             gpDatosCliente.Controls.Add(maskedTextBoxNumeroComprob);
             gpDatosCliente.Controls.Add(lblCondicionVta);
@@ -128,6 +132,25 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             gpDatosCliente.Size = new Size(853, 128);
             gpDatosCliente.TabIndex = 0;
             gpDatosCliente.TabStop = false;
+            // 
+            // textBoxCUIT
+            // 
+            textBoxCUIT.Location = new Point(259, 65);
+            textBoxCUIT.Margin = new Padding(3, 2, 3, 2);
+            textBoxCUIT.Mask = "00-00000000-0";
+            textBoxCUIT.Name = "textBoxCUIT";
+            textBoxCUIT.Size = new Size(100, 23);
+            textBoxCUIT.TabIndex = 34;
+            textBoxCUIT.Leave += textBoxCUIT_Leave;
+            // 
+            // lblCuit
+            // 
+            lblCuit.AutoSize = true;
+            lblCuit.Location = new Point(217, 71);
+            lblCuit.Name = "lblCuit";
+            lblCuit.Size = new Size(36, 15);
+            lblCuit.TabIndex = 33;
+            lblCuit.Text = "CUIT:";
             // 
             // maskedTextBoxPresupAsociado
             // 
@@ -193,7 +216,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // lblTipo
             // 
             lblTipo.AutoSize = true;
-            lblTipo.Location = new Point(230, 71);
+            lblTipo.Location = new Point(277, 101);
             lblTipo.Name = "lblTipo";
             lblTipo.Size = new Size(34, 15);
             lblTipo.TabIndex = 3;
@@ -272,6 +295,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxZona.Name = "textBoxZona";
             textBoxZona.Size = new Size(110, 23);
             textBoxZona.TabIndex = 18;
+            textBoxZona.KeyDown += textBoxZona_KeyDown;
             // 
             // textBoxVendedor
             // 
@@ -287,7 +311,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // comboBoxTipo
             // 
             comboBoxTipo.FormattingEnabled = true;
-            comboBoxTipo.Location = new Point(272, 66);
+            comboBoxTipo.Location = new Point(319, 96);
             comboBoxTipo.Margin = new Padding(3, 2, 3, 2);
             comboBoxTipo.Name = "comboBoxTipo";
             comboBoxTipo.Size = new Size(158, 23);
@@ -686,6 +710,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             btnConfirmar.TabIndex = 3;
             btnConfirmar.Text = "Confirmar - F11";
             btnConfirmar.UseVisualStyleBackColor = true;
+            btnConfirmar.Click += btnConfirmar_Click;
             // 
             // btnNuevaVenta
             // 
@@ -823,5 +848,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnDescripcion;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnPrecio;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnImporte;
+        private MaskedTextBox textBoxCUIT;
+        private Label lblCuit;
     }
 }

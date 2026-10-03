@@ -462,3 +462,21 @@ CREATE TABLE ComprobantesDetalle
         FOREIGN KEY (ProductoId)
         REFERENCES Productos(Id)
 );
+
+CREATE TABLE Config
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    Clave VARCHAR(50) NOT NULL,
+    Valor NVARCHAR(500) NULL,
+    Descripcion NVARCHAR(200) NULL,
+    CONSTRAINT PK_Config PRIMARY KEY (Id),
+    CONSTRAINT UQ_Config_Clave UNIQUE (Clave)
+);
+
+INSERT INTO Config (Clave, Valor, Descripcion)
+VALUES
+(
+    'FACTNEGATIVA',
+    'true',
+    'Permite facturar productos con stock insuficiente sin solicitar autorización'
+);

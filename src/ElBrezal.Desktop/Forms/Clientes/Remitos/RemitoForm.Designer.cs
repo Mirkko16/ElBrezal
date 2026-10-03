@@ -30,9 +30,6 @@
         {
             lblObservacion = new Label();
             dataGridViewProductos = new DataGridView();
-            DataGridViewTextBoxColumnCantidad = new DataGridViewTextBoxColumn();
-            DataGridViewTextBoxColumnArticulo = new DataGridViewTextBoxColumn();
-            DataGridViewTextBoxColumnDescripcion = new DataGridViewTextBoxColumn();
             btnSalir = new Button();
             btnConfirmar = new Button();
             btnNuevoRemito = new Button();
@@ -60,6 +57,11 @@
             lblCuenta = new Label();
             groupBoxObservaciones = new GroupBox();
             groupBoxArticulosVendidos = new GroupBox();
+            DataGridViewTextBoxColumnCantidad = new DataGridViewTextBoxColumn();
+            DataGridViewTextBoxColumnArticulo = new DataGridViewTextBoxColumn();
+            DataGridViewTextBoxColumnDescripcion = new DataGridViewTextBoxColumn();
+            DataGridViewTextBoxColumnPrecio = new DataGridViewTextBoxColumn();
+            DataGridViewTextBoxColumnImporte = new DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)dataGridViewProductos).BeginInit();
             gpDatosCliente.SuspendLayout();
             groupBoxObservaciones.SuspendLayout();
@@ -78,7 +80,7 @@
             // dataGridViewProductos
             // 
             dataGridViewProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewProductos.Columns.AddRange(new DataGridViewColumn[] { DataGridViewTextBoxColumnCantidad, DataGridViewTextBoxColumnArticulo, DataGridViewTextBoxColumnDescripcion });
+            dataGridViewProductos.Columns.AddRange(new DataGridViewColumn[] { DataGridViewTextBoxColumnCantidad, DataGridViewTextBoxColumnArticulo, DataGridViewTextBoxColumnDescripcion, DataGridViewTextBoxColumnPrecio, DataGridViewTextBoxColumnImporte });
             dataGridViewProductos.Location = new Point(74, 21);
             dataGridViewProductos.Name = "dataGridViewProductos";
             dataGridViewProductos.RowHeadersWidth = 51;
@@ -86,28 +88,6 @@
             dataGridViewProductos.TabIndex = 1;
             dataGridViewProductos.CellValueChanged += dataGridViewProductos_CellValueChanged;
             dataGridViewProductos.KeyDown += dataGridViewProductos_KeyDown;
-            // 
-            // DataGridViewTextBoxColumnCantidad
-            // 
-            DataGridViewTextBoxColumnCantidad.HeaderText = "Cant.";
-            DataGridViewTextBoxColumnCantidad.MinimumWidth = 6;
-            DataGridViewTextBoxColumnCantidad.Name = "DataGridViewTextBoxColumnCantidad";
-            DataGridViewTextBoxColumnCantidad.Width = 125;
-            // 
-            // DataGridViewTextBoxColumnArticulo
-            // 
-            DataGridViewTextBoxColumnArticulo.HeaderText = "Articulo";
-            DataGridViewTextBoxColumnArticulo.MinimumWidth = 6;
-            DataGridViewTextBoxColumnArticulo.Name = "DataGridViewTextBoxColumnArticulo";
-            DataGridViewTextBoxColumnArticulo.Width = 125;
-            // 
-            // DataGridViewTextBoxColumnDescripcion
-            // 
-            DataGridViewTextBoxColumnDescripcion.HeaderText = "Descripción";
-            DataGridViewTextBoxColumnDescripcion.MinimumWidth = 6;
-            DataGridViewTextBoxColumnDescripcion.Name = "DataGridViewTextBoxColumnDescripcion";
-            DataGridViewTextBoxColumnDescripcion.ReadOnly = true;
-            DataGridViewTextBoxColumnDescripcion.Width = 125;
             // 
             // btnSalir
             // 
@@ -388,6 +368,40 @@
             groupBoxArticulosVendidos.TabIndex = 6;
             groupBoxArticulosVendidos.TabStop = false;
             // 
+            // DataGridViewTextBoxColumnCantidad
+            // 
+            DataGridViewTextBoxColumnCantidad.HeaderText = "Cant.";
+            DataGridViewTextBoxColumnCantidad.MinimumWidth = 6;
+            DataGridViewTextBoxColumnCantidad.Name = "DataGridViewTextBoxColumnCantidad";
+            DataGridViewTextBoxColumnCantidad.Width = 125;
+            // 
+            // DataGridViewTextBoxColumnArticulo
+            // 
+            DataGridViewTextBoxColumnArticulo.HeaderText = "Articulo";
+            DataGridViewTextBoxColumnArticulo.MinimumWidth = 6;
+            DataGridViewTextBoxColumnArticulo.Name = "DataGridViewTextBoxColumnArticulo";
+            DataGridViewTextBoxColumnArticulo.Width = 125;
+            // 
+            // DataGridViewTextBoxColumnDescripcion
+            // 
+            DataGridViewTextBoxColumnDescripcion.HeaderText = "Descripción";
+            DataGridViewTextBoxColumnDescripcion.MinimumWidth = 6;
+            DataGridViewTextBoxColumnDescripcion.Name = "DataGridViewTextBoxColumnDescripcion";
+            DataGridViewTextBoxColumnDescripcion.ReadOnly = true;
+            DataGridViewTextBoxColumnDescripcion.Width = 125;
+            // 
+            // DataGridViewTextBoxColumnPrecio
+            // 
+            DataGridViewTextBoxColumnPrecio.HeaderText = "Precio";
+            DataGridViewTextBoxColumnPrecio.Name = "DataGridViewTextBoxColumnPrecio";
+            DataGridViewTextBoxColumnPrecio.ReadOnly = true;
+            // 
+            // DataGridViewTextBoxColumnImporte
+            // 
+            DataGridViewTextBoxColumnImporte.HeaderText = "Importe";
+            DataGridViewTextBoxColumnImporte.Name = "DataGridViewTextBoxColumnImporte";
+            DataGridViewTextBoxColumnImporte.ReadOnly = true;
+            // 
             // RemitoForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -444,5 +458,7 @@
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnCantidad;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnArticulo;
         private DataGridViewTextBoxColumn DataGridViewTextBoxColumnDescripcion;
+        private DataGridViewTextBoxColumn DataGridViewTextBoxColumnPrecio;
+        private DataGridViewTextBoxColumn DataGridViewTextBoxColumnImporte;
     }
 }

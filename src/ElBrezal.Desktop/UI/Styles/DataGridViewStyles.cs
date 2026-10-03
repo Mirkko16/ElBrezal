@@ -88,6 +88,49 @@ namespace ElBrezal.Desktop.UI.Styles
             DibujarFilasVacias(dataGridView);
         }
 
+        public static void AplicarEstiloPresupuesto(DataGridView dataGridView)
+        {
+
+            dataGridView.DefaultCellStyle.Font =
+                new Font("Courier New", 8F, FontStyle.Regular);
+
+            dataGridView.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 8F, FontStyle.Bold);
+
+            dataGridView.AutoSizeRowsMode =
+                DataGridViewAutoSizeRowsMode.None;
+
+            dataGridView.RowTemplate.Height = 18;
+
+            // También modifica filas que ya existan.
+            foreach (DataGridViewRow row in dataGridView.Rows)
+            {
+                row.Height = 18;
+            }
+
+            dataGridView.ColumnHeadersHeightSizeMode =
+                DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+
+            dataGridView.ColumnHeadersHeight = 26;
+
+            dataGridView.AutoSizeColumnsMode =
+                DataGridViewAutoSizeColumnsMode.Fill;
+
+            dataGridView.DefaultCellStyle.Padding =
+                new Padding(1, 0, 1, 0);
+
+            dataGridView.AllowUserToResizeRows = false;
+
+            // Para Ventas no necesitamos el indicador lateral.
+            dataGridView.RowHeadersVisible = false;
+            //Para el background blanco de la grilla, se debe setear el color de fondo de la grilla y el color de fondo de las celdas.
+            dataGridView.BackgroundColor = Color.White;
+            dataGridView.BackgroundColor = Color.White;
+            dataGridView.DefaultCellStyle.BackColor = Color.White;
+
+            DibujarFilasVacias(dataGridView);
+        }
+
 
         /// <summary>
         /// Estilo compacto para llenar la grilla de productos con renglones vacios evitando el fondo gris de la grilla.

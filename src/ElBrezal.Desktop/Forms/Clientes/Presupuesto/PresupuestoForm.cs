@@ -13,6 +13,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using ElBrezal.Desktop.Helpers;
 
 namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 {
@@ -84,7 +85,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         #region //PREPARACION DE FORMULARIO DE PRESUPUESTO, CARGA DE CLIENTE, CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
         private void ConfigurarGrillaProductos()
         {
-            DataGridViewStyles.AplicarEstiloVenta(dataGridViewProductos);
+            DataGridViewStyles.AplicarEstiloPresupuesto(dataGridViewProductos);
 
             dataGridViewProductos.AllowUserToAddRows = false;
             dataGridViewProductos.AllowUserToDeleteRows = true;
@@ -116,7 +117,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
                 DataGridViewContentAlignment.MiddleRight;
 
             DataGridViewTextBoxColumnCantidad.FillWeight = 10;
-            DataGridViewTextBoxColumnArticulo.FillWeight = 26;
+            DataGridViewTextBoxColumnArticulo.FillWeight = 15;
             DataGridViewTextBoxColumnDescripcion.FillWeight = 42;
             DataGridViewTextBoxColumnPrecio.FillWeight = 14;
             DataGridViewTextBoxColumnImporte.FillWeight = 16;
@@ -126,8 +127,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         }
         private void btnBuscarCliente_Click(object sender, EventArgs e)
         {
-            using var buscarClientesForm =
-                new BuscarClientesForm(_clienteService);
+            using var buscarClientesForm = new BuscarClientesForm(_clienteService);
 
             if (buscarClientesForm.ShowDialog(this) != DialogResult.OK)
                 return;
@@ -162,14 +162,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
                 return;
             }
 
-            var cliente =
-                await _clienteService.ObtenerPorIdAsync(numeroCuenta);
+            var cliente = await _clienteService.ObtenerPorIdAsync(numeroCuenta);
 
             if (cliente is null)
             {
-                MessageBox.Show(
-                    $"No existe el cliente N° {numeroCuenta}.",
-                    "Cliente no encontrado",
+                MessageBox.Show($"No existe el cliente N° {numeroCuenta}.", "Cliente no encontrado",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
 
@@ -452,13 +449,23 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             await CargarClienteAsync(CuentaConsumidorFinal);
         }
 
-        private void CargarProductoEnFila(DataGridViewRow fila, ProductoDto producto)
+        private void CargarProductoEnFila(
+    DataGridViewRow fila,
+    ProductoDto producto)
         {
-
             if (VerificarProductoYaCargado(producto.Id, fila))
                 return;
 
-            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = 1;
+            var cantidad =
+                ObtenerDecimalCelda(
+                    fila,
+                    DataGridViewTextBoxColumnCantidad.Name);
+
+            if (cantidad <= 0)
+                cantidad = 1;
+
+            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value =
+                cantidad;
 
             fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value =
                 producto.Id;
@@ -468,7 +475,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             fila.Cells[DataGridViewTextBoxColumnPrecio.Name].Value =
                 producto.PrecioContado;
-
 
             RecalcularFila(fila);
 
@@ -486,9 +492,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 
             dataGridViewProductos.CurrentCell =
                 dataGridViewProductos.Rows[siguienteFila]
-                    .Cells[DataGridViewTextBoxColumnArticulo.Name];
+                    .Cells[DataGridViewTextBoxColumnCantidad.Name];
 
             dataGridViewProductos.Focus();
+            dataGridViewProductos.BeginEdit(true);
         }
 
         private void AbrirBuscadorProductos()
@@ -510,22 +517,53 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             CargarProductoEnFila(fila, buscarProductosForm.ProductoSeleccionado);
         }
 
-        private async void dataGridViewProductos_KeyDown(object sender, KeyEventArgs e)
+        private async void dataGridViewProductos_KeyDown(
+    object sender,
+    KeyEventArgs e)
         {
-            if (dataGridViewProductos.CurrentCell?.OwningColumn
-                != DataGridViewTextBoxColumnArticulo)
+            if (dataGridViewProductos.CurrentCell is null)
                 return;
 
-            if (e.KeyCode == Keys.F1)
+            var columnaActual =
+                dataGridViewProductos.CurrentCell.OwningColumn;
+
+            // CANTIDAD -> ENTER lleva a ARTÍCULO
+            if (columnaActual == DataGridViewTextBoxColumnCantidad &&
+                e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+
+                dataGridViewProductos.EndEdit();
+
+                var fila = dataGridViewProductos.CurrentRow;
+
+                if (fila is null)
+                    return;
+
+                dataGridViewProductos.CurrentCell =
+                    fila.Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+                dataGridViewProductos.BeginEdit(true);
+
+                return;
+            }
+
+            // ARTÍCULO -> F1 abre buscador
+            if (columnaActual == DataGridViewTextBoxColumnArticulo &&
+                e.KeyCode == Keys.F1)
             {
                 e.SuppressKeyPress = true;
                 e.Handled = true;
 
                 AbrirBuscadorProductos();
+
                 return;
             }
 
-            if (e.KeyCode == Keys.Enter)
+            // ARTÍCULO -> ENTER carga producto
+            if (columnaActual == DataGridViewTextBoxColumnArticulo &&
+                e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
                 e.Handled = true;
@@ -533,9 +571,13 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
                 dataGridViewProductos.EndEdit();
 
                 await CargarProductoIngresadoAsync();
+
+                return;
             }
         }
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        protected override bool ProcessCmdKey(
+     ref Message msg,
+     Keys keyData)
         {
             if (keyData == Keys.Escape)
             {
@@ -546,13 +588,36 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             }
 
             if (keyData == Keys.Tab &&
-                dataGridViewProductos.ContainsFocus &&
-                dataGridViewProductos.CurrentCell?.OwningColumn
-                    == DataGridViewTextBoxColumnArticulo)
+                dataGridViewProductos.ContainsFocus)
             {
-                ProcesarArticuloConTab();
+                var columnaActual =
+                    dataGridViewProductos.CurrentCell?.OwningColumn;
 
-                return true;
+                // CANTIDAD -> TAB -> ARTÍCULO
+                if (columnaActual == DataGridViewTextBoxColumnCantidad)
+                {
+                    dataGridViewProductos.EndEdit();
+
+                    var fila = dataGridViewProductos.CurrentRow;
+
+                    if (fila is null)
+                        return true;
+
+                    dataGridViewProductos.CurrentCell =
+                        fila.Cells[DataGridViewTextBoxColumnArticulo.Name];
+
+                    dataGridViewProductos.BeginEdit(true);
+
+                    return true;
+                }
+
+                // ARTÍCULO -> TAB -> CARGAR PRODUCTO
+                if (columnaActual == DataGridViewTextBoxColumnArticulo)
+                {
+                    ProcesarArticuloConTab();
+
+                    return true;
+                }
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -1304,35 +1369,15 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         }
 
 
-        private DataGridViewRow? BuscarFilaProducto(
-    int productoId,
-    DataGridViewRow? filaExcluir = null)
-        {
-            foreach (DataGridViewRow row in dataGridViewProductos.Rows)
-            {
-                if (row.IsNewRow || row == filaExcluir)
-                    continue;
 
-                if (!int.TryParse(
-                        row.Cells[DataGridViewTextBoxColumnArticulo.Name].Value?.ToString(),
-                        out var productoIdFila))
-                {
-                    continue;
-                }
-
-                if (productoIdFila == productoId)
-                    return row;
-            }
-
-            return null;
-        }
-
-        private bool VerificarProductoYaCargado(
-    int productoId,
-    DataGridViewRow filaActual)
+        private bool VerificarProductoYaCargado(int productoId, DataGridViewRow filaActual)
         {
             var filaExistente =
-                BuscarFilaProducto(productoId, filaActual);
+                OperacionProductosGridHelper.BuscarFilaProducto(
+                    dataGridViewProductos,
+                    DataGridViewTextBoxColumnArticulo,
+                    productoId,
+                    filaActual);
 
             if (filaExistente is null)
                 return false;
@@ -1344,26 +1389,20 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
 
-            // Limpio el renglón donde se intentó cargar el producto repetido.
-            filaActual.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = null;
-            filaActual.Cells[DataGridViewTextBoxColumnArticulo.Name].Value = null;
-            filaActual.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value = null;
-            filaActual.Cells[DataGridViewTextBoxColumnPrecio.Name].Value = null;
-            filaActual.Cells[DataGridViewTextBoxColumnImporte.Name].Value = null;
+            OperacionProductosGridHelper.LimpiarFila(
+                filaActual,
+                DataGridViewTextBoxColumnCantidad,
+                DataGridViewTextBoxColumnArticulo,
+                DataGridViewTextBoxColumnDescripcion,
+                DataGridViewTextBoxColumnPrecio,
+                DataGridViewTextBoxColumnImporte);
 
-            // Actualizo los totales por si la fila tenía algún valor previo.
             RecalcularTotales();
 
-            dataGridViewProductos.ClearSelection();
-
-            var celdaCantidad =
-                filaExistente.Cells[DataGridViewTextBoxColumnCantidad.Name];
-
-            dataGridViewProductos.CurrentCell = celdaCantidad;
-            celdaCantidad.Selected = true;
-
-            dataGridViewProductos.Focus();
-            dataGridViewProductos.BeginEdit(true);
+            OperacionProductosGridHelper.PosicionarEnCantidad(
+                dataGridViewProductos,
+                filaExistente,
+                DataGridViewTextBoxColumnCantidad);
 
             return true;
         }
