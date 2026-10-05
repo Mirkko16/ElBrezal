@@ -480,3 +480,17 @@ VALUES
     'true',
     'Permite facturar productos con stock insuficiente sin solicitar autorización'
 );
+
+ALTER TABLE Comprobantes
+ADD ComprobanteOrigenId INT NULL;
+GO
+
+ALTER TABLE Comprobantes
+ADD CONSTRAINT FK_Comprobantes_ComprobanteOrigen
+FOREIGN KEY (ComprobanteOrigenId)
+REFERENCES Comprobantes(Id);
+GO
+
+CREATE INDEX IX_Comprobantes_ComprobanteOrigenId
+ON Comprobantes(ComprobanteOrigenId);
+GO

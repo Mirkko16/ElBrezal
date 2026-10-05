@@ -36,6 +36,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private const int PuntoVenta = 1;
         private VendedorDto? _vendedorSeleccionado;
 
+        private int? _presupuestoAsociadoId;
         private bool _inicializandoFormulario;
         private bool _guardandoVenta;
         private ClienteDto? _clienteSeleccionado;
@@ -287,7 +288,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             textBoxVendedor.Clear();
         }
 
-
+        private void LimpiarPresupuestoAsociado()
+        {
+            _presupuestoAsociadoId = null;
+            maskedTextBoxPresupAsociado.Clear();
+        }
 
 
         private void DesactivarClienteManual()
@@ -972,6 +977,9 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             // Si este es el TextBox de observaciones:
             textBoxObservacion.Clear();
 
+            // Presupuesto asociado
+            LimpiarPresupuestoAsociado();
+
             // Productos
             dataGridViewProductos.Rows.Clear();
             AgregarFilaProducto();
@@ -1240,6 +1248,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
                 SituacionImpositivaId =
                     Convert.ToInt32(comboBoxTipo.SelectedValue),
 
+                ComprobanteOrigenId = _presupuestoAsociadoId,
+
                 PorcentajeVariacion = decimal.TryParse(textBoxVariacionVenta.Text, out var porcentajeVariacion) ? porcentajeVariacion : 0m,
 
                 Observacion = string.IsNullOrWhiteSpace(textBoxObservacion.Text)
@@ -1396,9 +1406,153 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             }
         }
 
-        private async void btnConfirmar_Click( object sender, EventArgs e)
+        private async void btnConfirmar_Click(object sender, EventArgs e)
         {
             await GuardarVentaAsync();
+        }
+
+        private bool TryObtenerNumeroPresupuesto(out int puntoVenta,out int numero)
+        {
+            puntoVenta = 0;
+            numero = 0;
+
+            var valor = ObtenerNumeroPresupuestoIngresado();
+
+            if (string.IsNullOrWhiteSpace(valor))
+                return false;
+
+            // Máscara esperada: 0000-000000
+            // Sin literales: 0001000125
+            if (valor.Length != 10)
+                return false;
+
+            return
+                int.TryParse(valor[..4], out puntoVenta) &&
+                int.TryParse(valor[4..], out numero) &&
+                puntoVenta > 0 &&
+                numero > 0;
+        }
+
+        private string ObtenerNumeroPresupuestoIngresado()
+        {
+            var formatoActual =
+                maskedTextBoxPresupAsociado.TextMaskFormat;
+
+            maskedTextBoxPresupAsociado.TextMaskFormat =
+                MaskFormat.ExcludePromptAndLiterals;
+
+            var valor = maskedTextBoxPresupAsociado.Text;
+
+            maskedTextBoxPresupAsociado.TextMaskFormat =
+                formatoActual;
+
+            return valor;
+        }
+        private async Task CargarPresupuestoAsociadoAsync()
+        {
+            _presupuestoAsociadoId = null;
+
+            var valor = ObtenerNumeroPresupuestoIngresado();
+
+            // Presupuesto opcional.
+            if (string.IsNullOrWhiteSpace(valor))
+                return;
+
+            if (!TryObtenerNumeroPresupuesto(
+                    out var puntoVenta,
+                    out var numero))
+            {
+                MessageBox.Show(
+                    "El número de presupuesto ingresado no es válido.",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                maskedTextBoxPresupAsociado.Focus();
+                maskedTextBoxPresupAsociado.SelectAll();
+
+                return;
+            }
+
+            var presupuesto =
+                await _comprobanteService.ObtenerPresupuestoAsync(
+                    puntoVenta,
+                    numero);
+
+            if (presupuesto is null)
+            {
+                MessageBox.Show(
+                    "No se encontró el presupuesto ingresado.",
+                    "Presupuesto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                maskedTextBoxPresupAsociado.Focus();
+                maskedTextBoxPresupAsociado.SelectAll();
+
+                return;
+            }
+
+            // Asociación real que después persistiremos.
+            _presupuestoAsociadoId = presupuesto.Id;
+
+            // Cargar cliente original del presupuesto.
+            textBoxNumCuenta.Text =
+                presupuesto.ClienteId.ToString();
+
+            // Variación original del presupuesto
+            textBoxVariacionVenta.Text =
+                presupuesto.PorcentajeVariacion.ToString("N2");
+
+            await CargarClienteAsync(
+                presupuesto.ClienteId);
+
+            // Cargar artículos y precios históricos.
+            CargarProductosPresupuesto(
+                presupuesto);
+        }
+
+        private void CargarProductosPresupuesto(ComprobanteDto presupuesto)
+        {
+            dataGridViewProductos.Rows.Clear();
+
+            foreach (var detalle in presupuesto.Detalles)
+            {
+                var indiceFila =
+                    dataGridViewProductos.Rows.Add();
+
+                var fila =
+                    dataGridViewProductos.Rows[indiceFila];
+
+                fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value =
+                    detalle.Cantidad;
+
+                fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value =
+                    detalle.ProductoId;
+
+                fila.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value =
+                    detalle.Descripcion;
+
+                fila.Cells[DataGridViewTextBoxColumnPrecio.Name].Value =
+                    detalle.PrecioUnitario;
+
+                fila.Cells[DataGridViewTextBoxColumnImporte.Name].Value =
+                    detalle.Importe;
+            }
+
+            AgregarFilaProducto();
+
+            RecalcularTotales();
+        }
+
+        private async void maskedTextBoxPresupAsociado_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter)
+                return;
+
+            e.SuppressKeyPress = true;
+
+            await CargarPresupuestoAsociadoAsync();
         }
     }
 

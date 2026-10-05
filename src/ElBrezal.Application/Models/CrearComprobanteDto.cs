@@ -32,6 +32,8 @@ namespace ElBrezal.Application.Models
 
         public string? Observacion { get; set; }
 
+        public int? ComprobanteOrigenId { get; set; }
+
         public List<ComprobanteDetalleDto> Detalles { get; set; } = new();
     }
 }

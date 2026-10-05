@@ -37,11 +37,17 @@ public partial class Comprobantes
 
     public DateTime CreatedAt { get; set; }
 
+    public int? ComprobanteOrigenId { get; set; }
+
     public virtual Clientes Cliente { get; set; } = null!;
+
+    public virtual Comprobantes? ComprobanteOrigen { get; set; }
 
     public virtual ICollection<ComprobantesDetalle> ComprobantesDetalle { get; set; } = new List<ComprobantesDetalle>();
 
     public virtual CondicionesVenta CondicionVenta { get; set; } = null!;
+
+    public virtual ICollection<Comprobantes> InverseComprobanteOrigen { get; set; } = new List<Comprobantes>();
 
     public virtual SituacionesImpositivas SituacionImpositiva { get; set; } = null!;
 

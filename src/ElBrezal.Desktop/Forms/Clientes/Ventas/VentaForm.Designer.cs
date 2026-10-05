@@ -160,12 +160,14 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             maskedTextBoxPresupAsociado.Size = new Size(110, 23);
             maskedTextBoxPresupAsociado.TabIndex = 30;
             maskedTextBoxPresupAsociado.Text = "0000000000";
+            maskedTextBoxPresupAsociado.KeyDown += maskedTextBoxPresupAsociado_KeyDown;
             // 
             // maskedTextBoxNumeroComprob
             // 
             maskedTextBoxNumeroComprob.Location = new Point(721, 11);
             maskedTextBoxNumeroComprob.Mask = " \"0000-000000\"";
             maskedTextBoxNumeroComprob.Name = "maskedTextBoxNumeroComprob";
+            maskedTextBoxNumeroComprob.ReadOnly = true;
             maskedTextBoxNumeroComprob.Size = new Size(110, 23);
             maskedTextBoxNumeroComprob.TabIndex = 2;
             maskedTextBoxNumeroComprob.Text = "0000000000";

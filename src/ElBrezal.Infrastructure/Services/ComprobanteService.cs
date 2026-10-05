@@ -16,6 +16,7 @@ namespace ElBrezal.Infrastructure.Services
 
         public async Task<ComprobanteCreadoDto> CrearAsync(CrearComprobanteDto dto)
         {
+            // Validaciones que no requieren consultar la base de datos.
             ValidarComprobante(dto);
 
             await using var transaction =
@@ -23,6 +24,12 @@ namespace ElBrezal.Infrastructure.Services
 
             try
             {
+                // Si existe un comprobante origen, validamos que:
+                // - exista
+                // - no esté anulado
+                // - sea un presupuesto
+                await ValidarComprobanteOrigenAsync(dto);
+
                 // Si es un cliente existente devuelve su Id.
                 // Si es un alta rápida (9999), crea el cliente dentro
                 // de esta misma transacción y devuelve el Id generado.
@@ -62,6 +69,8 @@ namespace ElBrezal.Infrastructure.Services
                     CondicionVentaId = dto.CondicionVentaId,
                     SituacionImpositivaId = dto.SituacionImpositivaId,
 
+                    ComprobanteOrigenId = dto.ComprobanteOrigenId,
+
                     PorcentajeVariacion = dto.PorcentajeVariacion,
                     Subtotal = dto.Subtotal,
                     MontoVariacion = dto.MontoVariacion,
@@ -92,11 +101,18 @@ namespace ElBrezal.Infrastructure.Services
 
                 _context.Comprobantes.Add(comprobante);
 
+                // Aplica el movimiento definido por el tipo de comprobante.
+                // Presupuesto: 0
+                // Factura: -1
+                // Nota de crédito: +1
+                // Remito: -1
+                await AplicarMovimientoStockAsync(dto);
+
                 // En este SaveChanges se persisten:
                 // - la actualización de UltimoNumero
                 // - el encabezado del comprobante
                 // - todos sus detalles
-                await AplicarMovimientoStockAsync(dto);
+                // - el movimiento de stock
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
@@ -167,6 +183,46 @@ namespace ElBrezal.Infrastructure.Services
             return nuevoCliente.Id;
         }
 
+        public async Task<ComprobanteDto?> ObtenerPresupuestoAsync(int puntoVenta, int numero)
+        {
+            var presupuesto = await _context.Comprobantes
+                .AsNoTracking()
+                .Where(x =>
+                    x.PuntoVenta == puntoVenta &&
+                    x.Numero == numero &&
+                    !x.Anulado &&
+                    x.TipoComprobante.Abreviatura == "PRES")
+                .Select(x => new ComprobanteDto
+                {
+                    Id = x.Id,
+                    TipoComprobanteId = x.TipoComprobanteId,
+                    PuntoVenta = x.PuntoVenta,
+                    Numero = x.Numero,
+                    Fecha = x.Fecha,
+                    PorcentajeVariacion = x.PorcentajeVariacion,
+
+                    ClienteId = x.ClienteId,
+                    ClienteNombre = x.Cliente.Nombre,
+
+                    Total = x.Total,
+                    Anulado = x.Anulado,
+
+                    Detalles = x.ComprobantesDetalle
+                        .Select(d => new ComprobanteDetalleDto
+                        {
+                            ProductoId = d.ProductoId,
+                            Descripcion = d.Descripcion,
+                            Cantidad = d.Cantidad,
+                            PrecioUnitario = d.PrecioUnitario,
+                            Importe = d.Importe
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return presupuesto;
+        }
+
         private static void ValidarComprobante( CrearComprobanteDto dto)
         {
             if (dto.TipoComprobanteId <= 0)
@@ -212,6 +268,39 @@ namespace ElBrezal.Infrastructure.Services
             {
                 throw new InvalidOperationException(
                     "El comprobante no puede contener simultáneamente un cliente existente y un alta rápida.");
+            }
+        }
+
+        private async Task ValidarComprobanteOrigenAsync(CrearComprobanteDto dto)
+        {
+            if (!dto.ComprobanteOrigenId.HasValue)
+                return;
+
+            var presupuesto = await _context.Comprobantes
+                .AsNoTracking()
+                .Include(x => x.TipoComprobante)
+                .FirstOrDefaultAsync(x =>
+                    x.Id == dto.ComprobanteOrigenId.Value);
+
+            if (presupuesto is null)
+            {
+                throw new InvalidOperationException(
+                    "El presupuesto asociado no existe.");
+            }
+
+            if (presupuesto.Anulado)
+            {
+                throw new InvalidOperationException(
+                    "El presupuesto asociado se encuentra anulado.");
+            }
+
+            if (!string.Equals(
+                    presupuesto.TipoComprobante.Abreviatura,
+                    "PRES",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "El comprobante asociado no es un presupuesto.");
             }
         }
 

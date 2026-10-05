@@ -109,6 +109,8 @@ public partial class ElBrezalDbContext : DbContext
 
         modelBuilder.Entity<Comprobantes>(entity =>
         {
+            entity.HasIndex(e => e.ComprobanteOrigenId, "IX_Comprobantes_ComprobanteOrigenId");
+
             entity.HasIndex(e => new { e.TipoComprobanteId, e.PuntoVenta, e.Numero }, "UQ_Comprobantes_Numeracion").IsUnique();
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())", "DF_Comprobantes_CreatedAt");
@@ -122,6 +124,10 @@ public partial class ElBrezalDbContext : DbContext
                 .HasForeignKey(d => d.ClienteId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Comprobantes_Clientes");
+
+            entity.HasOne(d => d.ComprobanteOrigen).WithMany(p => p.InverseComprobanteOrigen)
+                .HasForeignKey(d => d.ComprobanteOrigenId)
+                .HasConstraintName("FK_Comprobantes_ComprobanteOrigen");
 
             entity.HasOne(d => d.CondicionVenta).WithMany(p => p.Comprobantes)
                 .HasForeignKey(d => d.CondicionVentaId)

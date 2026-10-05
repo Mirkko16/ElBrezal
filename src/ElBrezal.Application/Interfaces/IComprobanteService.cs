@@ -7,7 +7,8 @@ namespace ElBrezal.Application.Interfaces
 {
     public interface IComprobanteService
     {
-        Task<ComprobanteCreadoDto> CrearAsync(
-            CrearComprobanteDto comprobante);
+        Task<ComprobanteCreadoDto> CrearAsync(CrearComprobanteDto comprobante);
+
+        Task<ComprobanteDto?> ObtenerPresupuestoAsync(int puntoVenta, int numero);
     }
 }
