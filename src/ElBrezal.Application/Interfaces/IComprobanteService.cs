@@ -10,5 +10,7 @@ namespace ElBrezal.Application.Interfaces
         Task<ComprobanteCreadoDto> CrearAsync(CrearComprobanteDto comprobante);
 
         Task<ComprobanteDto?> ObtenerPresupuestoAsync(int puntoVenta, int numero);
+
+        Task<List<ComprobanteListadoDto>> ObtenerListadoAsync(int? tipoComprobanteId,DateTime fechaDesde, DateTime fechaHasta,int? clienteId = null);
     }
 }

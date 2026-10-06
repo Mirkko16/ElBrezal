@@ -5,6 +5,7 @@ using ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes;
 using ElBrezal.Desktop.Forms.Clientes.Presupuesto;
 using ElBrezal.Desktop.Forms.Clientes.Remitos;
 using ElBrezal.Desktop.Forms.Clientes.Ventas;
+using ElBrezal.Desktop.Forms.Comprobantes;
 using ElBrezal.Desktop.Forms.Main;
 using ElBrezal.Desktop.Forms.Splash;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
@@ -52,6 +53,7 @@ internal static class Program
                 services.AddTransient<RemitoForm>();
                 services.AddTransient<StockMinimoForm>();
                 services.AddTransient<BuscarLocalidadesForm>();
+                services.AddTransient<ComprobantesForm>();
 
             })
             .Build();

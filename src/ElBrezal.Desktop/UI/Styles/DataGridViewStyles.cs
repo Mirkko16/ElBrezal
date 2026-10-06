@@ -81,8 +81,7 @@ namespace ElBrezal.Desktop.UI.Styles
             // Para Ventas no necesitamos el indicador lateral.
             dataGridView.RowHeadersVisible = false;
             //Para el background blanco de la grilla, se debe setear el color de fondo de la grilla y el color de fondo de las celdas.
-            dataGridView.BackgroundColor = Color.White;
-            dataGridView.BackgroundColor = Color.White;
+            dataGridView.BackgroundColor = Color.White;            
             dataGridView.DefaultCellStyle.BackColor = Color.White;
 
             DibujarFilasVacias(dataGridView);
@@ -124,7 +123,6 @@ namespace ElBrezal.Desktop.UI.Styles
             // Para Ventas no necesitamos el indicador lateral.
             dataGridView.RowHeadersVisible = false;
             //Para el background blanco de la grilla, se debe setear el color de fondo de la grilla y el color de fondo de las celdas.
-            dataGridView.BackgroundColor = Color.White;
             dataGridView.BackgroundColor = Color.White;
             dataGridView.DefaultCellStyle.BackColor = Color.White;
 

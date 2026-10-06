@@ -179,6 +179,7 @@
             movimientoDeMercaderiaToolStripMenuItem.Name = "movimientoDeMercaderiaToolStripMenuItem";
             movimientoDeMercaderiaToolStripMenuItem.Size = new Size(217, 22);
             movimientoDeMercaderiaToolStripMenuItem.Text = "Movimiento de Mercaderia";
+            movimientoDeMercaderiaToolStripMenuItem.Visible = false;
             // 
             // comprobantesDeSalidaToolStripMenuItem
             // 
@@ -210,6 +211,7 @@
             ajusteDeStockToolStripMenuItem.Name = "ajusteDeStockToolStripMenuItem";
             ajusteDeStockToolStripMenuItem.Size = new Size(217, 22);
             ajusteDeStockToolStripMenuItem.Text = "Ajuste de Stock";
+            ajusteDeStockToolStripMenuItem.Visible = false;
             // 
             // comprobanteDeFaltanteToolStripMenuItem
             // 
@@ -240,18 +242,21 @@
             controlDeStockToolStripMenuItem.Name = "controlDeStockToolStripMenuItem";
             controlDeStockToolStripMenuItem.Size = new Size(217, 22);
             controlDeStockToolStripMenuItem.Text = "Control de Stock";
+            controlDeStockToolStripMenuItem.Visible = false;
             // 
             // seguimientoToolStripMenuItem
             // 
             seguimientoToolStripMenuItem.Name = "seguimientoToolStripMenuItem";
             seguimientoToolStripMenuItem.Size = new Size(217, 22);
             seguimientoToolStripMenuItem.Text = "Seguimiento";
+            seguimientoToolStripMenuItem.Visible = false;
             // 
             // estadisticaDeArticulosToolStripMenuItem
             // 
             estadisticaDeArticulosToolStripMenuItem.Name = "estadisticaDeArticulosToolStripMenuItem";
             estadisticaDeArticulosToolStripMenuItem.Size = new Size(217, 22);
             estadisticaDeArticulosToolStripMenuItem.Text = "Estadistica de Articulos";
+            estadisticaDeArticulosToolStripMenuItem.Visible = false;
             // 
             // ventasValorizadasToolStripMenuItem
             // 
@@ -338,6 +343,7 @@
             listadoDeVentasToolStripMenuItem.Name = "listadoDeVentasToolStripMenuItem";
             listadoDeVentasToolStripMenuItem.Size = new Size(293, 22);
             listadoDeVentasToolStripMenuItem.Text = "Listado de Ventas";
+            listadoDeVentasToolStripMenuItem.Click += listadoDeVentasToolStripMenuItem_Click;
             // 
             // listadoDeVentasDetalladasToolStripMenuItem
             // 

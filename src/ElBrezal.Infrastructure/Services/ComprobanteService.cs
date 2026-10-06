@@ -223,6 +223,56 @@ namespace ElBrezal.Infrastructure.Services
             return presupuesto;
         }
 
+        public async Task<List<ComprobanteListadoDto>> ObtenerListadoAsync(int? tipoComprobanteId,DateTime fechaDesde,
+                                                                            DateTime fechaHasta,int? clienteId = null)
+        {
+            var fechaHastaExclusive = fechaHasta.Date.AddDays(1);
+
+            var query = _context.Comprobantes
+                .AsNoTracking()
+                .Where(x =>
+                    x.Fecha >= fechaDesde.Date &&
+                    x.Fecha < fechaHastaExclusive);
+
+            if (tipoComprobanteId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.TipoComprobanteId == tipoComprobanteId.Value);
+            }
+
+            if (clienteId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.ClienteId == clienteId.Value);
+            }
+
+            return await query
+                .OrderByDescending(x => x.Fecha)
+                .ThenByDescending(x => x.Numero)
+                .Select(x => new ComprobanteListadoDto
+                {
+                    Id = x.Id,
+                    Fecha = x.Fecha,
+
+                    TipoComprobanteId = x.TipoComprobanteId,
+                    Tipo = x.TipoComprobante.Abreviatura ?? x.TipoComprobante.Nombre,
+
+                    PuntoVenta = x.PuntoVenta,
+                    Numero = x.Numero,
+
+                    ClienteId = x.ClienteId,
+                    Cliente = x.Cliente.Nombre,
+
+                    Vendedor = x.Vendedor.Nombre,
+
+                    CondicionVenta = x.CondicionVenta.Nombre,
+
+                    Total = x.Total,
+                    Anulado = x.Anulado
+                })
+                .ToListAsync();
+        }
+
         private static void ValidarComprobante( CrearComprobanteDto dto)
         {
             if (dto.TipoComprobanteId <= 0)
