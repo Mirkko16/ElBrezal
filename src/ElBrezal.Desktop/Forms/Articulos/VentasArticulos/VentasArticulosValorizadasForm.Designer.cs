@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             btnSalir = new Button();
-            btnMigrarExcel = new Button();
+            btnExportarExcel = new Button();
             gpFiltros = new GroupBox();
             dateTimePickerHasta = new DateTimePicker();
             dateTimePickerDesde = new DateTimePicker();
@@ -63,15 +63,15 @@
             btnSalir.UseVisualStyleBackColor = true;
             btnSalir.Click += btnSalir_Click;
             // 
-            // btnMigrarExcel
+            // btnExportarExcel
             // 
-            btnMigrarExcel.Location = new Point(199, 522);
-            btnMigrarExcel.Name = "btnMigrarExcel";
-            btnMigrarExcel.Size = new Size(97, 23);
-            btnMigrarExcel.TabIndex = 8;
-            btnMigrarExcel.Text = "Exportar a Excel";
-            btnMigrarExcel.UseVisualStyleBackColor = true;
-            btnMigrarExcel.Click += btnMigrarExcel_Click;
+            btnExportarExcel.Location = new Point(199, 522);
+            btnExportarExcel.Name = "btnExportarExcel";
+            btnExportarExcel.Size = new Size(97, 23);
+            btnExportarExcel.TabIndex = 8;
+            btnExportarExcel.Text = "Exportar a Excel";
+            btnExportarExcel.UseVisualStyleBackColor = true;
+            btnExportarExcel.Click += btnExportarExcel_Click;
             // 
             // gpFiltros
             // 
@@ -231,7 +231,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(613, 557);
             Controls.Add(btnSalir);
-            Controls.Add(btnMigrarExcel);
+            Controls.Add(btnExportarExcel);
             Controls.Add(gpFiltros);
             Controls.Add(gpResultados);
             Controls.Add(gpTitulo);
@@ -254,7 +254,7 @@
         #endregion
 
         private Button btnSalir;
-        private Button btnMigrarExcel;
+        private Button btnExportarExcel;
         private GroupBox gpFiltros;
         private DateTimePicker dateTimePickerHasta;
         private DateTimePicker dateTimePickerDesde;
