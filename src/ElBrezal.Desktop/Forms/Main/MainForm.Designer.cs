@@ -263,6 +263,7 @@
             ventasValorizadasToolStripMenuItem.Name = "ventasValorizadasToolStripMenuItem";
             ventasValorizadasToolStripMenuItem.Size = new Size(217, 22);
             ventasValorizadasToolStripMenuItem.Text = "Ventas Valorizadas";
+            ventasValorizadasToolStripMenuItem.Click += ventasValorizadasToolStripMenuItem_Click;
             // 
             // proveedoresToolStripMenuItem
             // 
