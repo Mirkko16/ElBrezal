@@ -1,5 +1,6 @@
 ﻿using ElBrezal.Application.ActualizacionCostos;
-using ElBrezal.Application.Interfaces;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Proveedores;
 using ElBrezal.Desktop.UI.Styles;
 using System;
 using System.Collections.Generic;

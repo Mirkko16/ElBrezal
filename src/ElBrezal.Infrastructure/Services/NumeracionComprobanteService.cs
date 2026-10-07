@@ -1,6 +1,6 @@
 ﻿using ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+using ElBrezal.Application.Models.Comprobantes;
 using ElBrezal.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

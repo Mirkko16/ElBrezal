@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Models.Producto;
 using ElBrezal.Desktop.UI.Styles;
 using System;
 using System.Collections.Generic;

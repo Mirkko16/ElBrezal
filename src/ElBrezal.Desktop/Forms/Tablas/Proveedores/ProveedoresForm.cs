@@ -1,5 +1,8 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Proveedores;
+using ElBrezal.Application.Models.Localizacion;
+using ElBrezal.Application.Models.Proveedores;
 using ElBrezal.Application.Validators;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using Microsoft.Extensions.DependencyInjection;

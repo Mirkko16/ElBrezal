@@ -1,6 +1,9 @@
 ﻿using ElBrezal.Application.Calculations;
-using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Proveedores;
+using ElBrezal.Application.Models.Comprobantes;
+using ElBrezal.Application.Models.Producto;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
 using ElBrezal.Desktop.Forms.Tablas.Proveedores;

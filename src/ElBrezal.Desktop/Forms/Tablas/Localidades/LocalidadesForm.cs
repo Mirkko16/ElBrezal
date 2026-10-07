@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Models.Localizacion;
 
 namespace ElBrezal.Desktop.Forms.Tablas.Localidades
 {

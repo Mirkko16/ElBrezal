@@ -1,17 +1,22 @@
 ﻿using ElBrezal.Application.Calculations;
-using ElBrezal.Application.Interfaces;
+using ElBrezal.Application.Interfaces.Clientes;
+using ElBrezal.Application.Interfaces.Comprobantes;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Vendedores;
+using ElBrezal.Application.Models.Clientes;
+using ElBrezal.Application.Models.Comprobantes;
+using ElBrezal.Application.Models.Localizacion;
+using ElBrezal.Application.Models.Producto;
+using ElBrezal.Application.Models.Vendedores;
+using ElBrezal.Application.Validators;
 using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
+using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Helpers;
 using ElBrezal.Desktop.UI.Styles;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+using ElBrezal.Infrastructure.Services;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 
 namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 {
@@ -22,32 +27,39 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
         private const int CuentaClienteManual = 9999;
 
         private readonly IClienteService _clienteService;
-        private readonly ISituacionImpositivaService _situacionImpositivaService;
-        private readonly ICondicionVentaService _condicionVentaService;
         private readonly ITipoComprobanteService _tipoComprobanteService;
+        private readonly ISituacionImpositivaService _situacionImpositivaService;
         private readonly IProductoService _productoService;
         private readonly IVendedorService _vendedorService;
         private readonly INumeracionComprobanteService _numeracionComprobanteService;
+        private readonly ILocalidadService _localidadService;
+        private readonly IComprobanteService _comprobanteService;
+        private readonly ICondicionVentaService _condicionVentaService;
 
         private const int PuntoVenta = 1;
-
         private VendedorDto? _vendedorSeleccionado;
 
-        private ClienteDto? _clienteSeleccionado;
-
+        private int? _presupuestoAsociadoId;
         private bool _inicializandoFormulario;
-        public RemitoForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
-            ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService, INumeracionComprobanteService numeracionComprobanteService)
+        private bool _guardandoRemito;
+        private ClienteDto? _clienteSeleccionado;
+        private LocalidadDto? _localidadSeleccionada;
+
+        public RemitoForm(IClienteService clienteService, IProductoService productoService, ITipoComprobanteService tipoComprobanteService,
+            IVendedorService vendedorService, ILocalidadService localidadService, INumeracionComprobanteService numeracionComprobanteService,
+            IComprobanteService comprobanteService, ICondicionVentaService condicionVentaService, ISituacionImpositivaService situacionImpositivaService)
         {
             InitializeComponent();
 
             _clienteService = clienteService;
-            _situacionImpositivaService = situacionImpositivaService;
-            _condicionVentaService = condicionVentaService;
             _tipoComprobanteService = tipoComprobanteService;
+            _condicionVentaService = condicionVentaService;
             _vendedorService = vendedorService;
             _productoService = productoService;
+            _localidadService = localidadService;
             _numeracionComprobanteService = numeracionComprobanteService;
+            _comprobanteService = comprobanteService;
+            _situacionImpositivaService = situacionImpositivaService;
         }
 
         private async void RemitoForm_Load(object sender, EventArgs e)
@@ -67,9 +79,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             }
 
             await CargarNumeracionComprobanteAsync();
-
         }
-        #region //PREPARACION DE FORMULARIO DE PRESUPUESTO, CARGA DE CLIENTE, CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
+
+
+        #region //PREPARACION DE FORMULARIO DE VENTA, CARGA DE CLIENTE, CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
         private void ConfigurarGrillaProductos()
         {
             DataGridViewStyles.AplicarEstiloVenta(dataGridViewProductos);
@@ -137,25 +150,20 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             textBoxDireccion.ReadOnly = true;
             textBoxDNI.ReadOnly = true;
             textBoxZona.ReadOnly = true;
-            comboBoxTipo.DropDownStyle = ComboBoxStyle.DropDownList;
         }
 
         private async Task CargarClienteAsync(int numeroCuenta)
         {
             if (numeroCuenta == CuentaClienteManual)
             {
-                ActivarClienteManual();
+                await ActivarClienteManualAsync();
                 return;
             }
-
-            var cliente =
-                await _clienteService.ObtenerPorIdAsync(numeroCuenta);
+            var cliente = await _clienteService.ObtenerPorIdAsync(numeroCuenta);
 
             if (cliente is null)
             {
-                MessageBox.Show(
-                    $"No existe el cliente N° {numeroCuenta}.",
-                    "Cliente no encontrado",
+                MessageBox.Show($"No existe el cliente N° {numeroCuenta}.", "Cliente no encontrado",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
 
@@ -179,9 +187,14 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             textBoxDireccion.Text = cliente.Direccion ?? string.Empty;
             textBoxDNI.Text = cliente.DNI ?? string.Empty;
 
-            textBoxZona.Text = cliente.Localidad;
+            _localidadSeleccionada = new LocalidadDto
+            {
+                Id = cliente.LocalidadId,
+                Nombre = cliente.Localidad ?? string.Empty
+            };
 
-            comboBoxTipo.SelectedValue = cliente.SituacionImpositivaId;
+            MostrarLocalidad(_localidadSeleccionada);
+
 
             if (cliente.VendedorId.HasValue)
             {
@@ -198,6 +211,31 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                 LimpiarVendedor();
             }
 
+        }
+
+        private void MostrarLocalidad(LocalidadDto localidad)
+        {
+            _localidadSeleccionada = localidad;
+
+            textBoxZona.Text =
+                $"{localidad.Id} - {localidad.Nombre}";
+        }
+
+        private async Task ActivarClienteManualAsync()
+        {
+            _clienteSeleccionado = null;
+
+            LimpiarDatosCliente();
+
+            textBoxNombreCLiente.ReadOnly = false;
+            textBoxDireccion.ReadOnly = false;
+            textBoxDNI.ReadOnly = false;
+            textBoxZona.ReadOnly = false;
+
+            await CargarLocalidadAsync(1);
+            await CargarVendedorAsync(1);
+
+            textBoxNombreCLiente.Focus();
         }
 
         private void MostrarVendedor(VendedorDto vendedor)
@@ -238,25 +276,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
         }
 
 
-        private void ActivarClienteManual()
-        {
-            _clienteSeleccionado = null;
-
-            LimpiarDatosCliente();
-
-            textBoxNombreCLiente.ReadOnly = false;
-            textBoxDireccion.ReadOnly = false;
-            textBoxDNI.ReadOnly = false;
-            textBoxZona.ReadOnly = false;
-
-            comboBoxTipo.Enabled = true;
-
-            // Por defecto: Consumidor Final
-            comboBoxTipo.SelectedValue = 2;
-
-            textBoxNombreCLiente.Focus();
-        }
-
         private void DesactivarClienteManual()
         {
             textBoxNombreCLiente.ReadOnly = true;
@@ -272,7 +291,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             textBoxDNI.Clear();
             textBoxZona.Clear();
 
-            comboBoxTipo.SelectedIndex = -1;
+            _localidadSeleccionada = null;
+
         }
         private async void textBoxNumCuenta_KeyDown(object sender, KeyEventArgs e)
         {
@@ -298,6 +318,21 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             await CargarClienteAsync(numeroCuenta);
         }
 
+        private async Task CargarCondicionesVentaAsync()
+        {
+            var condiciones =
+                await _condicionVentaService.ObtenerTodasAsync();
+
+            comboBoxCondicionVenta.DataSource = condiciones;
+            comboBoxCondicionVenta.DisplayMember =
+                nameof(CondicionVentaDto.Nombre);
+            comboBoxCondicionVenta.ValueMember =
+                nameof(CondicionVentaDto.Id);
+
+            comboBoxCondicionVenta.DropDownStyle =
+                ComboBoxStyle.DropDownList;
+        }
+
         private async Task CargarSituacionesImpositivasAsync()
         {
             var situaciones =
@@ -310,11 +345,10 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             comboBoxTipo.SelectedIndex = -1;
         }
 
-
-
         private async Task CargarTiposComprobanteAsync()
         {
-            var tipos = await _tipoComprobanteService.ObtenerTodosAsync();
+            var tipos =
+                await _tipoComprobanteService.ObtenerTodosAsync();
 
             comboBoxTipoComprobante.DataSource = tipos;
             comboBoxTipoComprobante.DisplayMember =
@@ -322,15 +356,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             comboBoxTipoComprobante.ValueMember =
                 nameof(TipoComprobanteDto.Id);
 
-            var presupuesto = tipos.FirstOrDefault(x =>
-                x.Nombre.Equals(
-                    "REMITO",
-                    StringComparison.OrdinalIgnoreCase));
-
-            if (presupuesto is not null)
-                comboBoxTipoComprobante.SelectedValue = presupuesto.Id;
-
-            comboBoxTipoComprobante.Enabled = false;
+            comboBoxTipoComprobante.DropDownStyle =
+                ComboBoxStyle.DropDownList;
         }
 
         private async Task CargarNumeracionComprobanteAsync()
@@ -364,6 +391,78 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                 numeracion.ProximoNumeroFormateado;
         }
 
+        private async void textBoxZona_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F1)
+            {
+                e.SuppressKeyPress = true;
+
+                AbrirBuscarLocalidades();
+
+                return;
+            }
+
+            if (e.KeyCode != Keys.Enter)
+                return;
+
+            e.SuppressKeyPress = true;
+
+            var texto = textBoxZona.Text
+                .Split('-')[0]
+                .Trim();
+
+            if (!int.TryParse(texto, out int localidadId))
+            {
+                MessageBox.Show(
+                    "Ingrese un número de localidad válido.",
+                    "Localidad",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxZona.Focus();
+                textBoxZona.SelectAll();
+
+                return;
+            }
+
+            await CargarLocalidadAsync(localidadId);
+        }
+
+        private void AbrirBuscarLocalidades()
+        {
+            using var form = new BuscarLocalidadesForm(_localidadService);
+
+            if (form.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            if (form.LocalidadSeleccionada is null)
+                return;
+
+            MostrarLocalidad(form.LocalidadSeleccionada);
+        }
+
+        private async Task CargarLocalidadAsync(int localidadId)
+        {
+            var localidad =
+                await _localidadService.ObtenerPorIdAsync(localidadId);
+
+            if (localidad is null)
+            {
+                MessageBox.Show(
+                    $"No existe la localidad N° {localidadId}.",
+                    "Localidad no encontrada",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxZona.Focus();
+                textBoxZona.SelectAll();
+
+                return;
+            }
+
+            MostrarLocalidad(localidad);
+        }
+
         #endregion
 
         #region // CARGA DE PRODUCTOS, CALCULO DE TOTALES, ETC.
@@ -371,8 +470,9 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
         {
             textBoxFecha.Text = DateTime.Now.ToString("dd/MM/yyyy");
 
-            await CargarSituacionesImpositivasAsync();
+
             await CargarTiposComprobanteAsync();
+            await CargarCondicionesVentaAsync();
 
             textBoxNumCuenta.Text =
                 CuentaConsumidorFinal.ToString();
@@ -380,31 +480,37 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             await CargarClienteAsync(CuentaConsumidorFinal);
         }
 
-        private void CargarProductoEnFila(
-    DataGridViewRow fila,
-    ProductoDto producto)
+        private void CargarProductoEnFila(DataGridViewRow fila, ProductoDto producto)
         {
             if (VerificarProductoYaCargado(producto.Id, fila))
                 return;
 
             var cantidad =
-                ObtenerDecimalCelda(fila, DataGridViewTextBoxColumnCantidad.Name);
+                ObtenerDecimalCelda(
+                    fila,
+                    DataGridViewTextBoxColumnCantidad.Name);
 
             if (cantidad <= 0)
                 cantidad = 1;
 
-            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value = cantidad;
+            fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value =
+                cantidad;
 
-            fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value = producto.Id;
+            fila.Cells[DataGridViewTextBoxColumnArticulo.Name].Value =
+                producto.Id;
 
-            fila.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value = producto.Nombre.ToUpperInvariant();
+            fila.Cells[DataGridViewTextBoxColumnDescripcion.Name].Value =
+                producto.Nombre.ToUpperInvariant();
+
+            fila.Cells[DataGridViewTextBoxColumnPrecio.Name].Value =
+                producto.PrecioContado;
+
+            RecalcularFila(fila);
 
             IrASiguienteFilaProducto(fila.Index);
         }
 
-        private bool VerificarProductoYaCargado(
-    int productoId,
-    DataGridViewRow filaActual)
+        private bool VerificarProductoYaCargado(int productoId, DataGridViewRow filaActual)
         {
             var filaExistente =
                 OperacionProductosGridHelper.BuscarFilaProducto(
@@ -417,7 +523,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                 return false;
 
             MessageBox.Show(
-                "El producto ya se encuentra cargado en el presupuesto.\n\n" +
+                "El producto ya se encuentra cargado en la venta.\n\n" +
                 "Modifique la cantidad en el renglón existente.",
                 "Producto ya cargado",
                 MessageBoxButtons.OK,
@@ -430,6 +536,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                 DataGridViewTextBoxColumnDescripcion,
                 DataGridViewTextBoxColumnPrecio,
                 DataGridViewTextBoxColumnImporte);
+
+            RecalcularTotales();
 
             OperacionProductosGridHelper.PosicionarEnCantidad(
                 dataGridViewProductos,
@@ -475,7 +583,9 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             CargarProductoEnFila(fila, buscarProductosForm.ProductoSeleccionado);
         }
 
-        private async void dataGridViewProductos_KeyDown(  object sender, KeyEventArgs e)
+        private async void dataGridViewProductos_KeyDown(
+    object sender,
+    KeyEventArgs e)
         {
             if (dataGridViewProductos.CurrentCell is null)
                 return;
@@ -531,15 +641,19 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                 return;
             }
         }
-        protected override bool ProcessCmdKey(
-    ref Message msg,
-    Keys keyData)
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             if (keyData == Keys.Escape)
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
 
+                return true;
+            }
+
+            if (keyData == Keys.F11)
+            {
+                _ = GuardarRemitoAsync();
                 return true;
             }
 
@@ -578,7 +692,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
-
 
         private async void ProcesarArticuloConTab()
         {
@@ -648,8 +761,68 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             int indice = dataGridViewProductos.Rows.Add();
 
             var fila = dataGridViewProductos.Rows[indice];
+
         }
 
+        private void RecalcularFila(DataGridViewRow fila)
+        {
+            decimal cantidad = ObtenerDecimalCelda(fila, DataGridViewTextBoxColumnCantidad.Name);
+
+            decimal precio = ObtenerDecimalCelda(fila, DataGridViewTextBoxColumnPrecio.Name);
+
+            decimal importe = OperacionComercialCalculations.CalcularImporte(cantidad, precio);
+
+            fila.Cells[DataGridViewTextBoxColumnImporte.Name].Value = importe;
+
+            RecalcularTotales();
+        }
+
+        private void RecalcularTotales()
+        {
+            decimal subtotal = 0m;
+            int cantidadArticulos = 0;
+
+            foreach (DataGridViewRow fila in dataGridViewProductos.Rows)
+            {
+                var articulo = fila
+                    .Cells[DataGridViewTextBoxColumnArticulo.Name]
+                    .Value;
+
+                if (articulo is null ||
+                    string.IsNullOrWhiteSpace(articulo.ToString()))
+                {
+                    continue;
+                }
+
+                subtotal += ObtenerDecimalCelda(
+                    fila,
+                    DataGridViewTextBoxColumnImporte.Name);
+
+                cantidadArticulos++;
+            }
+
+            decimal porcentajeVariacion = 0m;
+
+
+            decimal montoVariacion = OperacionComercialCalculations.CalcularMontoVariacion(subtotal, porcentajeVariacion);
+
+            decimal total = OperacionComercialCalculations.CalcularTotal(subtotal, montoVariacion);
+
+        }
+
+        private decimal ObtenerDecimalCelda(DataGridViewRow fila, string nombreColumna)
+        {
+            var valor = fila.Cells[nombreColumna].Value;
+
+            if (valor is null)
+                return 0m;
+
+            return decimal.TryParse(
+                valor.ToString(),
+                out decimal resultado)
+                    ? resultado
+                    : 0m;
+        }
 
         #endregion
 
@@ -709,13 +882,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
         }
 
 
-        private void btnSalir_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Escape)
-            {
-                Close();
-            }
-        }
+
 
         private void dataGridViewProductos_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
@@ -724,15 +891,18 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
             var columna = dataGridViewProductos.Columns[e.ColumnIndex];
 
-            if (columna != DataGridViewTextBoxColumnCantidad)
+            if (columna != DataGridViewTextBoxColumnCantidad &&
+                columna != DataGridViewTextBoxColumnPrecio)
             {
                 return;
             }
 
+            RecalcularFila(dataGridViewProductos.Rows[e.RowIndex]);
         }
 
         private void textBoxVariacionVenta_TextChanged(object sender, EventArgs e)
         {
+            RecalcularTotales();
         }
 
         private void comboBoxTipo_SelectedValueChanged(object sender, EventArgs e)
@@ -740,12 +910,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
         }
 
-        private async void btnNuevoRemito_Click(object sender, EventArgs e)
-        {
-            await NuevaVentaAsync();
-        }
-
-        private async Task NuevaVentaAsync()
+        private async Task NuevoRemitoAsync()
         {
             // Datos generales
             textBoxFecha.Text = DateTime.Now.ToString("dd/MM/yyyy");
@@ -754,6 +919,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
             // Si este es el TextBox de observaciones:
             textBoxObservacion.Clear();
+
 
             // Productos
             dataGridViewProductos.Rows.Clear();
@@ -764,7 +930,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
             await CargarClienteAsync(CuentaConsumidorFinal);
 
-            // Posicionar para comenzar el nuevo poresupuesto
+            // Posicionar para comenzar la nueva venta
             dataGridViewProductos.CurrentCell =
                 dataGridViewProductos.Rows[0]
                     .Cells[DataGridViewTextBoxColumnArticulo.Name];
@@ -780,27 +946,346 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             await CargarNumeracionComprobanteAsync();
         }
 
-        private void textBoxVariacionPresupuesto_TextChanged(object sender, EventArgs e)
+
+
+        private bool ValidarRemito()
         {
+            if (comboBoxTipoComprobante.SelectedValue is not int tipoComprobanteId ||
+                tipoComprobanteId <= 0)
+            {
+                MessageBox.Show(
+                    "Seleccione un tipo de comprobante.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                comboBoxTipoComprobante.Focus();
+                return false;
+            }
+
+            if (_clienteSeleccionado is null &&
+                textBoxNumCuenta.Text.Trim() != CuentaClienteManual.ToString())
+            {
+                MessageBox.Show(
+                    "Seleccione un cliente válido.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxNumCuenta.Focus();
+                textBoxNumCuenta.SelectAll();
+
+                return false;
+            }
+
+            if (_vendedorSeleccionado is null)
+            {
+                MessageBox.Show(
+                    "Seleccione un vendedor.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBoxVendedor.Focus();
+                return false;
+            }
+
+            if (comboBoxCondicionVenta.SelectedValue is not int condicionVentaId ||
+                condicionVentaId <= 0)
+            {
+                MessageBox.Show(
+                    "Seleccione una condición de venta.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                comboBoxCondicionVenta.Focus();
+                return false;
+            }
+
+            if (comboBoxTipo.SelectedValue is not int situacionImpositivaId ||
+                situacionImpositivaId <= 0)
+            {
+                MessageBox.Show(
+                    "Seleccione una situación impositiva.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                comboBoxTipo.Focus();
+                return false;
+            }
+
+            var tieneArticulos = dataGridViewProductos.Rows
+                .Cast<DataGridViewRow>()
+                .Any(row =>
+                    !row.IsNewRow &&
+                    int.TryParse(
+                        row.Cells[DataGridViewTextBoxColumnArticulo.Name]
+                            .Value?.ToString(),
+                        out var productoId) &&
+                    productoId > 0);
+
+            if (!tieneArticulos)
+            {
+                MessageBox.Show(
+                    "Debe ingresar al menos un producto.",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                dataGridViewProductos.Focus();
+                return false;
+            }
+
+            if (textBoxNumCuenta.Text.Trim() ==
+                CuentaClienteManual.ToString())
+            {
+                if (string.IsNullOrWhiteSpace(textBoxNombreCLiente.Text))
+                {
+                    MessageBox.Show(
+                        "Ingrese el nombre del cliente.",
+                        "Cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxNombreCLiente.Focus();
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(textBoxDireccion.Text))
+                {
+                    MessageBox.Show(
+                        "Ingrese la dirección del cliente.",
+                        "Cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxDireccion.Focus();
+                    return false;
+                }
+
+                var dni = textBoxDNI.Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(dni))
+                {
+                    MessageBox.Show(
+                        "Ingrese DNI o CUIT del cliente.",
+                        "Cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxDNI.Focus();
+                    return false;
+                }
+
+                if (_localidadSeleccionada is null)
+                {
+                    MessageBox.Show(
+                        "Seleccione una localidad.",
+                        "Cliente",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    textBoxZona.Focus();
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        private void textBoxVendedor_KeyDown_1(object sender, KeyEventArgs e)
-        {
 
+        private CrearComprobanteDto ConstruirComprobante()
+        {
+            var esClienteRapido =
+                textBoxNumCuenta.Text.Trim() ==
+                CuentaClienteManual.ToString();
+
+            var dto = new CrearComprobanteDto
+            {
+                TipoComprobanteId =
+                    Convert.ToInt32(comboBoxTipoComprobante.SelectedValue),
+
+                PuntoVenta = PuntoVenta,
+                Fecha = DateTime.Now,
+
+                ClienteId = esClienteRapido
+                    ? null
+                    : _clienteSeleccionado!.Id,
+
+                VendedorId = _vendedorSeleccionado!.Id,
+
+
+                ComprobanteOrigenId = _presupuestoAsociadoId,
+
+
+                Observacion = string.IsNullOrWhiteSpace(textBoxObservacion.Text)
+                    ? null
+                    : textBoxObservacion.Text.Trim()
+            };
+
+            if (esClienteRapido)
+            {
+
+                dto.ClienteRapido = new ClienteRapidoDto
+                {
+                    Nombre = textBoxNombreCLiente.Text.Trim(),
+
+                    DNI = string.IsNullOrWhiteSpace(textBoxDNI.Text)
+                        ? null
+                        : textBoxDNI.Text.Trim(),
+
+
+                    Direccion = string.IsNullOrWhiteSpace(textBoxDireccion.Text)
+                        ? null
+                        : textBoxDireccion.Text.Trim(),
+
+
+                    LocalidadId = _localidadSeleccionada!.Id,
+
+
+                    EstadoCuentaId = 1,
+
+                    VendedorId = _vendedorSeleccionado!.Id
+                };
+            }
+            foreach (DataGridViewRow row in dataGridViewProductos.Rows)
+            {
+                if (row.IsNewRow)
+                    continue;
+
+                if (!int.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnArticulo"].Value?.ToString(),
+                        out var productoId) ||
+                    productoId <= 0)
+                {
+                    continue;
+                }
+
+                if (!decimal.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnCantidad"].Value?.ToString(),
+                        out var cantidad))
+                {
+                    cantidad = 0m;
+                }
+
+                if (!decimal.TryParse(
+                        row.Cells["DataGridViewTextBoxColumnPrecio"].Value?.ToString(),
+                        out var precio))
+                {
+                    precio = 0m;
+                }
+
+                var descripcion =
+                    row.Cells["DataGridViewTextBoxColumnDescripcion"].Value?.ToString()
+                    ?? string.Empty;
+
+                var importe =
+                    OperacionComercialCalculations.CalcularImporte(
+                        cantidad,
+                        precio);
+
+                dto.Detalles.Add(new ComprobanteDetalleDto
+                {
+                    ProductoId = productoId,
+                    Descripcion = descripcion,
+                    Cantidad = cantidad,
+                    PrecioUnitario = precio,
+                    Importe = importe
+                });
+            }
+
+            dto.Subtotal = dto.Detalles.Sum(x => x.Importe);
+
+            dto.MontoVariacion =
+                OperacionComercialCalculations.CalcularMontoVariacion(
+                    dto.Subtotal,
+                    dto.PorcentajeVariacion);
+
+            dto.Total =
+                OperacionComercialCalculations.CalcularTotal(
+                    dto.Subtotal,
+                    dto.MontoVariacion);
+
+            return dto;
         }
-        private decimal ObtenerDecimalCelda(DataGridViewRow fila, string nombreColumna)
+
+        private async void btnNuevoRemito_Click(object sender, EventArgs e)
         {
-            var valor = fila.Cells[nombreColumna].Value;
+            await NuevoRemitoAsync();
+        }
 
-            if (valor is null)
-                return 0m;
+        private async Task GuardarRemitoAsync()
+        {
+            if (_guardandoRemito)
+                return;
 
-            return decimal.TryParse(
-                valor.ToString(),
-                out decimal resultado)
-                    ? resultado
-                    : 0m;
+            if (!ValidarRemito())
+                return;
+
+            try
+            {
+                _guardandoRemito = true;
+
+                btnConfirmar.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                var dto = ConstruirComprobante();
+
+                var resultado =
+                    await _comprobanteService.CrearAsync(dto);
+
+                MessageBox.Show(
+                    $"Venta guardada correctamente.\n\n" +
+                    $"Número: {resultado.PuntoVenta:0000}-{resultado.Numero:000000}",
+                    "Venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                await NuevoRemitoAsync();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "No se pudo guardar la venta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Ocurrió un error al guardar la venta.\n\n{ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _guardandoRemito = false;
+
+                btnConfirmar.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
+
+        private async void btnConfirmar_Click(object sender, EventArgs e)
+        {
+            await GuardarRemitoAsync();
+        }
+
+        private void btnSalir_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                Close();
+            }
+        }
+
+        private void textBoxNumCuenta_KeyDown_1(object sender, KeyEventArgs e)
+        {
+
         }
     }
-
 }

@@ -1,4 +1,4 @@
-﻿using ElBrezal.Application.Interfaces;
+﻿using ElBrezal.Application.Interfaces.Configuraciones;
 using ElBrezal.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;

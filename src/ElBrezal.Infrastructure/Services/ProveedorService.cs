@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Proveedores;
+using ElBrezal.Application.Models.Proveedores;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;

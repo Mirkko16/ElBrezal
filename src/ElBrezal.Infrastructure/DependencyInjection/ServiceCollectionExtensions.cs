@@ -1,6 +1,12 @@
 ﻿using ElBrezal.Application.ActualizacionCostos;
-using ElBrezal.Application.Interfaces;
+using ElBrezal.Application.Interfaces.Clientes;
+using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Interfaces.Configuraciones;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
+using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Proveedores;
+using ElBrezal.Application.Interfaces.Vendedores;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;

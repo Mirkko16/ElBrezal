@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Models.Estadisticas;
 using ElBrezal.Desktop.Exporting;
 using ElBrezal.Desktop.UI.Styles;
 using System;

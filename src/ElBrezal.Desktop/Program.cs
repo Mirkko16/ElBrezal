@@ -7,6 +7,7 @@ using ElBrezal.Desktop.Forms.Clientes.Presupuesto;
 using ElBrezal.Desktop.Forms.Clientes.Remitos;
 using ElBrezal.Desktop.Forms.Clientes.Ventas;
 using ElBrezal.Desktop.Forms.Comprobantes;
+using ElBrezal.Desktop.Forms.Comprobantes.BusquedaComprobantes;
 using ElBrezal.Desktop.Forms.Main;
 using ElBrezal.Desktop.Forms.Splash;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
@@ -56,6 +57,7 @@ internal static class Program
                 services.AddTransient<BuscarLocalidadesForm>();
                 services.AddTransient<ComprobantesForm>();
                 services.AddTransient<VentasArticulosValorizadasForm>();
+                services.AddTransient<BuscarComprobanteForm>();
 
             })
             .Build();

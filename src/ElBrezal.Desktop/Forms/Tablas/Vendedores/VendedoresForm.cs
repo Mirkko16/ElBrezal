@@ -1,5 +1,7 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Vendedores;
+using ElBrezal.Application.Models.Localizacion;
+using ElBrezal.Application.Models.Vendedores;
 
 namespace ElBrezal.Desktop.Forms.Tablas.Vendedores
 {

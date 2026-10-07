@@ -1,7 +1,5 @@
 ﻿using ElBrezal.Application.Calculations;
-using ElBrezal.Application.Interfaces;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
 using ElBrezal.Application.Validators;
 using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
@@ -15,6 +13,16 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using ElBrezal.Desktop.Helpers;
+using ElBrezal.Application.Models.Clientes;
+using ElBrezal.Application.Models.Comprobantes;
+using ElBrezal.Application.Models.Producto;
+using ElBrezal.Application.Models.Localizacion;
+using ElBrezal.Application.Models.Vendedores;
+using ElBrezal.Application.Interfaces.Clientes;
+using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Vendedores;
 
 namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 {

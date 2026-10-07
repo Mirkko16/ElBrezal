@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Models.Comprobantes;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -133,6 +133,46 @@ namespace ElBrezal.Infrastructure.Services
                 throw;
             }
         }
+
+        public async Task<List<BuscarComprobanteDto>> BuscarAsync(string abreviaturaTipo, int? puntoVenta = null, int? numero = null)
+        {
+            var query = _context.Comprobantes
+                .AsNoTracking()
+                .Where(x =>
+                    !x.Anulado &&
+                    !x.TipoComprobante.Eliminado &&
+                    x.TipoComprobante.Abreviatura == abreviaturaTipo);
+
+            if (puntoVenta.HasValue)
+            {
+                query = query.Where(
+                    x => x.PuntoVenta == puntoVenta.Value);
+            }
+
+            if (numero.HasValue)
+            {
+                query = query.Where(
+                    x => x.Numero == numero.Value);
+            }
+
+            return await query
+                .OrderByDescending(x => x.Fecha)
+                .ThenByDescending(x => x.Numero)
+                .Select(x => new BuscarComprobanteDto
+                {
+                    Id = x.Id,
+                    TipoComprobanteId = x.TipoComprobanteId,
+                    TipoComprobante = x.TipoComprobante.Nombre,
+                    Abreviatura = x.TipoComprobante.Abreviatura,
+                    PuntoVenta = x.PuntoVenta,
+                    Numero = x.Numero,
+                    Fecha = x.Fecha,
+                    ClienteId = x.ClienteId,
+                    Cliente = x.Cliente.Nombre,
+                    Total = x.Total
+                })
+                .ToListAsync();
+        }
         private async Task<int> ObtenerClienteIdAsync(CrearComprobanteDto dto)
         {
             if (dto.ClienteId.HasValue)
@@ -206,6 +246,13 @@ namespace ElBrezal.Infrastructure.Services
 
                     Total = x.Total,
                     Anulado = x.Anulado,
+                    VendedorId = x.VendedorId,
+                    CondicionVentaId = x.CondicionVentaId,
+                    SituacionImpositivaId = x.SituacionImpositivaId,
+
+                    Subtotal = x.Subtotal,
+                    MontoVariacion = x.MontoVariacion,
+                    Observacion = x.Observacion,
 
                     Detalles = x.ComprobantesDetalle
                         .Select(d => new ComprobanteDetalleDto
@@ -221,6 +268,48 @@ namespace ElBrezal.Infrastructure.Services
                 .FirstOrDefaultAsync();
 
             return presupuesto;
+        }
+
+        public async Task<ComprobanteDto?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Comprobantes
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new ComprobanteDto
+                {
+                    Id = x.Id,
+                    TipoComprobanteId = x.TipoComprobanteId,
+                    PuntoVenta = x.PuntoVenta,
+                    Numero = x.Numero,
+                    Fecha = x.Fecha,
+
+                    ClienteId = x.ClienteId,
+                    ClienteNombre = x.Cliente.Nombre,
+
+                    VendedorId = x.VendedorId,
+                    CondicionVentaId = x.CondicionVentaId,
+                    SituacionImpositivaId = x.SituacionImpositivaId,
+
+                    PorcentajeVariacion = x.PorcentajeVariacion,
+                    Subtotal = x.Subtotal,
+                    MontoVariacion = x.MontoVariacion,
+                    Total = x.Total,
+
+                    Observacion = x.Observacion,
+                    Anulado = x.Anulado,
+
+                    Detalles = x.ComprobantesDetalle
+                        .Select(d => new ComprobanteDetalleDto
+                        {
+                            ProductoId = d.ProductoId,
+                            Descripcion = d.Descripcion,
+                            Cantidad = d.Cantidad,
+                            PrecioUnitario = d.PrecioUnitario,
+                            Importe = d.Importe
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
         }
 
         public async Task<List<ComprobanteListadoDto>> ObtenerListadoAsync(int? tipoComprobanteId,DateTime fechaDesde,
@@ -272,6 +361,7 @@ namespace ElBrezal.Infrastructure.Services
                 })
                 .ToListAsync();
         }
+
 
         private static void ValidarComprobante( CrearComprobanteDto dto)
         {

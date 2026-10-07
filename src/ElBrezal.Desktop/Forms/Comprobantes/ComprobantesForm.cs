@@ -1,5 +1,6 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Clientes;
+using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Models.Comprobantes;
 using ElBrezal.Desktop.Forms.Clientes;
 using ElBrezal.Desktop.Printing;
 using ElBrezal.Desktop.UI.Styles;

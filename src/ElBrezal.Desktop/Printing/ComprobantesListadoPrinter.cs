@@ -1,4 +1,4 @@
-﻿using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Models.Comprobantes;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Windows.Forms;
