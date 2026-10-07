@@ -416,31 +416,83 @@ namespace ElBrezal.Infrastructure.Services
             if (!dto.ComprobanteOrigenId.HasValue)
                 return;
 
-            var presupuesto = await _context.Comprobantes
+            // =====================================================
+            // COMPROBANTE ORIGEN
+            // =====================================================
+
+            var comprobanteOrigen = await _context.Comprobantes
                 .AsNoTracking()
                 .Include(x => x.TipoComprobante)
                 .FirstOrDefaultAsync(x =>
                     x.Id == dto.ComprobanteOrigenId.Value);
 
-            if (presupuesto is null)
+            if (comprobanteOrigen is null)
             {
                 throw new InvalidOperationException(
-                    "El presupuesto asociado no existe.");
+                    "El comprobante asociado no existe.");
             }
 
-            if (presupuesto.Anulado)
+            if (comprobanteOrigen.Anulado)
             {
                 throw new InvalidOperationException(
-                    "El presupuesto asociado se encuentra anulado.");
+                    "El comprobante asociado se encuentra anulado.");
             }
 
-            if (!string.Equals(
-                    presupuesto.TipoComprobante.Abreviatura,
-                    "PRES",
-                    StringComparison.OrdinalIgnoreCase))
+            // =====================================================
+            // TIPO DE COMPROBANTE DESTINO
+            // =====================================================
+
+            var tipoComprobanteDestino = await _context.TiposComprobante
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.Id == dto.TipoComprobanteId &&
+                    !x.Eliminado);
+
+            if (tipoComprobanteDestino is null)
             {
                 throw new InvalidOperationException(
-                    "El comprobante asociado no es un presupuesto.");
+                    "El tipo de comprobante seleccionado no existe.");
+            }
+
+            var abreviaturaOrigen =
+                comprobanteOrigen.TipoComprobante.Abreviatura
+                    .Trim()
+                    .ToUpperInvariant();
+
+            var abreviaturaDestino =
+                tipoComprobanteDestino.Abreviatura
+                    .Trim()
+                    .ToUpperInvariant();
+
+            // =====================================================
+            // VALIDAR RELACIÓN ORIGEN → DESTINO
+            // =====================================================
+
+            var relacionValida =
+                (abreviaturaOrigen == "PRES" &&
+                    (abreviaturaDestino == "FA" ||
+                     abreviaturaDestino == "FB" ||
+                     abreviaturaDestino == "FC" ||
+                     abreviaturaDestino == "REMI"))
+                ||
+                (abreviaturaOrigen == "REMI" &&
+                    abreviaturaDestino == "DEVO")
+                ||
+                (abreviaturaOrigen == "FA" &&
+                    abreviaturaDestino == "NCA")
+                ||
+                (abreviaturaOrigen == "FB" &&
+                    abreviaturaDestino == "NCB")
+                ||
+                (abreviaturaOrigen == "FC" &&
+                    abreviaturaDestino == "NCC");
+
+            if (!relacionValida)
+            {
+                throw new InvalidOperationException(
+                    $"No se puede asociar un comprobante " +
+                    $"{abreviaturaOrigen} a un comprobante " +
+                    $"{abreviaturaDestino}.");
             }
         }
 
