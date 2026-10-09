@@ -15,15 +15,9 @@ using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
 using ElBrezal.Desktop.Forms.Comprobantes.BusquedaComprobantes;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Helpers;
+using ElBrezal.Desktop.Printing;
 using ElBrezal.Desktop.UI.Styles;
-using ElBrezal.Infrastructure.Services;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 
 namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 {
@@ -41,7 +35,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
         private readonly INumeracionComprobanteService _numeracionComprobanteService;
         private readonly ILocalidadService _localidadService;
         private readonly IComprobanteService _comprobanteService;
-
+        private readonly ComprobantePdfGenerator _comprobantePdfGenerator;
+        private readonly ComprobanteImpresionService _comprobanteImpresionService;
         private const int PuntoVenta = 1;
         private VendedorDto? _vendedorSeleccionado;
 
@@ -55,7 +50,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
         public RemitoForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
             ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService,
-            INumeracionComprobanteService numeracionComprobanteService, ILocalidadService localidadService, IComprobanteService comprobanteService)
+            INumeracionComprobanteService numeracionComprobanteService, ILocalidadService localidadService,
+            IComprobanteService comprobanteService, ComprobantePdfGenerator comprobantePdfGenerator, ComprobanteImpresionService comprobanteImpresionService)
         {
 
             InitializeComponent();
@@ -69,6 +65,9 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             _numeracionComprobanteService = numeracionComprobanteService;
             _localidadService = localidadService;
             _comprobanteService = comprobanteService;
+            _comprobantePdfGenerator = comprobantePdfGenerator;
+            _comprobanteImpresionService = comprobanteImpresionService;
+
         }
 
         private async void RemitoForm_Load(object sender, EventArgs e)
@@ -1482,6 +1481,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             return dto;
         }
 
+
         private async Task GuardarRemitoAsync()
         {
             if (_guardandoRemito)
@@ -1490,39 +1490,78 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             if (!ValidarRemito())
                 return;
 
+            _guardandoRemito = true;
+            btnConfirmar.Enabled = false;
+
             try
             {
-                _guardandoRemito = true;
-
-                btnConfirmar.Enabled = false;
                 Cursor = Cursors.WaitCursor;
+
+                var esDevolucion =
+                    comboBoxTipoComprobante.SelectedItem
+                        is TipoComprobanteDto tipo
+                    && tipo.Abreviatura == "DEVO";
 
                 var dto = ConstruirComprobante();
 
-                var resultado =
-                    await _comprobanteService.CrearAsync(dto);
+                // Guardar remito o devolución.
+                var resultado = await _comprobanteService.CrearAsync(dto);
 
-                MessageBox.Show(
-                    $"Remito guardado correctamente.\n\n" +
-                    $"Número: {resultado.PuntoVenta:0000}-{resultado.Numero:000000}",
-                    "Remito",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                // A partir de aquí, el comprobante ya está guardado.
+                Cursor = Cursors.Default;
 
-                await NuevoRemitoAsync();
+                try
+                {
+                    await _comprobanteImpresionService.PreguntarImpresionAsync(
+                        resultado.Id,
+                        esDevolucion ? "Devolución" : "Remito",
+                        resultado.PuntoVenta,
+                        resultado.Numero,
+                        this);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        this,
+                        "El comprobante se guardó correctamente, " +
+                        "pero ocurrió un problema con la impresión.\n\n" +
+                        ex.Message,
+                        "Comprobante guardado",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+
+                try
+                {
+                    await NuevoRemitoAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        this,
+                        "El comprobante se guardó correctamente, " +
+                        "pero no fue posible preparar uno nuevo.\n\n" +
+                        ex.Message,
+                        "Comprobante guardado",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
             }
             catch (InvalidOperationException ex)
             {
                 MessageBox.Show(
+                    this,
                     ex.Message,
-                    "No se pudo guardar el remito",
+                    "No se pudo guardar el comprobante",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Ocurrió un error al guardar el remito.\n\n{ex.Message}",
+                    this,
+                    $"Ocurrió un error al guardar el comprobante.\n\n" +
+                    ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -1530,7 +1569,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             finally
             {
                 _guardandoRemito = false;
-
                 btnConfirmar.Enabled = true;
                 Cursor = Cursors.Default;
             }

@@ -1,27 +1,22 @@
 ﻿using ElBrezal.Application.Calculations;
+using ElBrezal.Application.Interfaces.Clientes;
+using ElBrezal.Application.Interfaces.Comprobantes;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
+using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Vendedores;
+using ElBrezal.Application.Models.Clientes;
+using ElBrezal.Application.Models.Comprobantes;
+using ElBrezal.Application.Models.Localizacion;
+using ElBrezal.Application.Models.Producto;
+using ElBrezal.Application.Models.Vendedores;
 using ElBrezal.Application.Validators;
 using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
-using ElBrezal.Desktop.UI.Styles;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 using ElBrezal.Desktop.Helpers;
-using ElBrezal.Application.Models.Clientes;
-using ElBrezal.Application.Models.Comprobantes;
-using ElBrezal.Application.Models.Producto;
-using ElBrezal.Application.Models.Localizacion;
-using ElBrezal.Application.Models.Vendedores;
-using ElBrezal.Application.Interfaces.Clientes;
-using ElBrezal.Application.Interfaces.Comprobantes;
-using ElBrezal.Application.Interfaces.Productos;
-using ElBrezal.Application.Interfaces.Localizacion;
-using ElBrezal.Application.Interfaces.Vendedores;
+using ElBrezal.Desktop.Printing;
+using ElBrezal.Desktop.UI.Styles;
+using System.Data;
 
 namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
 {
@@ -40,6 +35,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         private readonly ILocalidadService _localidadService;
 
         private readonly IComprobanteService _comprobanteService;
+        private readonly ComprobanteImpresionService _comprobanteImpresionService;
 
         private const int LocalidadPredeterminada = 1;
 
@@ -56,7 +52,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
         private bool _inicializandoFormulario;
         public PresupuestoForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
             ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService,
-            INumeracionComprobanteService numeracionComprobanteService, ILocalidadService localidadService, IComprobanteService comprobanteService)
+            INumeracionComprobanteService numeracionComprobanteService, ILocalidadService localidadService,
+            IComprobanteService comprobanteService, ComprobanteImpresionService comprobanteImpresionService)
         {
             InitializeComponent();
 
@@ -69,6 +66,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             _numeracionComprobanteService = numeracionComprobanteService;
             _localidadService = localidadService;
             _comprobanteService = comprobanteService;
+            _comprobanteImpresionService = comprobanteImpresionService;
         }
 
         private async void PresupuestoForm_Load(object sender, EventArgs e)
@@ -1312,6 +1310,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             await GuardarPresupuestoAsync();
         }
 
+
+
         private async Task GuardarPresupuestoAsync()
         {
             if (_guardandoPresupuesto)
@@ -1320,38 +1320,60 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             if (!ValidarPresupuesto())
                 return;
 
+            _guardandoPresupuesto = true;
+            btnConfirmar.Enabled = false;
+
             try
             {
-                _guardandoPresupuesto = true;
-
-                btnConfirmar.Enabled = false;
                 Cursor = Cursors.WaitCursor;
 
                 var dto = ConstruirComprobante();
 
+                // Guardado del comprobante.
+                // Si falla, no se continúa con la impresión.
                 var resultado = await _comprobanteService.CrearAsync(dto);
 
-                MessageBox.Show(
-                    $"Presupuesto guardado correctamente.\n\n" +
-                    $"Número: {resultado.PuntoVenta:0000}-{resultado.Numero:000000}",
-                    "Presupuesto",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                Cursor = Cursors.Default;
 
-                await NuevoPresupuestoAsync();
+                // El comprobante ya está confirmado en SQL Server.
+                await _comprobanteImpresionService.PreguntarImpresionAsync(
+                    resultado.Id,
+                    "Presupuesto",
+                    resultado.PuntoVenta,
+                    resultado.Numero,
+                    this);
+
+                // La impresión es opcional y no afecta el guardado.
+                try
+                {
+                    await NuevoPresupuestoAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        this,
+                        "El presupuesto se guardó correctamente, " +
+                        "pero no fue posible preparar uno nuevo.\n\n" +
+                        ex.Message,
+                        "Presupuesto guardado",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
             }
             catch (InvalidOperationException ex)
             {
                 MessageBox.Show(
+                    this,
                     ex.Message,
-                    "No se pudo guardar el presupuesto",
+                    "No se pudo completar la operación",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Ocurrió un error al guardar el presupuesto.\n\n{ex.Message}",
+                    this,
+                    $"Ocurrió un error durante la operación.\n\n{ex.Message}",
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -1359,11 +1381,12 @@ namespace ElBrezal.Desktop.Forms.Clientes.Presupuesto
             finally
             {
                 _guardandoPresupuesto = false;
-
                 btnConfirmar.Enabled = true;
                 Cursor = Cursors.Default;
             }
         }
+
+
 
         private async void PresupuestoForm_KeyDown(object sender, KeyEventArgs e)
         {

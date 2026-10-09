@@ -351,6 +351,7 @@
             listadoDeVentasDetalladasToolStripMenuItem.Name = "listadoDeVentasDetalladasToolStripMenuItem";
             listadoDeVentasDetalladasToolStripMenuItem.Size = new Size(293, 22);
             listadoDeVentasDetalladasToolStripMenuItem.Text = "Listado de Ventas Detallada";
+            listadoDeVentasDetalladasToolStripMenuItem.Click += listadoDeVentasDetalladasToolStripMenuItem_Click;
             // 
             // listadoInconsiToolStripMenuItem
             // 

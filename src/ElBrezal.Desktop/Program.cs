@@ -16,10 +16,13 @@ using ElBrezal.Desktop.Forms.Tablas.Marcas;
 using ElBrezal.Desktop.Forms.Tablas.Proveedores;
 using ElBrezal.Desktop.Forms.Tablas.Unidades;
 using ElBrezal.Desktop.Forms.Tablas.Vendedores;
+using ElBrezal.Desktop.Printing;
 using ElBrezal.Infrastructure.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using QuestPDF.Infrastructure;
+
 
 namespace ElBrezal.Desktop;
 
@@ -29,6 +32,8 @@ internal static class Program
     static void Main()
     {
         ApplicationConfiguration.Initialize();
+        QuestPDF.Settings.License = LicenseType.Community;
+        QuestPDF.Settings.UseSystemFonts = true;
 
         using IHost host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
@@ -57,7 +62,10 @@ internal static class Program
                 services.AddTransient<BuscarLocalidadesForm>();
                 services.AddTransient<ComprobantesForm>();
                 services.AddTransient<VentasArticulosValorizadasForm>();
+                services.AddTransient<ListadoVentasDetalladasForm>();
                 services.AddTransient<BuscarComprobanteForm>();
+                services.AddTransient<ComprobantePdfGenerator>();
+                services.AddTransient<ComprobanteImpresionService>();
 
             })
             .Build();

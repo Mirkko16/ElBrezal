@@ -470,5 +470,31 @@ namespace ElBrezal.Desktop.Forms.Main
             form.Show();
 
         }
+
+        private void listadoDeVentasDetalladasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                           .OfType<ListadoVentasDetalladasForm>()
+                           .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<ListadoVentasDetalladasForm>();
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+        }
     }
 }

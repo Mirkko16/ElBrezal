@@ -367,6 +367,7 @@
             // 
             // textBoxObservacion
             // 
+            textBoxObservacion.CharacterCasing = CharacterCasing.Upper;
             textBoxObservacion.Location = new Point(6, 28);
             textBoxObservacion.Margin = new Padding(3, 2, 3, 2);
             textBoxObservacion.Name = "textBoxObservacion";

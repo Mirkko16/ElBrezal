@@ -16,5 +16,7 @@ namespace ElBrezal.Application.Interfaces.Comprobantes
         Task<List<ComprobanteListadoDto>> ObtenerListadoAsync(int? tipoComprobanteId,DateTime fechaDesde, DateTime fechaHasta,int? clienteId = null);
 
         Task<List<BuscarComprobanteDto>> BuscarAsync(string abreviaturaTipo, int? puntoVenta = null, int? numero = null);
+        
+        Task<ComprobanteImpresionDto?> ObtenerParaImpresionAsync(int comprobanteId);
     }
 }

@@ -1,28 +1,22 @@
 ﻿using ElBrezal.Application.Calculations;
+using ElBrezal.Application.Interfaces.Clientes;
+using ElBrezal.Application.Interfaces.Comprobantes;
 using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
+using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Vendedores;
+using ElBrezal.Application.Models.Clientes;
+using ElBrezal.Application.Models.Comprobantes;
+using ElBrezal.Application.Models.Localizacion;
+using ElBrezal.Application.Models.Producto;
+using ElBrezal.Application.Models.Vendedores;
 using ElBrezal.Application.Validators;
 using ElBrezal.Desktop.Forms.Articulos.BusquedaArticulos;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
-using ElBrezal.Desktop.UI.Styles;
-using ElBrezal.Infrastructure.Services;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 using ElBrezal.Desktop.Helpers;
-using ElBrezal.Application.Models.Clientes;
-using ElBrezal.Application.Models.Comprobantes;
-using ElBrezal.Application.Models.Producto;
-using ElBrezal.Application.Models.Localizacion;
-using ElBrezal.Application.Models.Vendedores;
-using ElBrezal.Application.Interfaces.Clientes;
-using ElBrezal.Application.Interfaces.Comprobantes;
-using ElBrezal.Application.Interfaces.Productos;
-using ElBrezal.Application.Interfaces.Localizacion;
-using ElBrezal.Application.Interfaces.Vendedores;
+using ElBrezal.Desktop.Printing;
+using ElBrezal.Desktop.UI.Styles;
+using System.Data;
 
 namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 {
@@ -40,6 +34,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private readonly INumeracionComprobanteService _numeracionComprobanteService;
         private readonly ILocalidadService _localidadService;
         private readonly IComprobanteService _comprobanteService;
+        private readonly ComprobanteImpresionService _comprobanteImpresionService;
 
         private const int PuntoVenta = 1;
         private VendedorDto? _vendedorSeleccionado;
@@ -52,7 +47,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
 
         public VentaForm(IClienteService clienteService, ISituacionImpositivaService situacionImpositivaService, IProductoService productoService,
             ICondicionVentaService condicionVentaService, ITipoComprobanteService tipoComprobanteService, IVendedorService vendedorService,
-            INumeracionComprobanteService numeracionComprobanteService, ILocalidadService localidadService, IComprobanteService comprobanteService)
+            INumeracionComprobanteService numeracionComprobanteService, ILocalidadService localidadService,
+            IComprobanteService comprobanteService, ComprobanteImpresionService comprobanteImpresionService)
         {
 
             InitializeComponent();
@@ -66,6 +62,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             _numeracionComprobanteService = numeracionComprobanteService;
             _localidadService = localidadService;
             _comprobanteService = comprobanteService;
+            _comprobanteImpresionService = comprobanteImpresionService;
         }
 
         private async void VentaForm_Load(object sender, EventArgs e)
@@ -1360,6 +1357,7 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             return dto;
         }
 
+
         private async Task GuardarVentaAsync()
         {
             if (_guardandoVenta)
@@ -1368,30 +1366,70 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             if (!ValidarVenta())
                 return;
 
+            _guardandoVenta = true;
+            btnConfirmar.Enabled = false;
+
             try
             {
-                _guardandoVenta = true;
-
-                btnConfirmar.Enabled = false;
                 Cursor = Cursors.WaitCursor;
 
                 var dto = ConstruirComprobante();
 
-                var resultado =
-                    await _comprobanteService.CrearAsync(dto);
+                // Guardar la venta en SQL Server.
+                var resultado = await _comprobanteService.CrearAsync(dto);
 
-                MessageBox.Show(
-                    $"Venta guardada correctamente.\n\n" +
-                    $"Número: {resultado.PuntoVenta:0000}-{resultado.Numero:000000}",
-                    "Venta",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                // A partir de este punto, la venta ya está guardada.
+                Cursor = Cursors.Default;
 
-                await NuevaVentaAsync();
+                // ==========================================
+                // IMPRESIÓN DEL COMPROBANTE
+                // ==========================================
+
+                try
+                {
+                    await _comprobanteImpresionService.PreguntarImpresionAsync(
+                        resultado.Id,
+                        "Venta",
+                        resultado.PuntoVenta,
+                        resultado.Numero,
+                        this);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        this,
+                        "La venta se guardó correctamente, " +
+                        "pero ocurrió un problema con la impresión.\n\n" +
+                        ex.Message,
+                        "Venta guardada",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+
+                // ==========================================
+                // PREPARAR NUEVA VENTA
+                // ==========================================
+
+                try
+                {
+                    await NuevaVentaAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        this,
+                        "La venta se guardó correctamente, " +
+                        "pero no fue posible preparar una nueva venta.\n\n" +
+                        ex.Message,
+                        "Venta guardada",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
             }
             catch (InvalidOperationException ex)
             {
                 MessageBox.Show(
+                    this,
                     ex.Message,
                     "No se pudo guardar la venta",
                     MessageBoxButtons.OK,
@@ -1400,7 +1438,9 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Ocurrió un error al guardar la venta.\n\n{ex.Message}",
+                    this,
+                    $"Ocurrió un error al guardar la venta.\n\n" +
+                    ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -1408,11 +1448,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             finally
             {
                 _guardandoVenta = false;
-
                 btnConfirmar.Enabled = true;
                 Cursor = Cursors.Default;
             }
         }
+
 
         private async void btnConfirmar_Click(object sender, EventArgs e)
         {

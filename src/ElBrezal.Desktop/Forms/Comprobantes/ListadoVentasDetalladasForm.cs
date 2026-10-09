@@ -4,29 +4,38 @@ using ElBrezal.Application.Models.Comprobantes;
 using ElBrezal.Desktop.Forms.Clientes;
 using ElBrezal.Desktop.Printing;
 using ElBrezal.Desktop.UI.Styles;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
 
 namespace ElBrezal.Desktop.Forms.Comprobantes
 {
-    public partial class ComprobantesForm : Form
+    public partial class ListadoVentasDetalladasForm : Form
     {
         private readonly IComprobanteService _comprobanteService;
         private readonly ITipoComprobanteService _tipoComprobanteService;
         private readonly IClienteService _clienteService;
         private List<ComprobanteListadoDto> _comprobantes = new();
+        private readonly ComprobanteImpresionService _comprobanteImpresionService;
         private int? _clienteId;
         private bool _formularioCargado;
 
-        public ComprobantesForm(IComprobanteService comprobanteService, ITipoComprobanteService tipoComprobanteService,
-            IClienteService clienteService)
+        public ListadoVentasDetalladasForm(IComprobanteService comprobanteService, ITipoComprobanteService tipoComprobanteService,
+            IClienteService clienteService, ComprobanteImpresionService comprobanteImpresionService)
         {
             InitializeComponent();
 
             _comprobanteService = comprobanteService;
             _tipoComprobanteService = tipoComprobanteService;
             _clienteService = clienteService;
+            _comprobanteImpresionService = comprobanteImpresionService;
         }
 
-        private async void ComprobantesForm_Load(object sender, EventArgs e)
+        private async void ListadoVentasDetalladasForm_Load(object sender, EventArgs e)
         {
             try
             {
@@ -109,53 +118,56 @@ namespace ElBrezal.Desktop.Forms.Comprobantes
             await BuscarClienteAsync();
         }
 
-        private void btnImprimir_Click(object sender, EventArgs e)
+
+        private async void btnImprimir_Click(object sender, EventArgs e)
         {
-            if (_comprobantes.Count == 0)
+            var fila = dataGridViewComprobantes.SelectedRows
+                .Cast<DataGridViewRow>()
+                .FirstOrDefault();
+
+            if (fila?.Tag is not int comprobanteId)
             {
                 MessageBox.Show(
-                    "No hay comprobantes para imprimir.",
-                    "Listado de comprobantes",
+                    this,
+                    "Seleccione un comprobante de la grilla para imprimir.",
+                    "Imprimir comprobante",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
 
                 return;
             }
 
-            var cliente =
-                _clienteId.HasValue
-                    ? $"{textBoxNumCuenta.Text} - {textBoxNombreCliente.Text}"
-                    : "TODOS";
+            try
+            {
+                btnImprimir.Enabled = false;
+                Cursor = Cursors.WaitCursor;
 
-            var tipoComprobante =
-                string.IsNullOrWhiteSpace(cmbTipoComprobante.Text)
-                    ? "TODOS"
-                    : cmbTipoComprobante.Text;
-
-            var printer =
-                new ComprobantesListadoPrinter(
-                    _comprobantes,
-                    tipoComprobante,
-                    dateTimePickerDesde.Value.Date,
-                    dateTimePickerHasta.Value.Date,
-                    cliente);
-
-            printer.MostrarVistaPrevia(this);
+                await _comprobanteImpresionService.AbrirVistaPreviaAsync(
+                    comprobanteId);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    this,
+                    "No fue posible generar o abrir el comprobante.\n\n" +
+                    ex.Message,
+                    "Error de impresión",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnImprimir.Enabled = true;
+                Cursor = Cursors.Default;
+            }
         }
+
 
         private void btnSalir_Click(object sender, EventArgs e)
         {
             Close();
         }
 
-        private void ComprobantesForm_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Escape)
-            {
-                e.SuppressKeyPress = true;
-                Close();
-            }
-        }
 
         private async Task CargarTiposComprobanteAsync()
         {
@@ -246,6 +258,7 @@ namespace ElBrezal.Desktop.Forms.Comprobantes
             }
 
             ActualizarTotales();
+            dataGridViewComprobantes.ClearSelection();
         }
 
         private void LimpiarFiltroCliente()
@@ -434,6 +447,16 @@ namespace ElBrezal.Desktop.Forms.Comprobantes
                 _comprobantes
                     .Sum(x => x.Total)
                     .ToString("N2");
+        }
+
+        private void ListadoVentasDetalladasForm_KeyDown(object sender, KeyEventArgs e)
+        {
+
+            if (e.KeyCode == Keys.Escape)
+            {
+                e.SuppressKeyPress = true;
+                Close();
+            }
         }
     }
 

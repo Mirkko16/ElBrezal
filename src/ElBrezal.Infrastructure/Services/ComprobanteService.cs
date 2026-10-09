@@ -362,6 +362,77 @@ namespace ElBrezal.Infrastructure.Services
                 .ToListAsync();
         }
 
+        public async Task<ComprobanteImpresionDto?> ObtenerParaImpresionAsync(
+    int comprobanteId)
+        {
+            return await _context.Comprobantes
+                .AsNoTracking()
+                .Where(x => x.Id == comprobanteId)
+                .Select(x => new ComprobanteImpresionDto
+                {
+                    // ==========================================
+                    // IDENTIFICACIÓN
+                    // ==========================================
+
+                    Id = x.Id,
+
+                    TipoComprobante = x.TipoComprobante.Nombre,
+                    Abreviatura = x.TipoComprobante.Abreviatura,
+
+                    PuntoVenta = x.PuntoVenta,
+                    Numero = x.Numero,
+                    Fecha = x.Fecha,
+
+                    // ==========================================
+                    // CLIENTE
+                    // ==========================================
+
+                    ClienteId = x.ClienteId,
+                    ClienteNombre = x.Cliente.Nombre,
+                    ClienteDireccion = x.Cliente.Direccion ?? string.Empty,
+                    ClienteTelefono = x.Cliente.Telefono ?? string.Empty,
+                    ClienteDNI = x.Cliente.DNI ?? string.Empty,
+                    ClienteCUIT = x.Cliente.CUIT ?? string.Empty,
+
+                    // ==========================================
+                    // DATOS COMERCIALES
+                    // ==========================================
+
+                    Vendedor = x.Vendedor.Nombre,
+
+                    CondicionVenta = x.CondicionVenta.Nombre,
+
+                    SituacionImpositiva = x.SituacionImpositiva.Nombre,
+
+                    // ==========================================
+                    // IMPORTES
+                    // ==========================================
+
+                    PorcentajeVariacion = x.PorcentajeVariacion,
+                    Subtotal = x.Subtotal,
+                    MontoVariacion = x.MontoVariacion,
+                    Total = x.Total,
+
+                    Observacion = x.Observacion,
+
+                    // ==========================================
+                    // DETALLE HISTÓRICO
+                    // ==========================================
+
+                    Detalles = x.ComprobantesDetalle
+                        .OrderBy(d => d.Id)
+                        .Select(d => new ComprobanteImpresionDetalleDto
+                        {
+                            ProductoId = d.ProductoId,
+                            Descripcion = d.Descripcion,
+                            Cantidad = d.Cantidad,
+                            PrecioUnitario = d.PrecioUnitario,
+                            Importe = d.Importe
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+        }
 
         private static void ValidarComprobante( CrearComprobanteDto dto)
         {
