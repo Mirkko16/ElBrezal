@@ -13,7 +13,11 @@ public partial class SituacionesImpositivas
 
     public bool Eliminado { get; set; }
 
+    public decimal Porce { get; set; }
+
     public virtual ICollection<Clientes> Clientes { get; set; } = new List<Clientes>();
+
+    public virtual ICollection<Comprobantes> Comprobantes { get; set; } = new List<Comprobantes>();
 
     public virtual ICollection<Proveedores> Proveedores { get; set; } = new List<Proveedores>();
 }

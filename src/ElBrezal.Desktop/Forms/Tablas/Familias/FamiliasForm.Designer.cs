@@ -40,18 +40,17 @@
             // lblDescripcion
             // 
             lblDescripcion.AutoSize = true;
-            lblDescripcion.Location = new Point(78, 288);
+            lblDescripcion.Location = new Point(70, 307);
             lblDescripcion.Name = "lblDescripcion";
-            lblDescripcion.Size = new Size(72, 15);
+            lblDescripcion.Size = new Size(90, 20);
             lblDescripcion.TabIndex = 11;
             lblDescripcion.Text = "Descripción:";
             // 
             // btnSalir
             // 
-            btnSalir.Location = new Point(606, 310);
-            btnSalir.Margin = new Padding(3, 2, 3, 2);
+            btnSalir.Location = new Point(674, 335);
             btnSalir.Name = "btnSalir";
-            btnSalir.Size = new Size(82, 22);
+            btnSalir.Size = new Size(94, 29);
             btnSalir.TabIndex = 10;
             btnSalir.Text = "Salir";
             btnSalir.UseVisualStyleBackColor = true;
@@ -59,10 +58,9 @@
             // 
             // btnEliminar
             // 
-            btnEliminar.Location = new Point(519, 310);
-            btnEliminar.Margin = new Padding(3, 2, 3, 2);
+            btnEliminar.Location = new Point(574, 335);
             btnEliminar.Name = "btnEliminar";
-            btnEliminar.Size = new Size(82, 22);
+            btnEliminar.Size = new Size(94, 29);
             btnEliminar.TabIndex = 9;
             btnEliminar.Text = "Eliminar";
             btnEliminar.UseVisualStyleBackColor = true;
@@ -70,10 +68,9 @@
             // 
             // btnAgregar
             // 
-            btnAgregar.Location = new Point(438, 282);
-            btnAgregar.Margin = new Padding(3, 2, 3, 2);
+            btnAgregar.Location = new Point(482, 298);
             btnAgregar.Name = "btnAgregar";
-            btnAgregar.Size = new Size(82, 24);
+            btnAgregar.Size = new Size(94, 32);
             btnAgregar.TabIndex = 8;
             btnAgregar.Text = "Agregar";
             btnAgregar.UseVisualStyleBackColor = true;
@@ -82,27 +79,25 @@
             // textBoxDescripcion
             // 
             textBoxDescripcion.CharacterCasing = CharacterCasing.Upper;
-            textBoxDescripcion.Location = new Point(162, 283);
-            textBoxDescripcion.Margin = new Padding(3, 2, 3, 2);
+            textBoxDescripcion.Location = new Point(166, 299);
             textBoxDescripcion.Name = "textBoxDescripcion";
-            textBoxDescripcion.Size = new Size(272, 23);
+            textBoxDescripcion.Size = new Size(310, 27);
             textBoxDescripcion.TabIndex = 7;
             // 
             // dataGridViewFamilias
             // 
             dataGridViewFamilias.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewFamilias.Location = new Point(67, 38);
-            dataGridViewFamilias.Margin = new Padding(3, 2, 3, 2);
+            dataGridViewFamilias.Location = new Point(77, 51);
             dataGridViewFamilias.Name = "dataGridViewFamilias";
             dataGridViewFamilias.RowHeadersWidth = 51;
-            dataGridViewFamilias.Size = new Size(387, 208);
+            dataGridViewFamilias.Size = new Size(499, 219);
             dataGridViewFamilias.TabIndex = 6;
             // 
             // FamiliasForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(700, 338);
+            ClientSize = new Size(800, 381);
             Controls.Add(lblDescripcion);
             Controls.Add(btnSalir);
             Controls.Add(btnEliminar);
@@ -110,6 +105,7 @@
             Controls.Add(textBoxDescripcion);
             Controls.Add(dataGridViewFamilias);
             KeyPreview = true;
+            Margin = new Padding(3, 4, 3, 4);
             Name = "FamiliasForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "FamiliasForm";

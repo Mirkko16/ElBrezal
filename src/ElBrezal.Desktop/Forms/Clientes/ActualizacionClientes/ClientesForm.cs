@@ -1,5 +1,10 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Clientes;
+using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Vendedores;
+using ElBrezal.Application.Models.Clientes;
+using ElBrezal.Application.Models.Localizacion;
+using ElBrezal.Application.Models.Vendedores;
 using ElBrezal.Application.Validators;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using Microsoft.Extensions.DependencyInjection;
@@ -136,12 +141,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes
             textBoxCodigoPostal.Text = cliente.CodigoPostal;
             textBoxProvincia.Text = cliente.Provincia;
 
-            textBoxTelefono1.Text = cliente.Telefono1 ?? string.Empty;
-            textBoxTelefono2.Text = cliente.Telefono2 ?? string.Empty;
-            textBoxFax.Text = cliente.Fax ?? string.Empty;
+            textBoxTelefono.Text = cliente.Telefono ?? string.Empty;
             textBoxEmail.Text = cliente.Email ?? string.Empty;
-            textBoxOcupacion.Text = cliente.Ocupacion ?? string.Empty;
-            textBoxMatricula.Text = cliente.Matricula ?? string.Empty;
 
             cmbSituacionImpositiva.SelectedValue =
                 cliente.SituacionImpositivaId;
@@ -410,13 +411,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes
 
                 LocalidadId = localidadId,
 
-                Telefono1 = textBoxTelefono1.Text,
-                Telefono2 = textBoxTelefono2.Text,
-                Fax = textBoxFax.Text,
+                Telefono = textBoxTelefono.Text,
                 Email = textBoxEmail.Text,
-
-                Ocupacion = textBoxOcupacion.Text,
-                Matricula = textBoxMatricula.Text,
 
                 SituacionImpositivaId = situacionImpositivaId,
                 EstadoCuentaId = estadoCuentaId,
@@ -534,13 +530,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes
             textBoxCodigoPostal.Clear();
             textBoxProvincia.Clear();
 
-            textBoxTelefono1.Clear();
-            textBoxTelefono2.Clear();
-            textBoxFax.Clear();
+            textBoxTelefono.Clear();
             textBoxEmail.Clear();
-
-            textBoxOcupacion.Clear();
-            textBoxMatricula.Clear();
 
             cmbSituacionImpositiva.SelectedIndex = -1;
 
@@ -562,13 +553,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes
             cmbLocalidades.Enabled = habilitar;
             btnNuevaLocalidad.Enabled = habilitar;
 
-            textBoxTelefono1.ReadOnly = !habilitar;
-            textBoxTelefono2.ReadOnly = !habilitar;
-            textBoxFax.ReadOnly = !habilitar;
+            textBoxTelefono.ReadOnly = !habilitar;
             textBoxEmail.ReadOnly = !habilitar;
-
-            textBoxOcupacion.ReadOnly = !habilitar;
-            textBoxMatricula.ReadOnly = !habilitar;
 
             cmbSituacionImpositiva.Enabled = habilitar;
 
@@ -686,6 +672,11 @@ namespace ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes
                     }
                 }
             }
+        }
+
+        private void textBoxNumCuenta_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Models.Clientes;
 using ElBrezal.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +24,8 @@ namespace ElBrezal.Infrastructure.Services
                 {
                     Id = x.Id,
                     Nombre = x.Nombre,
-                    Abreviatura = x.Abreviatura
+                    Abreviatura = x.Abreviatura,
+                    Porce = x.Porce
                 })
                 .ToListAsync();
         }

@@ -16,6 +16,14 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<Clientes> Clientes { get; set; }
 
+    public virtual DbSet<Comprobantes> Comprobantes { get; set; }
+
+    public virtual DbSet<ComprobantesDetalle> ComprobantesDetalle { get; set; }
+
+    public virtual DbSet<CondicionesVenta> CondicionesVenta { get; set; }
+
+    public virtual DbSet<Config> Config { get; set; }
+
     public virtual DbSet<EstadosCuentaCliente> EstadosCuentaCliente { get; set; }
 
     public virtual DbSet<Familias> Familias { get; set; }
@@ -24,6 +32,8 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<Marcas> Marcas { get; set; }
 
+    public virtual DbSet<NumeracionesComprobante> NumeracionesComprobante { get; set; }
+
     public virtual DbSet<Productos> Productos { get; set; }
 
     public virtual DbSet<Proveedores> Proveedores { get; set; }
@@ -31,6 +41,8 @@ public partial class ElBrezalDbContext : DbContext
     public virtual DbSet<Provincias> Provincias { get; set; }
 
     public virtual DbSet<SituacionesImpositivas> SituacionesImpositivas { get; set; }
+
+    public virtual DbSet<TiposComprobante> TiposComprobante { get; set; }
 
     public virtual DbSet<Unidades> Unidades { get; set; }
 
@@ -62,14 +74,8 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(150)
                 .IsUnicode(false);
-            entity.Property(e => e.Fax)
-                .HasMaxLength(50)
-                .IsUnicode(false);
             entity.Property(e => e.IngresosBrutos)
                 .HasMaxLength(30)
-                .IsUnicode(false);
-            entity.Property(e => e.Matricula)
-                .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
@@ -77,13 +83,7 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Observacion)
                 .HasMaxLength(500)
                 .IsUnicode(false);
-            entity.Property(e => e.Ocupacion)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.Telefono1)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Telefono2)
+            entity.Property(e => e.Telefono)
                 .HasMaxLength(50)
                 .IsUnicode(false);
 
@@ -105,6 +105,83 @@ public partial class ElBrezalDbContext : DbContext
             entity.HasOne(d => d.Vendedor).WithMany(p => p.Clientes)
                 .HasForeignKey(d => d.VendedorId)
                 .HasConstraintName("FK_Clientes_Vendedores");
+        });
+
+        modelBuilder.Entity<Comprobantes>(entity =>
+        {
+            entity.HasIndex(e => e.ComprobanteOrigenId, "IX_Comprobantes_ComprobanteOrigenId");
+
+            entity.HasIndex(e => new { e.TipoComprobanteId, e.PuntoVenta, e.Numero }, "UQ_Comprobantes_Numeracion").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())", "DF_Comprobantes_CreatedAt");
+            entity.Property(e => e.MontoVariacion).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Observacion).HasMaxLength(500);
+            entity.Property(e => e.PorcentajeVariacion).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.Cliente).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.ClienteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_Clientes");
+
+            entity.HasOne(d => d.ComprobanteOrigen).WithMany(p => p.InverseComprobanteOrigen)
+                .HasForeignKey(d => d.ComprobanteOrigenId)
+                .HasConstraintName("FK_Comprobantes_ComprobanteOrigen");
+
+            entity.HasOne(d => d.CondicionVenta).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.CondicionVentaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_CondicionesVenta");
+
+            entity.HasOne(d => d.SituacionImpositiva).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.SituacionImpositivaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_SituacionesImpositivas");
+
+            entity.HasOne(d => d.TipoComprobante).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.TipoComprobanteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_TiposComprobante");
+
+            entity.HasOne(d => d.Vendedor).WithMany(p => p.Comprobantes)
+                .HasForeignKey(d => d.VendedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comprobantes_Vendedores");
+        });
+
+        modelBuilder.Entity<ComprobantesDetalle>(entity =>
+        {
+            entity.Property(e => e.Cantidad).HasColumnType("decimal(18, 3)");
+            entity.Property(e => e.Descripcion).HasMaxLength(200);
+            entity.Property(e => e.Importe).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.Comprobante).WithMany(p => p.ComprobantesDetalle)
+                .HasForeignKey(d => d.ComprobanteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ComprobantesDetalle_Comprobantes");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.ComprobantesDetalle)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ComprobantesDetalle_Productos");
+        });
+
+        modelBuilder.Entity<CondicionesVenta>(entity =>
+        {
+            entity.Property(e => e.Nombre).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Config>(entity =>
+        {
+            entity.HasIndex(e => e.Clave, "UQ_Config_Clave").IsUnique();
+
+            entity.Property(e => e.Clave)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Descripcion).HasMaxLength(200);
+            entity.Property(e => e.Valor).HasMaxLength(500);
         });
 
         modelBuilder.Entity<EstadosCuentaCliente>(entity =>
@@ -146,6 +223,16 @@ public partial class ElBrezalDbContext : DbContext
                 .IsUnicode(false);
         });
 
+        modelBuilder.Entity<NumeracionesComprobante>(entity =>
+        {
+            entity.HasIndex(e => new { e.TipoComprobanteId, e.PuntoVenta }, "UQ_NumeracionesComprobante_Tipo_PuntoVenta").IsUnique();
+
+            entity.HasOne(d => d.TipoComprobante).WithMany(p => p.NumeracionesComprobante)
+                .HasForeignKey(d => d.TipoComprobanteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_NumeracionesComprobante_TiposComprobante");
+        });
+
         modelBuilder.Entity<Productos>(entity =>
         {
             entity.Property(e => e.AlicuotaIVAId).HasDefaultValue(3, "DF_Productos_AlicuotaIVAId");
@@ -161,6 +248,7 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.RentabilidadCuentaCorriente).HasColumnType("decimal(7, 2)");
             entity.Property(e => e.RentabilidadReventa).HasColumnType("decimal(7, 2)");
             entity.Property(e => e.Stock).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.StockMinimo).HasColumnType("decimal(18, 4)");
 
             entity.HasOne(d => d.AlicuotaIVA).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.AlicuotaIVAId)
@@ -236,6 +324,15 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.Porce).HasColumnType("decimal(5, 2)");
+        });
+
+        modelBuilder.Entity<TiposComprobante>(entity =>
+        {
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Abreviatura).HasMaxLength(10);
+            entity.Property(e => e.Nombre).HasMaxLength(50);
+            entity.Property(e => e.Signo).HasDefaultValue((short)1, "DF_TiposComprobante_Signo");
         });
 
         modelBuilder.Entity<Unidades>(entity =>

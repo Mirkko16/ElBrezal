@@ -1,5 +1,12 @@
-﻿using ElBrezal.Desktop.Forms.Articulos.Actualizaciones;
+﻿using ElBrezal.Desktop.Forms.Articulos.ActualizacionCostos;
+using ElBrezal.Desktop.Forms.Articulos.Actualizaciones;
+using ElBrezal.Desktop.Forms.Articulos.StockMinimo;
+using ElBrezal.Desktop.Forms.Articulos.VentasArticulos;
 using ElBrezal.Desktop.Forms.Clientes.ActualizacionClientes;
+using ElBrezal.Desktop.Forms.Clientes.Presupuesto;
+using ElBrezal.Desktop.Forms.Clientes.Remitos;
+using ElBrezal.Desktop.Forms.Clientes.Ventas;
+using ElBrezal.Desktop.Forms.Comprobantes;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
@@ -262,6 +269,224 @@ namespace ElBrezal.Desktop.Forms.Main
             var form = scope.ServiceProvider
                 .GetRequiredService<ArticulosForm>();
 
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+        }
+
+        private void actualizDeCostosGlobalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+               .OfType<ActualizacionCostosForm>()
+               .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider.GetRequiredService<ActualizacionCostosForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+        }
+
+        private void facturacionElectronicaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<VentaForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<VentaForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+        }
+
+        private void presupuestoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<PresupuestoForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<PresupuestoForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+        }
+
+        private void emisionDeRemitosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<RemitoForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<RemitoForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+        }
+
+        private void stockMinimosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<StockMinimoForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<StockMinimoForm>();
+
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+        }
+
+        private void listadoDeVentasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<ComprobantesForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<ComprobantesForm>();
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+
+        }
+
+        private void ventasValorizadasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                .OfType<VentasArticulosValorizadasForm>()
+                .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<VentasArticulosValorizadasForm>();
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+
+        }
+
+        private void listadoDeVentasDetalladasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                           .OfType<ListadoVentasDetalladasForm>()
+                           .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<ListadoVentasDetalladasForm>();
             form.MdiParent = this;
 
             form.FormClosed += (_, _) =>

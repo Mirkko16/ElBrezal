@@ -47,19 +47,10 @@
             lblNombre = new Label();
             lblCodigo = new Label();
             groupBoxContacto = new GroupBox();
-            textBoxTelefono2 = new TextBox();
             textBoxEmail = new TextBox();
-            textBoxFax = new TextBox();
-            textBoxTelefono1 = new TextBox();
+            textBoxTelefono = new TextBox();
             lblEmail = new Label();
-            lblTelefono2 = new Label();
-            lblFax = new Label();
             lblTelefono = new Label();
-            groupBoxInfoAdicional = new GroupBox();
-            textBoxMatricula = new TextBox();
-            textBoxOcupacion = new TextBox();
-            lblMatricula = new Label();
-            lblOcupacion = new Label();
             groupBoxDatosFiscalesYCuenta = new GroupBox();
             cmbEstadoCuenta = new ComboBox();
             textBoxIngresosBrutos = new TextBox();
@@ -92,7 +83,6 @@
             bindingSourceVendedores = new BindingSource(components);
             groupBoxDatsoPRincipales.SuspendLayout();
             groupBoxContacto.SuspendLayout();
-            groupBoxInfoAdicional.SuspendLayout();
             groupBoxDatosFiscalesYCuenta.SuspendLayout();
             groupBoxObservaciones.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)bindingSourceClientes).BeginInit();
@@ -267,143 +257,53 @@
             // 
             // groupBoxContacto
             // 
-            groupBoxContacto.Controls.Add(textBoxTelefono2);
             groupBoxContacto.Controls.Add(textBoxEmail);
-            groupBoxContacto.Controls.Add(textBoxFax);
-            groupBoxContacto.Controls.Add(textBoxTelefono1);
+            groupBoxContacto.Controls.Add(textBoxTelefono);
             groupBoxContacto.Controls.Add(lblEmail);
-            groupBoxContacto.Controls.Add(lblTelefono2);
-            groupBoxContacto.Controls.Add(lblFax);
             groupBoxContacto.Controls.Add(lblTelefono);
             groupBoxContacto.Location = new Point(10, 132);
             groupBoxContacto.Margin = new Padding(3, 2, 3, 2);
             groupBoxContacto.Name = "groupBoxContacto";
             groupBoxContacto.Padding = new Padding(3, 2, 3, 2);
-            groupBoxContacto.Size = new Size(876, 98);
+            groupBoxContacto.Size = new Size(876, 63);
             groupBoxContacto.TabIndex = 13;
             groupBoxContacto.TabStop = false;
             groupBoxContacto.Text = "Contacto";
             // 
-            // textBoxTelefono2
-            // 
-            textBoxTelefono2.Location = new Point(559, 29);
-            textBoxTelefono2.Margin = new Padding(3, 2, 3, 2);
-            textBoxTelefono2.Name = "textBoxTelefono2";
-            textBoxTelefono2.Size = new Size(219, 23);
-            textBoxTelefono2.TabIndex = 7;
-            textBoxTelefono2.KeyPress += textBoxTelefono2_KeyPress;
-            // 
             // textBoxEmail
             // 
-            textBoxEmail.Location = new Point(559, 66);
+            textBoxEmail.Location = new Point(527, 29);
             textBoxEmail.Margin = new Padding(3, 2, 3, 2);
             textBoxEmail.Name = "textBoxEmail";
             textBoxEmail.Size = new Size(219, 23);
             textBoxEmail.TabIndex = 6;
             // 
-            // textBoxFax
+            // textBoxTelefono
             // 
-            textBoxFax.Location = new Point(117, 61);
-            textBoxFax.Margin = new Padding(3, 2, 3, 2);
-            textBoxFax.Name = "textBoxFax";
-            textBoxFax.Size = new Size(219, 23);
-            textBoxFax.TabIndex = 5;
-            // 
-            // textBoxTelefono1
-            // 
-            textBoxTelefono1.Location = new Point(117, 29);
-            textBoxTelefono1.Margin = new Padding(3, 2, 3, 2);
-            textBoxTelefono1.Name = "textBoxTelefono1";
-            textBoxTelefono1.Size = new Size(219, 23);
-            textBoxTelefono1.TabIndex = 4;
-            textBoxTelefono1.KeyPress += textBoxTelefono1_KeyPress;
+            textBoxTelefono.Location = new Point(117, 29);
+            textBoxTelefono.Margin = new Padding(3, 2, 3, 2);
+            textBoxTelefono.Name = "textBoxTelefono";
+            textBoxTelefono.Size = new Size(219, 23);
+            textBoxTelefono.TabIndex = 4;
+            textBoxTelefono.KeyPress += textBoxTelefono1_KeyPress;
             // 
             // lblEmail
             // 
             lblEmail.AutoSize = true;
-            lblEmail.Location = new Point(469, 66);
+            lblEmail.Location = new Point(434, 34);
             lblEmail.Name = "lblEmail";
             lblEmail.Size = new Size(39, 15);
             lblEmail.TabIndex = 3;
             lblEmail.Text = "Email:";
-            // 
-            // lblTelefono2
-            // 
-            lblTelefono2.AutoSize = true;
-            lblTelefono2.Location = new Point(465, 34);
-            lblTelefono2.Name = "lblTelefono2";
-            lblTelefono2.Size = new Size(65, 15);
-            lblTelefono2.TabIndex = 2;
-            lblTelefono2.Text = "Teléfono 2:";
-            // 
-            // lblFax
-            // 
-            lblFax.AutoSize = true;
-            lblFax.Location = new Point(38, 66);
-            lblFax.Name = "lblFax";
-            lblFax.Size = new Size(27, 15);
-            lblFax.TabIndex = 1;
-            lblFax.Text = "Fax:";
             // 
             // lblTelefono
             // 
             lblTelefono.AutoSize = true;
             lblTelefono.Location = new Point(38, 34);
             lblTelefono.Name = "lblTelefono";
-            lblTelefono.Size = new Size(65, 15);
+            lblTelefono.Size = new Size(56, 15);
             lblTelefono.TabIndex = 0;
-            lblTelefono.Text = "Teléfono 1:";
-            // 
-            // groupBoxInfoAdicional
-            // 
-            groupBoxInfoAdicional.Controls.Add(textBoxMatricula);
-            groupBoxInfoAdicional.Controls.Add(textBoxOcupacion);
-            groupBoxInfoAdicional.Controls.Add(lblMatricula);
-            groupBoxInfoAdicional.Controls.Add(lblOcupacion);
-            groupBoxInfoAdicional.Location = new Point(13, 236);
-            groupBoxInfoAdicional.Margin = new Padding(3, 2, 3, 2);
-            groupBoxInfoAdicional.Name = "groupBoxInfoAdicional";
-            groupBoxInfoAdicional.Padding = new Padding(3, 2, 3, 2);
-            groupBoxInfoAdicional.Size = new Size(875, 46);
-            groupBoxInfoAdicional.TabIndex = 14;
-            groupBoxInfoAdicional.TabStop = false;
-            groupBoxInfoAdicional.Text = "Informacion Adicional";
-            // 
-            // textBoxMatricula
-            // 
-            textBoxMatricula.CharacterCasing = CharacterCasing.Upper;
-            textBoxMatricula.Location = new Point(556, 17);
-            textBoxMatricula.Margin = new Padding(3, 2, 3, 2);
-            textBoxMatricula.Name = "textBoxMatricula";
-            textBoxMatricula.Size = new Size(313, 23);
-            textBoxMatricula.TabIndex = 3;
-            // 
-            // textBoxOcupacion
-            // 
-            textBoxOcupacion.CharacterCasing = CharacterCasing.Upper;
-            textBoxOcupacion.Location = new Point(80, 17);
-            textBoxOcupacion.Margin = new Padding(3, 2, 3, 2);
-            textBoxOcupacion.Name = "textBoxOcupacion";
-            textBoxOcupacion.Size = new Size(350, 23);
-            textBoxOcupacion.TabIndex = 2;
-            // 
-            // lblMatricula
-            // 
-            lblMatricula.AutoSize = true;
-            lblMatricula.Location = new Point(478, 22);
-            lblMatricula.Name = "lblMatricula";
-            lblMatricula.Size = new Size(60, 15);
-            lblMatricula.TabIndex = 1;
-            lblMatricula.Text = "Matricula:";
-            // 
-            // lblOcupacion
-            // 
-            lblOcupacion.AutoSize = true;
-            lblOcupacion.Location = new Point(5, 22);
-            lblOcupacion.Name = "lblOcupacion";
-            lblOcupacion.Size = new Size(68, 15);
-            lblOcupacion.TabIndex = 0;
-            lblOcupacion.Text = "Ocupación:";
+            lblTelefono.Text = "Teléfono:";
             // 
             // groupBoxDatosFiscalesYCuenta
             // 
@@ -418,7 +318,7 @@
             groupBoxDatosFiscalesYCuenta.Controls.Add(lblSitImpositiva);
             groupBoxDatosFiscalesYCuenta.Controls.Add(cmbVendedor);
             groupBoxDatosFiscalesYCuenta.Controls.Add(cmbSituacionImpositiva);
-            groupBoxDatosFiscalesYCuenta.Location = new Point(15, 289);
+            groupBoxDatosFiscalesYCuenta.Location = new Point(10, 199);
             groupBoxDatosFiscalesYCuenta.Margin = new Padding(3, 2, 3, 2);
             groupBoxDatosFiscalesYCuenta.Name = "groupBoxDatosFiscalesYCuenta";
             groupBoxDatosFiscalesYCuenta.Padding = new Padding(3, 2, 3, 2);
@@ -532,11 +432,11 @@
             groupBoxObservaciones.Controls.Add(btnImprimir);
             groupBoxObservaciones.Controls.Add(lblObservaciones);
             groupBoxObservaciones.Controls.Add(richTextBoxObservaciones);
-            groupBoxObservaciones.Location = new Point(15, 423);
+            groupBoxObservaciones.Location = new Point(10, 322);
             groupBoxObservaciones.Margin = new Padding(3, 2, 3, 2);
             groupBoxObservaciones.Name = "groupBoxObservaciones";
             groupBoxObservaciones.Padding = new Padding(3, 2, 3, 2);
-            groupBoxObservaciones.Size = new Size(881, 88);
+            groupBoxObservaciones.Size = new Size(877, 88);
             groupBoxObservaciones.TabIndex = 16;
             groupBoxObservaciones.TabStop = false;
             groupBoxObservaciones.Text = "Observaciones";
@@ -573,7 +473,7 @@
             // 
             // btnNuevo
             // 
-            btnNuevo.Location = new Point(521, 523);
+            btnNuevo.Location = new Point(509, 427);
             btnNuevo.Margin = new Padding(3, 2, 3, 2);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(82, 22);
@@ -584,7 +484,7 @@
             // 
             // btnModificar
             // 
-            btnModificar.Location = new Point(608, 523);
+            btnModificar.Location = new Point(596, 427);
             btnModificar.Margin = new Padding(3, 2, 3, 2);
             btnModificar.Name = "btnModificar";
             btnModificar.Size = new Size(82, 22);
@@ -595,7 +495,7 @@
             // 
             // btnEliminar
             // 
-            btnEliminar.Location = new Point(696, 523);
+            btnEliminar.Location = new Point(684, 427);
             btnEliminar.Margin = new Padding(3, 2, 3, 2);
             btnEliminar.Name = "btnEliminar";
             btnEliminar.Size = new Size(82, 22);
@@ -606,7 +506,7 @@
             // 
             // btnSalir
             // 
-            btnSalir.Location = new Point(783, 523);
+            btnSalir.Location = new Point(771, 427);
             btnSalir.Margin = new Padding(3, 2, 3, 2);
             btnSalir.Name = "btnSalir";
             btnSalir.Size = new Size(82, 22);
@@ -618,7 +518,7 @@
             // lblPosicion
             // 
             lblPosicion.AutoSize = true;
-            lblPosicion.Location = new Point(131, 526);
+            lblPosicion.Location = new Point(119, 430);
             lblPosicion.Name = "lblPosicion";
             lblPosicion.Size = new Size(12, 15);
             lblPosicion.TabIndex = 25;
@@ -628,7 +528,7 @@
             // 
             btnUltimo.BackgroundImage = (Image)resources.GetObject("btnUltimo.BackgroundImage");
             btnUltimo.BackgroundImageLayout = ImageLayout.Stretch;
-            btnUltimo.Location = new Point(259, 521);
+            btnUltimo.Location = new Point(247, 425);
             btnUltimo.Margin = new Padding(3, 2, 3, 2);
             btnUltimo.Name = "btnUltimo";
             btnUltimo.Size = new Size(32, 23);
@@ -640,7 +540,7 @@
             // 
             btnPrimero.BackgroundImage = (Image)resources.GetObject("btnPrimero.BackgroundImage");
             btnPrimero.BackgroundImageLayout = ImageLayout.Stretch;
-            btnPrimero.Location = new Point(20, 521);
+            btnPrimero.Location = new Point(8, 425);
             btnPrimero.Margin = new Padding(3, 2, 3, 2);
             btnPrimero.Name = "btnPrimero";
             btnPrimero.Size = new Size(32, 23);
@@ -652,7 +552,7 @@
             // 
             btnAnterior.BackgroundImage = (Image)resources.GetObject("btnAnterior.BackgroundImage");
             btnAnterior.BackgroundImageLayout = ImageLayout.Stretch;
-            btnAnterior.Location = new Point(62, 521);
+            btnAnterior.Location = new Point(50, 425);
             btnAnterior.Margin = new Padding(3, 2, 3, 2);
             btnAnterior.Name = "btnAnterior";
             btnAnterior.Size = new Size(32, 23);
@@ -664,7 +564,7 @@
             // 
             btnSiguiente.BackgroundImage = (Image)resources.GetObject("btnSiguiente.BackgroundImage");
             btnSiguiente.BackgroundImageLayout = ImageLayout.Stretch;
-            btnSiguiente.Location = new Point(222, 521);
+            btnSiguiente.Location = new Point(210, 425);
             btnSiguiente.Margin = new Padding(3, 2, 3, 2);
             btnSiguiente.Name = "btnSiguiente";
             btnSiguiente.Size = new Size(32, 23);
@@ -680,7 +580,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(906, 561);
+            ClientSize = new Size(906, 464);
             Controls.Add(lblPosicion);
             Controls.Add(btnUltimo);
             Controls.Add(btnPrimero);
@@ -692,7 +592,6 @@
             Controls.Add(btnNuevo);
             Controls.Add(groupBoxObservaciones);
             Controls.Add(groupBoxDatosFiscalesYCuenta);
-            Controls.Add(groupBoxInfoAdicional);
             Controls.Add(groupBoxContacto);
             Controls.Add(groupBoxDatsoPRincipales);
             KeyPreview = true;
@@ -706,8 +605,6 @@
             groupBoxDatsoPRincipales.PerformLayout();
             groupBoxContacto.ResumeLayout(false);
             groupBoxContacto.PerformLayout();
-            groupBoxInfoAdicional.ResumeLayout(false);
-            groupBoxInfoAdicional.PerformLayout();
             groupBoxDatosFiscalesYCuenta.ResumeLayout(false);
             groupBoxDatosFiscalesYCuenta.PerformLayout();
             groupBoxObservaciones.ResumeLayout(false);
@@ -737,19 +634,8 @@
         private Label lblNombre;
         private Label lblCodigo;
         private GroupBox groupBoxContacto;
-        private TextBox textBoxTelefono2;
-        private TextBox textBoxEmail;
-        private TextBox textBoxFax;
-        private TextBox textBoxTelefono1;
-        private Label lblEmail;
-        private Label lblTelefono2;
-        private Label lblFax;
+        private TextBox textBoxTelefono;
         private Label lblTelefono;
-        private GroupBox groupBoxInfoAdicional;
-        private TextBox textBoxMatricula;
-        private TextBox textBoxOcupacion;
-        private Label lblMatricula;
-        private Label lblOcupacion;
         private GroupBox groupBoxDatosFiscalesYCuenta;
         private Label lblSitImpositiva;
         private ComboBox cmbVendedor;
@@ -784,5 +670,7 @@
         private BindingSource bindingSourceVendedores;
         private Label lblProvincia;
         private Button btnNuevaLocalidad;
+        private TextBox textBoxEmail;
+        private Label lblEmail;
     }
 }

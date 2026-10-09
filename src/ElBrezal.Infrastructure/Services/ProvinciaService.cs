@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Models.Localizacion;
 using ElBrezal.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

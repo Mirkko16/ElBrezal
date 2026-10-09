@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Vendedores;
+using ElBrezal.Application.Models.Vendedores;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +34,19 @@ namespace ElBrezal.Infrastructure.Services
                     Email = x.Email
                 })
                 .ToListAsync();
+        }
+
+        public async Task<VendedorDto?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Vendedores
+                .AsNoTracking()
+                .Where(x => x.Id == id && !x.Eliminado)
+                .Select(x => new VendedorDto
+                {
+                    Id = x.Id,
+                    Nombre = x.Nombre
+                })
+                .FirstOrDefaultAsync();
         }
 
         public async Task AgregarAsync(VendedorDto vendedor)

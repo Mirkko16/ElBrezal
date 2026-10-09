@@ -1,4 +1,12 @@
-﻿using ElBrezal.Application.Interfaces;
+﻿using ElBrezal.Application.ActualizacionCostos;
+using ElBrezal.Application.Interfaces.Clientes;
+using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Interfaces.Configuraciones;
+using ElBrezal.Application.Interfaces.ElBrezal.Application.Interfaces;
+using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Proveedores;
+using ElBrezal.Application.Interfaces.Vendedores;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +38,13 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<IProveedorService, ProveedorService>();
             services.AddTransient<IProductoService, ProductoService>();
             services.AddTransient<IAlicuotaIVAService, AlicuotaIVAService>();
+            services.AddTransient<IActualizacionCostosService, ActualizacionCostosService>();
+            services.AddTransient<ICondicionVentaService, CondicionVentaService>();
+            services.AddTransient<ITipoComprobanteService, TipoComprobanteService>();
+            services.AddTransient<INumeracionComprobanteService, NumeracionComprobanteService>();
+            services.AddTransient<IComprobanteService, ComprobanteService>();
+            services.AddTransient<IConfigService, ConfigService>();
+            services.AddTransient<IVentaArticuloService, VentaArticuloService>();
 
 
             return services;

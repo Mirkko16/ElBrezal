@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Localizacion;
+using ElBrezal.Application.Models.Localizacion;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +61,22 @@ namespace ElBrezal.Infrastructure.Services
             localidad.Eliminado = true;
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<LocalidadDto?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Localidades
+                .AsNoTracking()
+                .Where(x => x.Id == id && !x.Eliminado)
+                .Select(x => new LocalidadDto
+                {
+                    Id = x.Id,
+                    Nombre = x.Nombre,
+                    CodigoPostal = x.CodigoPostal,
+                    ProvinciaId = x.ProvinciaId,
+                    Provincia = x.Provincia.Nombre
+                })
+                .FirstOrDefaultAsync();
         }
         public async Task ModificarAsync( int id, string nombre, string codigoPostal, int provinciaId)
         {

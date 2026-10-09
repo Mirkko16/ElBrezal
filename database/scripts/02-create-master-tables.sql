@@ -86,8 +86,10 @@ CREATE TABLE dbo.SituacionesImpositivas
     Id INT IDENTITY(1,1) NOT NULL,
     Nombre VARCHAR(50) NOT NULL,
     Abreviatura VARCHAR(10) NULL,
+    Porce DECIMAL(5,2) NOT NULL,
     Eliminado BIT NOT NULL
         CONSTRAINT DF_SituacionesImpositivas_Eliminado DEFAULT 0,
+        CONSTRAINT DF_SituacionesImpositivas_Porce DEFAULT 0;
 
     CONSTRAINT PK_SituacionesImpositivas PRIMARY KEY (Id),
     CONSTRAINT UQ_SituacionesImpositivas_Nombre UNIQUE (Nombre)
@@ -277,4 +279,218 @@ ALTER TABLE dbo.Productos
 ADD CONSTRAINT FK_Productos_AlicuotasIVA
     FOREIGN KEY (AlicuotaIVAId)
     REFERENCES dbo.AlicuotasIVA(Id);
+GO
+
+CREATE TABLE CondicionesVenta
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    Nombre NVARCHAR(50) NOT NULL,
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_CondicionesVenta_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_CondicionesVenta
+        PRIMARY KEY (Id)
+);
+GO
+
+ALTER TABLE Clientes
+DROP COLUMN
+    Telefono2,
+    Fax,
+    Ocupacion,
+    Matricula;
+
+EXEC sp_rename
+    'Clientes.Telefono1',
+    'Telefono',
+    'COLUMN';
+
+INSERT INTO CondicionesVenta (Nombre)
+VALUES
+    ('CONTADO'),
+    ('TARJETA DE DEBITO'),
+    ('TARJETA DE CREDITO'),
+    ('CUENTA CORRIENTE');
+GO
+
+CREATE TABLE TiposComprobante
+(
+    Id INT NOT NULL,
+    Nombre NVARCHAR(50) NOT NULL,
+    Abreviatura NVARCHAR(10) NULL,
+
+    Signo SMALLINT NOT NULL
+        CONSTRAINT DF_TiposComprobante_Signo DEFAULT 1,
+
+    MovimientoStock SMALLINT NOT NULL
+        CONSTRAINT DF_TiposComprobante_MovimientoStock DEFAULT 0,
+
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_TiposComprobante_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_TiposComprobante
+        PRIMARY KEY (Id),
+
+    CONSTRAINT CK_TiposComprobante_Signo
+        CHECK (Signo IN (-1, 1)),
+
+    CONSTRAINT CK_TiposComprobante_MovimientoStock
+        CHECK (MovimientoStock IN (-1, 0, 1))
+);
+
+INSERT INTO TiposComprobante
+    (Id, Nombre, Abreviatura, Signo, MovimientoStock)
+VALUES
+    (1,  'FACTURA A',       'FA',   1, -1),
+    (3,  'N. CREDITO A',    'NCA', -1,  1),
+    (5,  'FACTURA B',       'FB',   1, -1),
+    (7,  'N. CREDITO B',    'NCB', -1,  1),
+    (9,  'FACTURA C',       'FC',   1, -1),
+    (11, 'N. CREDITO C',    'NCC', -1,  1),
+    (26, 'PRESUPUESTO',     'PRES', 1,  0),
+    (27, 'REMITO',          'REMI', 1, -1),
+    (28, 'DEVOLUCION',      'DEVO', -1, 1);
+
+CREATE TABLE NumeracionesComprobante
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+
+    TipoComprobanteId INT NOT NULL,
+
+    PuntoVenta INT NOT NULL,
+
+    UltimoNumero INT NOT NULL
+        CONSTRAINT DF_NumeracionesComprobante_UltimoNumero DEFAULT 0,
+
+    Eliminado BIT NOT NULL
+        CONSTRAINT DF_NumeracionesComprobante_Eliminado DEFAULT 0,
+
+    CONSTRAINT PK_NumeracionesComprobante
+        PRIMARY KEY (Id),
+
+    CONSTRAINT FK_NumeracionesComprobante_TiposComprobante
+        FOREIGN KEY (TipoComprobanteId)
+        REFERENCES TiposComprobante(Id),
+
+    CONSTRAINT UQ_NumeracionesComprobante_Tipo_PuntoVenta
+        UNIQUE (TipoComprobanteId, PuntoVenta)
+);
+
+ALTER TABLE dbo.Productos
+ADD StockMinimo DECIMAL(18,4) NOT NULL
+    CONSTRAINT DF_Productos_StockMinimo DEFAULT (0);
+GO
+
+CREATE TABLE Comprobantes
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    TipoComprobanteId INT NOT NULL,
+    PuntoVenta INT NOT NULL,
+    Numero INT NOT NULL,
+    Fecha DATETIME2 NOT NULL,
+
+    ClienteId INT NOT NULL,
+    VendedorId INT NOT NULL,
+    CondicionVentaId INT NOT NULL,
+    SituacionImpositivaId INT NOT NULL,
+
+    PorcentajeVariacion DECIMAL(10,2) NOT NULL
+        CONSTRAINT DF_Comprobantes_PorcentajeVariacion DEFAULT 0,
+
+    Subtotal DECIMAL(18,2) NOT NULL,
+
+    MontoVariacion DECIMAL(18,2) NOT NULL
+        CONSTRAINT DF_Comprobantes_MontoVariacion DEFAULT 0,
+
+    Total DECIMAL(18,2) NOT NULL,
+
+    Observacion NVARCHAR(500) NULL,
+
+    Anulado BIT NOT NULL
+        CONSTRAINT DF_Comprobantes_Anulado DEFAULT 0,
+
+    CreatedAt DATETIME2 NOT NULL
+        CONSTRAINT DF_Comprobantes_CreatedAt DEFAULT SYSDATETIME(),
+
+    CONSTRAINT PK_Comprobantes
+        PRIMARY KEY (Id),
+
+    CONSTRAINT FK_Comprobantes_TiposComprobante
+        FOREIGN KEY (TipoComprobanteId)
+        REFERENCES TiposComprobante(Id),
+
+    CONSTRAINT FK_Comprobantes_Clientes
+        FOREIGN KEY (ClienteId)
+        REFERENCES Clientes(Id),
+
+    CONSTRAINT FK_Comprobantes_Vendedores
+        FOREIGN KEY (VendedorId)
+        REFERENCES Vendedores(Id),
+
+    CONSTRAINT FK_Comprobantes_CondicionesVenta
+        FOREIGN KEY (CondicionVentaId)
+        REFERENCES CondicionesVenta(Id),
+
+    CONSTRAINT FK_Comprobantes_SituacionesImpositivas
+        FOREIGN KEY (SituacionImpositivaId)
+        REFERENCES SituacionesImpositivas(Id),
+
+    CONSTRAINT UQ_Comprobantes_Numeracion
+        UNIQUE (TipoComprobanteId, PuntoVenta, Numero)
+);
+
+CREATE TABLE ComprobantesDetalle
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    ComprobanteId INT NOT NULL,
+    ProductoId INT NOT NULL,
+
+    Descripcion NVARCHAR(200) NOT NULL,
+
+    Cantidad DECIMAL(18,3) NOT NULL,
+    PrecioUnitario DECIMAL(18,2) NOT NULL,
+    Importe DECIMAL(18,2) NOT NULL,
+
+    CONSTRAINT PK_ComprobantesDetalle
+        PRIMARY KEY (Id),
+
+    CONSTRAINT FK_ComprobantesDetalle_Comprobantes
+        FOREIGN KEY (ComprobanteId)
+        REFERENCES Comprobantes(Id),
+
+    CONSTRAINT FK_ComprobantesDetalle_Productos
+        FOREIGN KEY (ProductoId)
+        REFERENCES Productos(Id)
+);
+
+CREATE TABLE Config
+(
+    Id INT IDENTITY(1,1) NOT NULL,
+    Clave VARCHAR(50) NOT NULL,
+    Valor NVARCHAR(500) NULL,
+    Descripcion NVARCHAR(200) NULL,
+    CONSTRAINT PK_Config PRIMARY KEY (Id),
+    CONSTRAINT UQ_Config_Clave UNIQUE (Clave)
+);
+
+INSERT INTO Config (Clave, Valor, Descripcion)
+VALUES
+(
+    'FACTNEGATIVA',
+    'true',
+    'Permite facturar productos con stock insuficiente sin solicitar autorización'
+);
+
+ALTER TABLE Comprobantes
+ADD ComprobanteOrigenId INT NULL;
+GO
+
+ALTER TABLE Comprobantes
+ADD CONSTRAINT FK_Comprobantes_ComprobanteOrigen
+FOREIGN KEY (ComprobanteOrigenId)
+REFERENCES Comprobantes(Id);
+GO
+
+CREATE INDEX IX_Comprobantes_ComprobanteOrigenId
+ON Comprobantes(ComprobanteOrigenId);
 GO

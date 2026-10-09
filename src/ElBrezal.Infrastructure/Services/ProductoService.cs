@@ -1,5 +1,5 @@
-﻿using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+﻿using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Models.Producto;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +61,7 @@ namespace ElBrezal.Infrastructure.Services
                     PrecioCuentaCorriente = x.PrecioCuentaCorriente,
 
                     Stock = x.Stock,
+                    StockMinimo = x.StockMinimo,
 
                     FechaAlta = x.FechaAlta,
                     FechaModificacion = x.FechaModificacion
@@ -95,6 +96,7 @@ namespace ElBrezal.Infrastructure.Services
                     producto.PrecioCuentaCorriente,
 
                 Stock = producto.Stock,
+                StockMinimo = producto.StockMinimo,
 
                 FechaAlta = DateTime.Now,
                 FechaModificacion = null,
@@ -104,6 +106,25 @@ namespace ElBrezal.Infrastructure.Services
             _context.Productos.Add(nuevoProducto);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<ProductoDto?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Productos
+                .AsNoTracking()
+                .Where(x => x.Id == id && !x.Eliminado)
+                .Select(x => new ProductoDto
+                {
+                    Id = x.Id,
+                    Nombre = x.Nombre,
+
+                    // mismos campos de ObtenerTodosAsync
+                    PrecioContado = x.PrecioContado,
+                    Stock = x.Stock
+
+                    // etc.
+                })
+                .FirstOrDefaultAsync();
         }
 
         public async Task ModificarAsync(ProductoDto producto)
@@ -146,10 +167,30 @@ namespace ElBrezal.Infrastructure.Services
                 producto.PrecioCuentaCorriente;
 
             productoDb.Stock = producto.Stock;
+            productoDb.StockMinimo = producto.StockMinimo;
 
             productoDb.FechaModificacion = DateTime.Now;
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<ProductoDto>> ObtenerConStockMinimoAsync()
+        {
+            return await _context.Productos
+                .AsNoTracking()
+                .Where(x =>
+                    !x.Eliminado &&
+                    x.StockMinimo > 0 &&
+                    x.Stock <= x.StockMinimo)
+                .OrderBy(x => x.Nombre)
+                .Select(x => new ProductoDto
+                {
+                    Id = x.Id,
+                    Nombre = x.Nombre,
+                    Stock = x.Stock,
+                    StockMinimo = x.StockMinimo
+                })
+                .ToListAsync();
         }
 
         public async Task EliminarAsync(int id)

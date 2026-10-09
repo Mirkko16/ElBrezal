@@ -1,6 +1,9 @@
 ﻿using ElBrezal.Application.Calculations;
-using ElBrezal.Application.Interfaces;
-using ElBrezal.Application.Models;
+using ElBrezal.Application.Interfaces.Comprobantes;
+using ElBrezal.Application.Interfaces.Productos;
+using ElBrezal.Application.Interfaces.Proveedores;
+using ElBrezal.Application.Models.Comprobantes;
+using ElBrezal.Application.Models.Producto;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
 using ElBrezal.Desktop.Forms.Tablas.Proveedores;
@@ -219,6 +222,9 @@ namespace ElBrezal.Desktop.Forms.Articulos.Actualizaciones
             textBoxStock.Text =
                 producto.Stock.ToString("0.####");
 
+            textBoxStockMinimo.Text =
+                producto.StockMinimo.ToString("0.####");
+
             textBoxCostoArt.Text =
                 producto.Costo.ToString("0.00");
 
@@ -262,6 +268,7 @@ namespace ElBrezal.Desktop.Forms.Articulos.Actualizaciones
             textBoxFechaModificacion.Clear();
 
             textBoxStock.Text = "0";
+            textBoxStockMinimo.Text = "0";
 
             textBoxCostoArt.Text = "0,00";
 
@@ -304,6 +311,7 @@ namespace ElBrezal.Desktop.Forms.Articulos.Actualizaciones
             // Datos editables
             textBoxDescripcion.ReadOnly = !editando;
             textBoxStock.ReadOnly = !editando;
+            textBoxStockMinimo.ReadOnly = !editando;
             textBoxCostoArt.ReadOnly = !editando;
 
             textBoxRentaContado.ReadOnly = !editando;
@@ -995,7 +1003,9 @@ namespace ElBrezal.Desktop.Forms.Articulos.Actualizaciones
                     ObtenerDecimal(textBoxCtaCteSIVA.Text),
 
                 Stock =
-                    ObtenerDecimal(textBoxStock.Text)
+                    ObtenerDecimal(textBoxStock.Text),
+                StockMinimo =
+                    ObtenerDecimal(textBoxStockMinimo.Text)
             };
         }
 
@@ -1061,5 +1071,9 @@ namespace ElBrezal.Desktop.Forms.Articulos.Actualizaciones
             e.Handled = true;
         }
 
+        private void textBoxStockMinimo_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            CampoDecimal_KeyPress(sender, e);
+        }
     }
 }
