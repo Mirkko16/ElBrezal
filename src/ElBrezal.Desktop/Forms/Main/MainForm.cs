@@ -7,6 +7,7 @@ using ElBrezal.Desktop.Forms.Clientes.Presupuesto;
 using ElBrezal.Desktop.Forms.Clientes.Remitos;
 using ElBrezal.Desktop.Forms.Clientes.Ventas;
 using ElBrezal.Desktop.Forms.Comprobantes;
+using ElBrezal.Desktop.Forms.Configs;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
@@ -487,6 +488,32 @@ namespace ElBrezal.Desktop.Forms.Main
 
             var form = scope.ServiceProvider
                 .GetRequiredService<ListadoVentasDetalladasForm>();
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+        }
+
+        private void definicionDeParametrosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                           .OfType<ConfigForm>()
+                           .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<ConfigForm>();
             form.MdiParent = this;
 
             form.FormClosed += (_, _) =>

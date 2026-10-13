@@ -125,6 +125,7 @@
             definicionDeParametrosToolStripMenuItem.Name = "definicionDeParametrosToolStripMenuItem";
             definicionDeParametrosToolStripMenuItem.Size = new Size(207, 22);
             definicionDeParametrosToolStripMenuItem.Text = "Definicion de parametros";
+            definicionDeParametrosToolStripMenuItem.Click += definicionDeParametrosToolStripMenuItem_Click;
             // 
             // respaldoDeInformacionToolStripMenuItem
             // 

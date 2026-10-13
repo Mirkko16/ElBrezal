@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ElBrezal.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0b5bd061f1e2ca8c0bc41ddef6515e348bee154e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+afc3936f989666f9b93a5b7d0df2bd1b26ef76c5")]
 [assembly: System.Reflection.AssemblyProductAttribute("ElBrezal.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ElBrezal.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

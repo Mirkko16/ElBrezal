@@ -40,6 +40,9 @@
     <Compile Update="Forms\Comprobantes\ListadoVentasDetalladasForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\Configs\ConfigForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\Main\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

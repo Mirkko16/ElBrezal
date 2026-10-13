@@ -8,6 +8,7 @@ using ElBrezal.Desktop.Forms.Clientes.Remitos;
 using ElBrezal.Desktop.Forms.Clientes.Ventas;
 using ElBrezal.Desktop.Forms.Comprobantes;
 using ElBrezal.Desktop.Forms.Comprobantes.BusquedaComprobantes;
+using ElBrezal.Desktop.Forms.Configs;
 using ElBrezal.Desktop.Forms.Main;
 using ElBrezal.Desktop.Forms.Splash;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
@@ -64,6 +65,7 @@ internal static class Program
                 services.AddTransient<VentasArticulosValorizadasForm>();
                 services.AddTransient<ListadoVentasDetalladasForm>();
                 services.AddTransient<BuscarComprobanteForm>();
+                services.AddTransient<ConfigForm>();
                 services.AddTransient<ComprobantePdfGenerator>();
                 services.AddTransient<ComprobanteImpresionService>();
 

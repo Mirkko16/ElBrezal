@@ -175,13 +175,33 @@ public partial class ElBrezalDbContext : DbContext
 
         modelBuilder.Entity<Config>(entity =>
         {
-            entity.HasIndex(e => e.Clave, "UQ_Config_Clave").IsUnique();
-
-            entity.Property(e => e.Clave)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Descripcion).HasMaxLength(200);
-            entity.Property(e => e.Valor).HasMaxLength(500);
+            entity.Property(e => e.AmbienteArca)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("HOMOLOGACION", "DF_Config_AmbienteArca");
+            entity.Property(e => e.Concepto).HasDefaultValue(1, "DF_Config_Concepto");
+            entity.Property(e => e.CondFrenteIVA).HasMaxLength(100);
+            entity.Property(e => e.DomicilioComercial).HasMaxLength(200);
+            entity.Property(e => e.FacturacionNegativa).HasDefaultValue(true, "DF_Config_FacturacionNegativa");
+            entity.Property(e => e.ImpIVA)
+                .HasDefaultValue(21m, "DF_Config_ImpIVA")
+                .HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.IngresosBrutos).HasMaxLength(30);
+            entity.Property(e => e.ModoImpresion)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PREGUNTAR", "DF_Config_ModoImpresion");
+            entity.Property(e => e.MonCotiz)
+                .HasDefaultValue(1m, "DF_Config_MonCotiz")
+                .HasColumnType("decimal(18, 6)");
+            entity.Property(e => e.MonId)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasDefaultValue("PES", "DF_Config_MonId");
+            entity.Property(e => e.NombreFantasia).HasMaxLength(150);
+            entity.Property(e => e.RazonSocial).HasMaxLength(150);
+            entity.Property(e => e.RutaCertificadoPfx).HasMaxLength(500);
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(sysdatetime())", "DF_Config_UpdatedAt");
         });
 
         modelBuilder.Entity<EstadosCuentaCliente>(entity =>
