@@ -1,5 +1,9 @@
-﻿using ElBrezal.Application.Interfaces.Configuraciones;
+﻿using ElBrezal.Application.ARCA;
+using ElBrezal.Application.Interfaces.ARCA;
+using ElBrezal.Application.Interfaces.Configuraciones;
+using ElBrezal.Application.Models.ARCA;
 using ElBrezal.Application.Models.Config;
+using ElBrezal.Desktop.Forms.Configs.Arca;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,14 +17,21 @@ namespace ElBrezal.Desktop.Forms.Configs
     public partial class ConfigForm : Form
     {
         private readonly IConfigService _configService;
+        private readonly IArcaAuthService _arcaAuthService;
+        private readonly IArcaFacturacionService _arcaFacturacionService;
+        private readonly IArcaCredencialesService _arcaCredencialesService;
         private ConfigDto? _config;
         private bool _cargando;
 
-        public ConfigForm(IConfigService configService)
+        public ConfigForm(IConfigService configService, IArcaAuthService arcaAuthService,
+            IArcaFacturacionService arcaFacturacionService, IArcaCredencialesService arcaCredencialesService)
         {
             InitializeComponent();
 
             _configService = configService;
+            _arcaAuthService = arcaAuthService;
+            _arcaFacturacionService = arcaFacturacionService;
+            _arcaCredencialesService = arcaCredencialesService;
 
             ConfigurarControles();
             ConfigurarControlesDatosNegocio();
@@ -125,6 +136,7 @@ namespace ElBrezal.Desktop.Forms.Configs
             textBoxRutaCertificadoPfx.Enabled = habilitada;
             btnExaminarCertificado.Enabled = habilitada;
             numPuntoVenta.Enabled = habilitada;
+            btnProbarConexionArca.Enabled = habilitada;
         }
 
         private void btnExaminarCertificado_Click(
@@ -371,6 +383,464 @@ namespace ElBrezal.Desktop.Forms.Configs
 
             return $"{numero[..2]}-{numero.Substring(2, 8)}-{numero[^1]}";
         }
+
+
+
+
+
+
+        private async void btnConsultarPuntosVenta_Click(
+            object sender,
+            EventArgs e)
+        {
+            string ambiente =
+                cmbAmbienteArca.SelectedItem?.ToString() ?? "";
+
+            if (ambiente != "HOMOLOGACION")
+            {
+                MessageBox.Show(
+                    "Esta consulta solo está habilitada para homologación.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            string cuitTexto = textBoxCUITEmisorHomologacion.Text
+                .Replace("-", "")
+                .Replace(" ", "")
+                .Trim();
+
+            if (cuitTexto.Length != 11 ||
+                !cuitTexto.All(char.IsDigit) ||
+                !long.TryParse(cuitTexto, out long cuitEmisor))
+            {
+                MessageBox.Show(
+                    "Ingresá un CUIT de homologación válido de 11 dígitos.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            string rutaPfx = textBoxRutaCertificadoPfx.Text.Trim();
+
+            if (!File.Exists(rutaPfx))
+            {
+                MessageBox.Show(
+                    "Seleccioná un certificado PFX existente.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                btnConsultarPuntosVenta.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                // Obtiene el token desde SQL Server si está vigente.
+                // Si no existe o está vencido, solicita la contraseña.
+                var auth = await ObtenerAuthArcaAsync();
+
+                var resultado = await _arcaFacturacionService
+                    .ObtenerPuntosVentaAsync(
+                        auth,
+                        cuitEmisor,
+                        ambiente);
+
+                if (resultado.PuntosVenta.Count == 0)
+                {
+                    MessageBox.Show(
+                        "WSFEv1 respondió correctamente, pero no devolvió " +
+                        "puntos de venta para el CUIT consultado.\n\n" +
+                        string.Join("\n", resultado.Observaciones),
+                        "ARCA - Puntos de venta",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    return;
+                }
+
+                string detalle = string.Join(
+                    "\n",
+                    resultado.PuntosVenta.Select(p =>
+                        $"Punto de venta: {p.Numero}\n" +
+                        $"Tipo de emisión: {p.TipoEmision}\n" +
+                        $"Bloqueado: {p.Bloqueado}\n" +
+                        $"Fecha de baja: {p.FechaBaja ?? "-"}\n"));
+
+                MessageBox.Show(
+                    $"CUIT consultado: {cuitEmisor}\n\n" +
+                    $"Puntos de venta encontrados: {resultado.PuntosVenta.Count}\n\n" +
+                    detalle +
+                    (resultado.Observaciones.Count > 0
+                        ? "\nObservaciones:\n" +
+                          string.Join("\n", resultado.Observaciones)
+                        : ""),
+                    "ARCA - WSFEv1",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (OperationCanceledException)
+            {
+                // El usuario canceló el ingreso de la contraseña.
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"No se pudo consultar WSFEv1:\n\n{ex.Message}",
+                    "ARCA - Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnConsultarPuntosVenta.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
+
+
+        private async void btnProbarEstadoArca_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                btnProbarEstadoArca.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                string estado = await _arcaFacturacionService
+                    .ConsultarEstadoServicioAsync();
+
+                MessageBox.Show(
+                    estado,
+                    "ARCA - Estado WSFEv1",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"No se pudo consultar el estado de ARCA:\n\n{ex.Message}",
+                    "ARCA - Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnProbarEstadoArca.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
+
+        private async Task<ArcaAuthDto> ObtenerAuthArcaAsync()
+        {
+            if (_config == null)
+                throw new InvalidOperationException(
+                    "No se cargó la configuración del sistema.");
+
+            string ambiente = _config.AmbienteArca;
+
+            if (!long.TryParse(
+                textBoxCUITEmisorHomologacion.Text.Replace("-", "").Trim(),
+                out long cuitEmisor))
+            {
+                throw new InvalidOperationException(
+                    "El CUIT de homologación no es válido.");
+            }
+
+            string rutaPfx = textBoxRutaCertificadoPfx.Text.Trim()
+                ?? throw new InvalidOperationException(
+                    "No se configuró el certificado PFX.");
+
+            try
+            {
+                // Primer intento: reutilizar el token almacenado.
+                return await _arcaCredencialesService
+                    .ObtenerCredencialesValidasAsync(
+                        cuitEmisor,
+                        ambiente,
+                        rutaPfx);
+            }
+            catch (ArcaPasswordRequeridaException)
+            {
+                // Solo pedimos contraseña si debemos renovar.
+                using var form = new CertificadoPasswordForm();
+
+                if (form.ShowDialog(this) != DialogResult.OK)
+                {
+                    throw new OperationCanceledException(
+                        "Se canceló la autenticación con ARCA.");
+                }
+
+                return await _arcaCredencialesService
+                    .ObtenerCredencialesValidasAsync(
+                        cuitEmisor,
+                        ambiente,
+                        rutaPfx,
+                        form.Password);
+            }
+        }
+
+
+        private async void btnProbarConexionArca_Click(
+            object sender,
+            EventArgs e)
+        {
+            if (_config == null)
+            {
+                MessageBox.Show(
+                    "Todavía no se cargó la configuración.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            string rutaCertificado = textBoxRutaCertificadoPfx.Text.Trim();
+
+            if (!File.Exists(rutaCertificado))
+            {
+                MessageBox.Show(
+                    "Seleccioná un certificado PFX existente.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            string ambiente =
+                cmbAmbienteArca.SelectedItem?.ToString() ?? "";
+
+            if (ambiente != "HOMOLOGACION")
+            {
+                MessageBox.Show(
+                    "La prueba de conexión está habilitada solamente para homologación.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                btnProbarConexionArca.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                // Utilizamos el servicio centralizado de credenciales.
+                var resultado = await ObtenerAuthArcaAsync();
+
+                MessageBox.Show(
+                    "Credenciales de ARCA disponibles.\n\n" +
+                    "Servicio: WSAA / wsfe\n" +
+                    $"Ambiente: {ambiente}\n" +
+                    $"Ticket válido hasta: " +
+                    $"{resultado.ExpirationTime.ToLocalTime():dd/MM/yyyy HH:mm:ss}\n\n" +
+                    "El sistema reutiliza el ticket almacenado " +
+                    "mientras permanece vigente.",
+                    "ARCA - Autenticación correcta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (OperationCanceledException)
+            {
+                // El usuario canceló el ingreso de la contraseña.
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"No se pudieron obtener las credenciales de ARCA.\n\n" +
+                    $"Detalle: {ex.Message}",
+                    "ARCA - Error de autenticación",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnProbarConexionArca.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
+
+
+        private async void btnConsultarTiposComprobante_Click(
+            object sender,
+            EventArgs e)
+        {
+            string ambiente =
+                cmbAmbienteArca.SelectedItem?.ToString() ?? "";
+
+            if (ambiente != "HOMOLOGACION")
+            {
+                MessageBox.Show(
+                    "La consulta solamente está habilitada en homologación.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            string cuitTexto = textBoxCUITEmisorHomologacion.Text
+                .Replace("-", "")
+                .Replace(" ", "")
+                .Trim();
+
+            if (cuitTexto.Length != 11 ||
+                !cuitTexto.All(char.IsDigit) ||
+                !long.TryParse(cuitTexto, out long cuitEmisor))
+            {
+                MessageBox.Show(
+                    "Ingresá un CUIT de homologación válido.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                btnConsultarTiposComprobante.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                // Reutiliza Token y Sign almacenados en SQL Server.
+                var auth = await ObtenerAuthArcaAsync();
+
+                var resultado = await _arcaFacturacionService
+                    .ObtenerTiposComprobanteAsync(
+                        auth,
+                        cuitEmisor,
+                        ambiente);
+
+                if (resultado.TiposComprobante.Count == 0)
+                {
+                    MessageBox.Show(
+                        "ARCA no devolvió tipos de comprobantes.\n\n" +
+                        string.Join("\n", resultado.Observaciones),
+                        "ARCA - Tipos de comprobante",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    return;
+                }
+
+                string detalle = string.Join(
+                    "\n",
+                    resultado.TiposComprobante.Select(x =>
+                        $"{x.Id} - {x.Descripcion}"));
+
+                MessageBox.Show(
+                    $"Tipos de comprobante encontrados: " +
+                    $"{resultado.TiposComprobante.Count}\n\n" +
+                    detalle,
+                    "ARCA - Tipos de comprobante",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (OperationCanceledException)
+            {
+                // El usuario canceló el ingreso de contraseña.
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"No se pudieron consultar los tipos de comprobante.\n\n" +
+                    ex.Message,
+                    "ARCA - Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnConsultarTiposComprobante.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
+
+
+        private async void btnConsultarUltimoComprobante_Click(
+            object sender,
+            EventArgs e)
+        {
+            string ambiente =
+                cmbAmbienteArca.SelectedItem?.ToString() ?? "";
+
+            if (ambiente != "HOMOLOGACION")
+            {
+                MessageBox.Show(
+                    "La consulta solamente está habilitada en homologación.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            string cuitTexto = textBoxCUITEmisorHomologacion.Text
+                .Replace("-", "")
+                .Replace(" ", "")
+                .Trim();
+
+            if (cuitTexto.Length != 11 ||
+                !cuitTexto.All(char.IsDigit) ||
+                !long.TryParse(cuitTexto, out long cuitEmisor))
+            {
+                MessageBox.Show(
+                    "Ingresá un CUIT de homologación válido.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            int puntoVenta = (int)numPuntoVenta.Value;
+            int tipoComprobante = (int)numTipoComprobanteArca.Value;
+
+            try
+            {
+                btnConsultarUltimoComprobante.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                // Recuperamos Token y Sign desde el caché.
+                var auth = await ObtenerAuthArcaAsync();
+
+                var resultado = await _arcaFacturacionService
+                    .ObtenerUltimoComprobanteAutorizadoAsync(
+                        auth,
+                        cuitEmisor,
+                        ambiente,
+                        puntoVenta,
+                        tipoComprobante);
+
+                MessageBox.Show(
+                    "Consulta realizada correctamente.\n\n" +
+                    $"Punto de venta: {resultado.PuntoVenta}\n" +
+                    $"Tipo de comprobante: {resultado.TipoComprobante}\n" +
+                    $"Último número autorizado: {resultado.UltimoNumero}\n" +
+                    $"Próximo número estimado: {resultado.UltimoNumero + 1}",
+                    "ARCA - Último comprobante",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (OperationCanceledException)
+            {
+                // El usuario canceló la autenticación.
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "No se pudo consultar el último comprobante autorizado.\n\n" +
+                    ex.Message,
+                    "ARCA - Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnConsultarUltimoComprobante.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
+
     }
 
 }

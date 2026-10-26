@@ -1,4 +1,5 @@
 ﻿using ElBrezal.Application.ActualizacionCostos;
+using ElBrezal.Application.Interfaces.ARCA;
 using ElBrezal.Application.Interfaces.Clientes;
 using ElBrezal.Application.Interfaces.Comprobantes;
 using ElBrezal.Application.Interfaces.Configuraciones;
@@ -45,6 +46,10 @@ namespace ElBrezal.Infrastructure.DependencyInjection
             services.AddTransient<IComprobanteService, ComprobanteService>();
             services.AddTransient<IConfigService, ConfigService>();
             services.AddTransient<IVentaArticuloService, VentaArticuloService>();
+            services.AddScoped<IArcaCredencialesService,ArcaCredencialesService>();
+            services.AddHttpClient<IArcaAuthService, ArcaAuthService>();
+            services.AddHttpClient<IArcaFacturacionService, ArcaFacturacionService>();
+            services.AddScoped<IComprobanteAutorizacionService, ComprobanteAutorizacionService>();
 
 
             return services;

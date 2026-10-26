@@ -40,6 +40,12 @@
     <Compile Update="Forms\Comprobantes\ListadoVentasDetalladasForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\Configs\Arca\CertificadoPasswordForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Configs\Arca\ComprobantesPendientesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\Configs\ConfigForm.cs">
       <SubType>Form</SubType>
     </Compile>

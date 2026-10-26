@@ -8,6 +8,7 @@ using ElBrezal.Desktop.Forms.Clientes.Remitos;
 using ElBrezal.Desktop.Forms.Clientes.Ventas;
 using ElBrezal.Desktop.Forms.Comprobantes;
 using ElBrezal.Desktop.Forms.Configs;
+using ElBrezal.Desktop.Forms.Configs.Arca;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
 using ElBrezal.Desktop.Forms.Tablas.Localidades;
 using ElBrezal.Desktop.Forms.Tablas.Marcas;
@@ -522,6 +523,33 @@ namespace ElBrezal.Desktop.Forms.Main
             };
 
             form.Show();
+        }
+
+        private void listadoInconsiToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formularioAbierto = MdiChildren
+                           .OfType<ComprobantesPendientesForm>()
+                           .FirstOrDefault();
+
+            if (formularioAbierto is not null)
+            {
+                formularioAbierto.Activate();
+                return;
+            }
+
+            var scope = _serviceProvider.CreateScope();
+
+            var form = scope.ServiceProvider
+                .GetRequiredService<ComprobantesPendientesForm>();
+            form.MdiParent = this;
+
+            form.FormClosed += (_, _) =>
+            {
+                scope.Dispose();
+            };
+
+            form.Show();
+            
         }
     }
 }

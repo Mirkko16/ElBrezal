@@ -521,18 +521,34 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             await CargarClienteAsync(CuentaConsumidorFinal);
         }
 
-        private void CargarProductoEnFila(DataGridViewRow fila, ProductoDto producto)
+
+        /// <summary>
+        /// Carga un producto en la grilla utilizando su precio
+        /// de contado con IVA incluido.
+        /// </summary>
+        private void CargarProductoEnFila(
+            DataGridViewRow fila,
+            ProductoDto producto)
         {
             if (VerificarProductoYaCargado(producto.Id, fila))
                 return;
 
-            var cantidad =
-                ObtenerDecimalCelda(
-                    fila,
-                    DataGridViewTextBoxColumnCantidad.Name);
+            decimal cantidad = ObtenerDecimalCelda(
+                fila,
+                DataGridViewTextBoxColumnCantidad.Name);
 
             if (cantidad <= 0)
                 cantidad = 1;
+
+            decimal precioConIVA =
+                ProductoCalculador.CalcularPrecioConIVA(
+                    producto.PrecioContado,
+                    producto.PorcentajeIVA);
+
+            precioConIVA = Math.Round(
+                precioConIVA,
+                2,
+                MidpointRounding.AwayFromZero);
 
             fila.Cells[DataGridViewTextBoxColumnCantidad.Name].Value =
                 cantidad;
@@ -544,12 +560,13 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                 producto.Nombre.ToUpperInvariant();
 
             fila.Cells[DataGridViewTextBoxColumnPrecio.Name].Value =
-                producto.PrecioContado;
+                precioConIVA;
 
             RecalcularFila(fila);
 
             IrASiguienteFilaProducto(fila.Index);
         }
+
 
         private bool VerificarProductoYaCargado(int productoId, DataGridViewRow filaActual)
         {

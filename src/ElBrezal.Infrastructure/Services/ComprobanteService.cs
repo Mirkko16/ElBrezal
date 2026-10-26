@@ -14,6 +14,7 @@ namespace ElBrezal.Infrastructure.Services
             _context = context;
         }
 
+
         public async Task<ComprobanteCreadoDto> CrearAsync(CrearComprobanteDto dto)
         {
             // Validaciones que no requieren consultar la base de datos.
@@ -24,6 +25,23 @@ namespace ElBrezal.Infrastructure.Services
 
             try
             {
+                // Validamos el tipo de comprobante y obtenemos su código ARCA.
+                // Si CodigoArca es NULL, el documento no requiere
+                // autorización mediante WSFEv1.
+                var tipoComprobante = await _context.TiposComprobante
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == dto.TipoComprobanteId &&
+                        !x.Eliminado);
+
+                if (tipoComprobante is null)
+                {
+                    throw new InvalidOperationException(
+                        "El tipo de comprobante seleccionado no existe o está eliminado.");
+                }
+
+                bool requiereArca = tipoComprobante.CodigoArca.HasValue;
+
                 // Si existe un comprobante origen, validamos que:
                 // - exista
                 // - no esté anulado
@@ -35,9 +53,8 @@ namespace ElBrezal.Infrastructure.Services
                 // de esta misma transacción y devuelve el Id generado.
                 var clienteId = await ObtenerClienteIdAsync(dto);
 
-                // Bloqueamos la fila de numeración hasta finalizar la transacción.
-                // De esta forma dos terminales no pueden obtener simultáneamente
-                // el mismo número de comprobante.
+                // Bloqueamos la fila de numeración hasta finalizar
+                // la transacción para evitar duplicados entre terminales.
                 var numeracion = await _context.NumeracionesComprobante
                     .FromSqlInterpolated($@"
                 SELECT *
@@ -53,6 +70,9 @@ namespace ElBrezal.Infrastructure.Services
                         "No existe una numeración configurada para el tipo de comprobante y punto de venta seleccionados.");
                 }
 
+                // Numeración interna de ElBrezal.
+                // La numeración fiscal de ARCA se asignará posteriormente
+                // desde ComprobanteAutorizacionService.
                 var numero = numeracion.UltimoNumero + 1;
 
                 numeracion.UltimoNumero = numero;
@@ -78,10 +98,34 @@ namespace ElBrezal.Infrastructure.Services
 
                     Observacion = NormalizarTexto(dto.Observacion),
 
+                    // Estado inicial de facturación electrónica.
+                    ArcaEstado = requiereArca
+                        ? "PENDIENTE"
+                        : "NO_APLICA",
+
+                    ArcaCantidadIntentos = 0,
+
+                    // Todavía no se solicitó autorización fiscal.
+                    CAE = null,
+                    CAEVencimiento = null,
+                    ArcaFechaAutorizacion = null,
+                    ArcaUltimoIntento = null,
+                    ArcaUltimoError = null,
+                    ArcaObservaciones = null,
+                    ArcaSolicitudJson = null,
+
+                    // La identificación fiscal se asignará al autorizar.
+                    ArcaAmbiente = null,
+                    ArcaCUITEmisor = null,
+                    ArcaPuntoVenta = null,
+                    ArcaTipoComprobante = null,
+                    ArcaNumero = null,
+
                     Anulado = false,
                     CreatedAt = DateTime.Now
                 };
 
+                // Guardamos los productos del comprobante.
                 foreach (var detalle in dto.Detalles)
                 {
                     comprobante.ComprobantesDetalle.Add(
@@ -108,14 +152,19 @@ namespace ElBrezal.Infrastructure.Services
                 // Remito: -1
                 await AplicarMovimientoStockAsync(dto);
 
-                // En este SaveChanges se persisten:
-                // - la actualización de UltimoNumero
-                // - el encabezado del comprobante
-                // - todos sus detalles
-                // - el movimiento de stock
+                // Persistimos en una única transacción:
+                // - numeración interna
+                // - encabezado
+                // - detalles
+                // - movimientos de stock
+                // - estado inicial de ARCA
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
+
+                // La autorización electrónica se realizará después
+                // del commit, desde ComprobanteAutorizacionService.
+                // No llamamos a ARCA desde este método.
 
                 return new ComprobanteCreadoDto
                 {
@@ -133,6 +182,7 @@ namespace ElBrezal.Infrastructure.Services
                 throw;
             }
         }
+
 
         public async Task<List<BuscarComprobanteDto>> BuscarAsync(string abreviaturaTipo, int? puntoVenta = null, int? numero = null)
         {

@@ -39,6 +39,34 @@ public partial class Comprobantes
 
     public int? ComprobanteOrigenId { get; set; }
 
+    public string? CAE { get; set; }
+
+    public DateOnly? CAEVencimiento { get; set; }
+
+    public string? ArcaEstado { get; set; }
+
+    public DateTime? ArcaFechaAutorizacion { get; set; }
+
+    public string? ArcaObservaciones { get; set; }
+
+    public string? ArcaAmbiente { get; set; }
+
+    public long? ArcaCUITEmisor { get; set; }
+
+    public DateTime? ArcaUltimoIntento { get; set; }
+
+    public int ArcaCantidadIntentos { get; set; }
+
+    public string? ArcaUltimoError { get; set; }
+
+    public string? ArcaSolicitudJson { get; set; }
+
+    public int? ArcaPuntoVenta { get; set; }
+
+    public int? ArcaTipoComprobante { get; set; }
+
+    public long? ArcaNumero { get; set; }
+
     public virtual Clientes Cliente { get; set; } = null!;
 
     public virtual Comprobantes? ComprobanteOrigen { get; set; }

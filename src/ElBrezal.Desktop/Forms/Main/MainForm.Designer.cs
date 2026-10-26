@@ -359,6 +359,7 @@
             listadoInconsiToolStripMenuItem.Name = "listadoInconsiToolStripMenuItem";
             listadoInconsiToolStripMenuItem.Size = new Size(293, 22);
             listadoInconsiToolStripMenuItem.Text = "Listado Inconsistencias de Comprobantes";
+            listadoInconsiToolStripMenuItem.Click += listadoInconsiToolStripMenuItem_Click;
             // 
             // actualizacionClientesToolStripMenuItem
             // 

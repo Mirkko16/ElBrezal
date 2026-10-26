@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ElBrezal.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+afc3936f989666f9b93a5b7d0df2bd1b26ef76c5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8c240d3a3d5f71a2eb5a6a3cc1ce67f2583a5cfb")]
 [assembly: System.Reflection.AssemblyProductAttribute("ElBrezal.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ElBrezal.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

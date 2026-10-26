@@ -14,6 +14,8 @@ public partial class ElBrezalDbContext : DbContext
 
     public virtual DbSet<AlicuotasIVA> AlicuotasIVA { get; set; }
 
+    public virtual DbSet<ArcaCredenciales> ArcaCredenciales { get; set; }
+
     public virtual DbSet<Clientes> Clientes { get; set; }
 
     public virtual DbSet<Comprobantes> Comprobantes { get; set; }
@@ -58,6 +60,20 @@ public partial class ElBrezalDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Porcentaje).HasColumnType("decimal(5, 2)");
+        });
+
+        modelBuilder.Entity<ArcaCredenciales>(entity =>
+        {
+            entity.HasIndex(e => new { e.CUIT, e.Ambiente, e.Servicio }, "UQ_ArcaCredenciales").IsUnique();
+
+            entity.Property(e => e.Ambiente)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.FechaExpiracion).HasPrecision(0);
+            entity.Property(e => e.Servicio)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(sysdatetime())", "DF_ArcaCredenciales_UpdatedAt");
         });
 
         modelBuilder.Entity<Clientes>(entity =>
@@ -113,6 +129,16 @@ public partial class ElBrezalDbContext : DbContext
 
             entity.HasIndex(e => new { e.TipoComprobanteId, e.PuntoVenta, e.Numero }, "UQ_Comprobantes_Numeracion").IsUnique();
 
+            entity.Property(e => e.ArcaAmbiente)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.ArcaEstado)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.ArcaUltimoError).HasMaxLength(1000);
+            entity.Property(e => e.CAE)
+                .HasMaxLength(20)
+                .IsUnicode(false);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())", "DF_Comprobantes_CreatedAt");
             entity.Property(e => e.MontoVariacion).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Observacion).HasMaxLength(500);

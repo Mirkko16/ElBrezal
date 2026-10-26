@@ -494,3 +494,31 @@ GO
 CREATE INDEX IX_Comprobantes_ComprobanteOrigenId
 ON Comprobantes(ComprobanteOrigenId);
 GO
+
+CREATE TABLE dbo.ArcaCredenciales
+(
+    Id INT IDENTITY(1,1) NOT NULL
+        CONSTRAINT PK_ArcaCredenciales PRIMARY KEY,
+
+    CUIT BIGINT NOT NULL,
+
+    Ambiente VARCHAR(20) NOT NULL,
+
+    Servicio VARCHAR(30) NOT NULL,
+
+    TokenProtegido VARBINARY(MAX) NOT NULL,
+
+    SignProtegido VARBINARY(MAX) NOT NULL,
+
+    FechaExpiracion DATETIMEOFFSET(0) NOT NULL,
+
+    UpdatedAt DATETIME2(7) NOT NULL
+        CONSTRAINT DF_ArcaCredenciales_UpdatedAt
+        DEFAULT SYSDATETIME(),
+
+    CONSTRAINT UQ_ArcaCredenciales
+        UNIQUE (CUIT, Ambiente, Servicio),
+
+    CONSTRAINT CK_ArcaCredenciales_Ambiente
+        CHECK (Ambiente IN ('HOMOLOGACION', 'PRODUCCION'))
+);

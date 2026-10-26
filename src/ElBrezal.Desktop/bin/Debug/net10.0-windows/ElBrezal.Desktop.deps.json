@@ -497,6 +497,22 @@
           }
         }
       },
+      "Microsoft.Extensions.Http/10.0.12": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.12",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.12",
+          "Microsoft.Extensions.Diagnostics": "10.0.12",
+          "Microsoft.Extensions.Logging": "10.0.12",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.12",
+          "Microsoft.Extensions.Options": "10.0.12"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Http.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.1226.42308"
+          }
+        }
+      },
       "Microsoft.Extensions.Logging/10.0.12": {
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection": "10.0.12",
@@ -926,7 +942,8 @@
       "ElBrezal.Infrastructure/1.0.0": {
         "dependencies": {
           "ElBrezal.Application": "1.0.0",
-          "Microsoft.EntityFrameworkCore.SqlServer": "10.0.12"
+          "Microsoft.EntityFrameworkCore.SqlServer": "10.0.12",
+          "Microsoft.Extensions.Http": "10.0.12"
         },
         "runtime": {
           "ElBrezal.Infrastructure.dll": {
@@ -1173,6 +1190,13 @@
       "sha512": "sha512-ZlIxIJtWmrph0Ikj0svSaTkZ+d+ZYpTAhazpf1b3aoFRmlNnNWwkcvqnqT9yKHjKvfBRthvUrkq11OxfItOhpg==",
       "path": "microsoft.extensions.hosting.abstractions/10.0.12",
       "hashPath": "microsoft.extensions.hosting.abstractions.10.0.12.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Http/10.0.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-x/fnoUGgmIUjSgLR1p6Mpi/vXc1Xe0xDPJnggPp23I6vwM/kY4nxyOjo8i6G5KPVw+esJM+rJsqnHbdjasvCBw==",
+      "path": "microsoft.extensions.http/10.0.12",
+      "hashPath": "microsoft.extensions.http.10.0.12.nupkg.sha512"
     },
     "Microsoft.Extensions.Logging/10.0.12": {
       "type": "package",

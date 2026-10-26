@@ -196,5 +196,174 @@ namespace ElBrezal.Desktop.UI.Styles
                 }
             };
         }
+
+
+        /// <summary>
+        /// Estilo para la grilla de comprobantes pendientes
+        /// de autorización electrónica ante ARCA.
+        /// </summary>
+        public static void AplicarEstiloComprobantesPendientes(
+            DataGridView dataGridView)
+        {
+            // Reutilizamos la configuración general del sistema.
+            AplicarEstiloBase(dataGridView);
+
+            // Configuración de grilla de consulta.
+            dataGridView.AutoGenerateColumns = false;
+            dataGridView.ReadOnly = true;
+
+            dataGridView.AllowUserToAddRows = false;
+            dataGridView.AllowUserToDeleteRows = false;
+            dataGridView.AllowUserToResizeRows = false;
+
+            dataGridView.SelectionMode =
+                DataGridViewSelectionMode.FullRowSelect;
+
+            dataGridView.MultiSelect = false;
+
+            dataGridView.RowHeadersVisible = false;
+
+            // Tamaño compacto.
+            dataGridView.RowTemplate.Height = 20;
+
+            foreach (DataGridViewRow fila in dataGridView.Rows)
+            {
+                fila.Height = 20;
+            }
+
+            dataGridView.ColumnHeadersHeightSizeMode =
+                DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+
+            dataGridView.ColumnHeadersHeight = 26;
+
+            // Aprovechar todo el ancho disponible.
+            dataGridView.AutoSizeColumnsMode =
+                DataGridViewAutoSizeColumnsMode.Fill;
+
+            // Apariencia.
+            dataGridView.BackgroundColor = Color.White;
+            dataGridView.DefaultCellStyle.BackColor = Color.White;
+
+            dataGridView.DefaultCellStyle.Font =
+                new Font("Courier New", 8.5F, FontStyle.Regular);
+
+            dataGridView.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 8.5F, FontStyle.Bold);
+
+            dataGridView.DefaultCellStyle.Padding =
+                new Padding(2, 0, 2, 0);
+
+            dataGridView.EnableHeadersVisualStyles = false;
+
+            dataGridView.ColumnHeadersDefaultCellStyle.BackColor =
+                Color.FromArgb(225, 230, 235);
+
+            dataGridView.ColumnHeadersDefaultCellStyle.ForeColor =
+                Color.Black;
+
+            // Selección.
+            dataGridView.DefaultCellStyle.SelectionBackColor =
+                Color.FromArgb(0, 120, 215);
+
+            dataGridView.DefaultCellStyle.SelectionForeColor =
+                Color.White;
+
+            // Filas alternadas.
+            dataGridView.AlternatingRowsDefaultCellStyle.BackColor =
+                Color.FromArgb(245, 245, 245);
+
+            dataGridView.AlternatingRowsDefaultCellStyle.SelectionBackColor =
+                Color.FromArgb(0, 120, 215);
+
+            dataGridView.AlternatingRowsDefaultCellStyle.SelectionForeColor =
+                Color.White;
+
+            dataGridView.GridColor =
+                Color.FromArgb(215, 215, 215);
+
+            dataGridView.BorderStyle = BorderStyle.FixedSingle;
+
+            // Evitamos que se marque automáticamente una fila
+            // al mostrar los resultados.
+            dataGridView.DataBindingComplete += (_, _) =>
+            {
+                dataGridView.ClearSelection();
+                dataGridView.CurrentCell = null;
+            };
+
+            // Colores para los estados de autorización electrónica.
+            AplicarColoresEstadosArca(dataGridView);
+        }
+
+
+        /// <summary>
+        /// Aplica colores a la columna de estado de autorización ARCA.
+        /// Sólo modifica la celda de estado, no toda la fila.
+        /// </summary>
+        public static void AplicarColoresEstadosArca(
+            DataGridView dataGridView,
+            string nombreColumnaEstado = "DataGridViewTextBoxColEstado")
+        {
+            dataGridView.CellFormatting += (_, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0)
+                    return;
+
+                if (dataGridView.Columns[e.ColumnIndex].Name !=
+                    nombreColumnaEstado)
+                    return;
+
+                string estado = Convert.ToString(e.Value)?
+                    .Trim()
+                    .ToUpperInvariant() ?? string.Empty;
+
+                Color fondo;
+                Color texto;
+
+                switch (estado)
+                {
+                    case "PENDIENTE":
+                        fondo = Color.FromArgb(255, 248, 205);
+                        texto = Color.FromArgb(120, 90, 0);
+                        break;
+
+                    case "RECHAZADO":
+                        fondo = Color.FromArgb(255, 225, 225);
+                        texto = Color.FromArgb(160, 30, 30);
+                        break;
+
+                    case "SIN_RESPUESTA":
+                        fondo = Color.FromArgb(255, 235, 205);
+                        texto = Color.FromArgb(155, 80, 0);
+                        break;
+
+                    case "EN_PROCESO":
+                        fondo = Color.FromArgb(220, 238, 255);
+                        texto = Color.FromArgb(20, 75, 145);
+                        break;
+
+                    case "AUTORIZADO":
+                        fondo = Color.FromArgb(220, 245, 225);
+                        texto = Color.FromArgb(25, 110, 45);
+                        break;
+
+                    default:
+                        fondo = Color.White;
+                        texto = Color.Black;
+                        break;
+                }
+
+                e.CellStyle.BackColor = fondo;
+                e.CellStyle.ForeColor = texto;
+
+                // Mantenemos la selección azul del sistema.
+                e.CellStyle.SelectionBackColor =
+                    Color.FromArgb(0, 120, 215);
+
+                e.CellStyle.SelectionForeColor = Color.White;
+            };
+        }
+
+
     }
 }

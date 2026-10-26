@@ -1,3 +1,4 @@
+using ElBrezal.Application.Interfaces.ARCA;
 using ElBrezal.Desktop.Forms.Articulos.ActualizacionCostos;
 using ElBrezal.Desktop.Forms.Articulos.Actualizaciones;
 using ElBrezal.Desktop.Forms.Articulos.StockMinimo;
@@ -9,6 +10,7 @@ using ElBrezal.Desktop.Forms.Clientes.Ventas;
 using ElBrezal.Desktop.Forms.Comprobantes;
 using ElBrezal.Desktop.Forms.Comprobantes.BusquedaComprobantes;
 using ElBrezal.Desktop.Forms.Configs;
+using ElBrezal.Desktop.Forms.Configs.Arca;
 using ElBrezal.Desktop.Forms.Main;
 using ElBrezal.Desktop.Forms.Splash;
 using ElBrezal.Desktop.Forms.Tablas.Familias;
@@ -19,6 +21,7 @@ using ElBrezal.Desktop.Forms.Tablas.Unidades;
 using ElBrezal.Desktop.Forms.Tablas.Vendedores;
 using ElBrezal.Desktop.Printing;
 using ElBrezal.Infrastructure.DependencyInjection;
+using ElBrezal.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -68,6 +71,7 @@ internal static class Program
                 services.AddTransient<ConfigForm>();
                 services.AddTransient<ComprobantePdfGenerator>();
                 services.AddTransient<ComprobanteImpresionService>();
+                services.AddTransient<ComprobantesPendientesForm>();
 
             })
             .Build();
