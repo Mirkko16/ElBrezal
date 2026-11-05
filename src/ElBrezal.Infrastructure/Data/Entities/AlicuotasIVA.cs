@@ -11,5 +11,9 @@ public partial class AlicuotasIVA
 
     public decimal Porcentaje { get; set; }
 
+    public int? CodigoArca { get; set; }
+
+    public virtual ICollection<ComprobantesDetalle> ComprobantesDetalle { get; set; } = new List<ComprobantesDetalle>();
+
     public virtual ICollection<Productos> Productos { get; set; } = new List<Productos>();
 }

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ElBrezal.Desktop")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8c240d3a3d5f71a2eb5a6a3cc1ce67f2583a5cfb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3bc1038c7d008601bbb2d00b69b1fe11a6f4abff")]
 [assembly: System.Reflection.AssemblyProductAttribute("ElBrezal.Desktop")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ElBrezal.Desktop")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

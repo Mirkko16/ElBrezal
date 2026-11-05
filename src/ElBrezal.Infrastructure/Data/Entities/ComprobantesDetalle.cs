@@ -19,6 +19,12 @@ public partial class ComprobantesDetalle
 
     public decimal Importe { get; set; }
 
+    public int? AlicuotaIVAId { get; set; }
+
+    public decimal? PorcentajeIVA { get; set; }
+
+    public virtual AlicuotasIVA? AlicuotaIVA { get; set; }
+
     public virtual Comprobantes Comprobante { get; set; } = null!;
 
     public virtual Productos Producto { get; set; } = null!;

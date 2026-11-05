@@ -67,8 +67,13 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             _comprobanteService = comprobanteService;
             _comprobantePdfGenerator = comprobantePdfGenerator;
             _comprobanteImpresionService = comprobanteImpresionService;
+            // Actualizar el IVA al seleccionar otro producto.
+            dataGridViewProductos.SelectionChanged +=
+                dataGridViewProductos_SelectionChanged;
 
         }
+
+
 
         private async void RemitoForm_Load(object sender, EventArgs e)
         {
@@ -524,7 +529,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
         /// <summary>
         /// Carga un producto en la grilla utilizando su precio
-        /// de contado con IVA incluido.
+        /// de contado con IVA incluido y conserva los datos
+        /// de la alícuota aplicada.
         /// </summary>
         private void CargarProductoEnFila(
             DataGridViewRow fila,
@@ -562,8 +568,15 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
             fila.Cells[DataGridViewTextBoxColumnPrecio.Name].Value =
                 precioConIVA;
 
-            RecalcularFila(fila);
+            // Datos fiscales que deben conservarse en el comprobante.
+            fila.Cells[DataGridViewTextBoxColumnAlicuotaIVAId.Name].Value =
+                producto.AlicuotaIVAId;
 
+            fila.Cells[DataGridViewTextBoxColumnAlicuotaIVA.Name].Value =
+                producto.PorcentajeIVA;
+
+            RecalcularFila(fila);
+            ActualizarAlicuotaProductoSeleccionado();
             IrASiguienteFilaProducto(fila.Index);
         }
 
@@ -750,18 +763,48 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
-        private void ActualizarAlicuotaCliente()
+
+        /// <summary>
+        /// Muestra la alícuota de IVA del producto correspondiente
+        /// a la fila seleccionada en la grilla.
+        /// </summary>
+        private void ActualizarAlicuotaProductoSeleccionado()
         {
-            if (comboBoxSituacionImpositiva.SelectedItem is SituacionImpositivaDto situacion)
+            lblAlicuotaProcentaje.Text = "—";
+
+            if (dataGridViewProductos.CurrentRow is not DataGridViewRow fila ||
+                fila.IsNewRow)
+            {
+                return;
+            }
+
+            var articulo = fila.Cells[
+                DataGridViewTextBoxColumnArticulo.Name].Value;
+
+            if (articulo == null ||
+                string.IsNullOrWhiteSpace(articulo.ToString()))
+            {
+                return;
+            }
+
+            var valorIVA = fila.Cells[
+                DataGridViewTextBoxColumnAlicuotaIVA.Name].Value;
+
+            if (valorIVA == null)
+            {
+                return;
+            }
+
+            if (valorIVA is decimal porcentaje ||
+                decimal.TryParse(
+                    valorIVA.ToString(),
+                    out porcentaje))
             {
                 lblAlicuotaProcentaje.Text =
-                    $"{situacion.Porce:N2}%";
-            }
-            else
-            {
-                lblAlicuotaProcentaje.Text = "0,00%";
+                    $"{porcentaje:N2}%";
             }
         }
+
 
         private async void ProcesarArticuloConTab()
         {
@@ -985,12 +1028,6 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
         {
             RecalcularTotales();
         }
-
-        private void comboBoxTipo_SelectedValueChanged(object sender, EventArgs e)
-        {
-            ActualizarAlicuotaCliente();
-        }
-
         private async void btnNuevoRemito_Click(object sender, EventArgs e)
         {
             await NuevoRemitoAsync();
@@ -1449,30 +1486,59 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                         .Value?.ToString()
                     ?? string.Empty;
 
+
+                // =====================================================
+                // DATOS HISTÓRICOS DE IVA
+                // =====================================================
+
+                var valorAlicuotaId =
+                    row.Cells[DataGridViewTextBoxColumnAlicuotaIVAId.Name]
+                        .Value;
+
+                int? alicuotaIVAId =
+                    int.TryParse(valorAlicuotaId?.ToString(), out var idIVA)
+                        ? idIVA
+                        : null;
+
+                var valorPorcentajeIVA =
+                    row.Cells[DataGridViewTextBoxColumnAlicuotaIVA.Name]
+                        .Value;
+
+                decimal? porcentajeIVA =
+                    decimal.TryParse(
+                        valorPorcentajeIVA?.ToString(),
+                        out var porcentaje)
+                            ? porcentaje
+                            : null;
+
+                if (!alicuotaIVAId.HasValue ||
+                    !porcentajeIVA.HasValue)
+                {
+                    throw new InvalidOperationException(
+                        $"El artículo {productoId} no tiene una alícuota de IVA válida.");
+                }
+
+
                 var importe =
                     OperacionComercialCalculations
                         .CalcularImporte(
                             cantidad,
                             precio);
 
+
                 dto.Detalles.Add(
                     new ComprobanteDetalleDto
                     {
-                        ProductoId =
-                            productoId,
+                        ProductoId = productoId,
+                        Descripcion = descripcion,
+                        Cantidad = cantidad,
+                        PrecioUnitario = precio,
+                        Importe = importe,
 
-                        Descripcion =
-                            descripcion,
-
-                        Cantidad =
-                            cantidad,
-
-                        PrecioUnitario =
-                            precio,
-
-                        Importe =
-                            importe
+                        AlicuotaIVAId = alicuotaIVAId,
+                        PorcentajeIVA = porcentajeIVA
                     });
+
             }
 
             // =====================================================
@@ -1886,7 +1952,16 @@ namespace ElBrezal.Desktop.Forms.Clientes.Remitos
                 $"{remito.PuntoVenta:0000}-{remito.Numero:000000}";
         }
 
-
+        /// <summary>
+        /// Actualiza la alícuota cuando cambia la selección
+        /// de productos en la grilla.
+        /// </summary>
+        private void dataGridViewProductos_SelectionChanged(
+            object? sender,
+            EventArgs e)
+        {
+            ActualizarAlicuotaProductoSeleccionado();
+        }
     }
 
 }

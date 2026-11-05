@@ -181,7 +181,12 @@ public partial class ElBrezalDbContext : DbContext
             entity.Property(e => e.Cantidad).HasColumnType("decimal(18, 3)");
             entity.Property(e => e.Descripcion).HasMaxLength(200);
             entity.Property(e => e.Importe).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PorcentajeIVA).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.AlicuotaIVA).WithMany(p => p.ComprobantesDetalle)
+                .HasForeignKey(d => d.AlicuotaIVAId)
+                .HasConstraintName("FK_ComprobantesDetalle_AlicuotasIVA");
 
             entity.HasOne(d => d.Comprobante).WithMany(p => p.ComprobantesDetalle)
                 .HasForeignKey(d => d.ComprobanteId)

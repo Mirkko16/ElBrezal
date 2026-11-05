@@ -125,7 +125,8 @@ namespace ElBrezal.Infrastructure.Services
                     CreatedAt = DateTime.Now
                 };
 
-                // Guardamos los productos del comprobante.
+                // Guardamos los productos del comprobante,
+                // conservando la alícuota de IVA aplicada.
                 foreach (var detalle in dto.Detalles)
                 {
                     comprobante.ComprobantesDetalle.Add(
@@ -139,7 +140,11 @@ namespace ElBrezal.Infrastructure.Services
 
                             Cantidad = detalle.Cantidad,
                             PrecioUnitario = detalle.PrecioUnitario,
-                            Importe = detalle.Importe
+                            Importe = detalle.Importe,
+
+                            // Valores históricos de IVA.
+                            AlicuotaIVAId = detalle.AlicuotaIVAId,
+                            PorcentajeIVA = detalle.PorcentajeIVA
                         });
                 }
 

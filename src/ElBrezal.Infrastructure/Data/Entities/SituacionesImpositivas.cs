@@ -15,6 +15,8 @@ public partial class SituacionesImpositivas
 
     public decimal Porce { get; set; }
 
+    public int? CodigoArca { get; set; }
+
     public virtual ICollection<Clientes> Clientes { get; set; } = new List<Clientes>();
 
     public virtual ICollection<Comprobantes> Comprobantes { get; set; } = new List<Comprobantes>();

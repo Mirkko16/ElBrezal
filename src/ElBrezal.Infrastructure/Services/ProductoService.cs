@@ -20,7 +20,7 @@ namespace ElBrezal.Infrastructure.Services
             return await _context.Productos
                 .AsNoTracking()
                 .Where(x => !x.Eliminado)
-                .OrderBy(x => x.Nombre)
+                .OrderBy(x => x.Id)
                 .Select(x => new ProductoDto
                 {
                     Id = x.Id,
@@ -118,11 +118,45 @@ namespace ElBrezal.Infrastructure.Services
                     Id = x.Id,
                     Nombre = x.Nombre,
 
-                    // mismos campos de ObtenerTodosAsync
-                    PrecioContado = x.PrecioContado,
-                    Stock = x.Stock
+                    FamiliaId = x.FamiliaId,
+                    Familia = x.Familia != null
+                        ? x.Familia.Nombre
+                        : null,
 
-                    // etc.
+                    MarcaId = x.MarcaId,
+                    Marca = x.Marca != null
+                        ? x.Marca.Nombre
+                        : null,
+
+                    UnidadId = x.UnidadId,
+                    Unidad = x.Unidad != null
+                        ? x.Unidad.Descripcion
+                        : null,
+
+                    ProveedorId = x.ProveedorId,
+                    Proveedor = x.Proveedor != null
+                        ? x.Proveedor.Nombre
+                        : null,
+
+                    Costo = x.Costo,
+                    AlicuotaIVAId = x.AlicuotaIVAId,
+                    AlicuotaIVA = x.AlicuotaIVA.Nombre,
+                    PorcentajeIVA = x.AlicuotaIVA.Porcentaje,
+
+                    RentabilidadContado = x.RentabilidadContado,
+                    PrecioContado = x.PrecioContado,
+
+                    RentabilidadReventa = x.RentabilidadReventa,
+                    PrecioReventa = x.PrecioReventa,
+
+                    RentabilidadCuentaCorriente = x.RentabilidadCuentaCorriente,
+                    PrecioCuentaCorriente = x.PrecioCuentaCorriente,
+
+                    Stock = x.Stock,
+                    StockMinimo = x.StockMinimo,
+
+                    FechaAlta = x.FechaAlta,
+                    FechaModificacion = x.FechaModificacion
                 })
                 .FirstOrDefaultAsync();
         }

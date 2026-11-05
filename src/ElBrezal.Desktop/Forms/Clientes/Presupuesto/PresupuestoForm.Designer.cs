@@ -43,6 +43,7 @@
             DataGridViewTextBoxColumnDescripcion = new DataGridViewTextBoxColumn();
             DataGridViewTextBoxColumnPrecio = new DataGridViewTextBoxColumn();
             DataGridViewTextBoxColumnImporte = new DataGridViewTextBoxColumn();
+            DataGridViewTextBoxColumnAlicuotaIVA = new DataGridViewTextBoxColumn();
             lblAlicuotaProcentaje = new Label();
             groupBoxTotales = new GroupBox();
             lblSubTotal = new Label();
@@ -91,6 +92,7 @@
             lblCuenta = new Label();
             groupBoxObservaciones = new GroupBox();
             groupBoxArticulosVendidos = new GroupBox();
+            DataGridViewTextBoxColumnAlicuotaIVAId = new DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)dataGridViewProductos).BeginInit();
             groupBoxTotales.SuspendLayout();
             groupBoxInfoPresupuesto.SuspendLayout();
@@ -102,9 +104,9 @@
             // lblObservacion
             // 
             lblObservacion.AutoSize = true;
-            lblObservacion.Location = new Point(6, 10);
+            lblObservacion.Location = new Point(7, 13);
             lblObservacion.Name = "lblObservacion";
-            lblObservacion.Size = new Size(76, 15);
+            lblObservacion.Size = new Size(94, 20);
             lblObservacion.TabIndex = 30;
             lblObservacion.Text = "Observación:";
             // 
@@ -113,17 +115,18 @@
             lblArticulosCantidad.AutoSize = true;
             lblArticulosCantidad.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblArticulosCantidad.ForeColor = SystemColors.Highlight;
-            lblArticulosCantidad.Location = new Point(88, 124);
+            lblArticulosCantidad.Location = new Point(101, 165);
             lblArticulosCantidad.Name = "lblArticulosCantidad";
-            lblArticulosCantidad.Size = new Size(14, 15);
+            lblArticulosCantidad.Size = new Size(17, 20);
             lblArticulosCantidad.TabIndex = 40;
             lblArticulosCantidad.Text = "0";
             // 
             // button1
             // 
-            button1.Location = new Point(17, 275);
+            button1.Location = new Point(19, 367);
+            button1.Margin = new Padding(3, 4, 3, 4);
             button1.Name = "button1";
-            button1.Size = new Size(115, 23);
+            button1.Size = new Size(131, 31);
             button1.TabIndex = 1;
             button1.Text = "F3 - Remitar";
             button1.UseVisualStyleBackColor = true;
@@ -133,27 +136,27 @@
             lblImporteSaldo.AutoSize = true;
             lblImporteSaldo.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblImporteSaldo.ForeColor = SystemColors.Highlight;
-            lblImporteSaldo.Location = new Point(81, 29);
+            lblImporteSaldo.Location = new Point(93, 39);
             lblImporteSaldo.Name = "lblImporteSaldo";
-            lblImporteSaldo.Size = new Size(31, 15);
+            lblImporteSaldo.Size = new Size(37, 20);
             lblImporteSaldo.TabIndex = 39;
             lblImporteSaldo.Text = "$0,0";
             // 
             // lblSaldo
             // 
             lblSaldo.AutoSize = true;
-            lblSaldo.Location = new Point(17, 29);
+            lblSaldo.Location = new Point(19, 39);
             lblSaldo.Name = "lblSaldo";
-            lblSaldo.Size = new Size(39, 15);
+            lblSaldo.Size = new Size(50, 20);
             lblSaldo.TabIndex = 17;
             lblSaldo.Text = "Saldo:";
             // 
             // lblCategoria
             // 
             lblCategoria.AutoSize = true;
-            lblCategoria.Location = new Point(17, 68);
+            lblCategoria.Location = new Point(19, 91);
             lblCategoria.Name = "lblCategoria";
-            lblCategoria.Size = new Size(31, 15);
+            lblCategoria.Size = new Size(37, 20);
             lblCategoria.TabIndex = 15;
             lblCategoria.Text = "Cat.:";
             // 
@@ -162,40 +165,42 @@
             lblCategoriaCliente.AutoSize = true;
             lblCategoriaCliente.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblCategoriaCliente.ForeColor = SystemColors.Highlight;
-            lblCategoriaCliente.Location = new Point(65, 68);
+            lblCategoriaCliente.Location = new Point(74, 91);
             lblCategoriaCliente.Name = "lblCategoriaCliente";
-            lblCategoriaCliente.Size = new Size(57, 15);
+            lblCategoriaCliente.Size = new Size(72, 20);
             lblCategoriaCliente.TabIndex = 14;
             lblCategoriaCliente.Text = "NORMAL";
             // 
             // lblArticulos
             // 
             lblArticulos.AutoSize = true;
-            lblArticulos.Location = new Point(22, 124);
+            lblArticulos.Location = new Point(25, 165);
             lblArticulos.Name = "lblArticulos";
-            lblArticulos.Size = new Size(57, 15);
+            lblArticulos.Size = new Size(70, 20);
             lblArticulos.TabIndex = 11;
             lblArticulos.Text = "Articulos:";
             // 
             // lblAlicuota
             // 
             lblAlicuota.AutoSize = true;
-            lblAlicuota.Location = new Point(22, 170);
+            lblAlicuota.Location = new Point(25, 227);
             lblAlicuota.Name = "lblAlicuota";
-            lblAlicuota.Size = new Size(74, 15);
+            lblAlicuota.Size = new Size(93, 20);
             lblAlicuota.TabIndex = 8;
             lblAlicuota.Text = "Alícuota IVA:";
             // 
             // dataGridViewProductos
             // 
             dataGridViewProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewProductos.Columns.AddRange(new DataGridViewColumn[] { DataGridViewTextBoxColumnCantidad, DataGridViewTextBoxColumnArticulo, DataGridViewTextBoxColumnDescripcion, DataGridViewTextBoxColumnPrecio, DataGridViewTextBoxColumnImporte });
-            dataGridViewProductos.Location = new Point(6, 16);
+            dataGridViewProductos.Columns.AddRange(new DataGridViewColumn[] { DataGridViewTextBoxColumnCantidad, DataGridViewTextBoxColumnArticulo, DataGridViewTextBoxColumnDescripcion, DataGridViewTextBoxColumnPrecio, DataGridViewTextBoxColumnImporte, DataGridViewTextBoxColumnAlicuotaIVA, DataGridViewTextBoxColumnAlicuotaIVAId });
+            dataGridViewProductos.Location = new Point(7, 21);
+            dataGridViewProductos.Margin = new Padding(3, 4, 3, 4);
             dataGridViewProductos.Name = "dataGridViewProductos";
             dataGridViewProductos.RowHeadersWidth = 51;
-            dataGridViewProductos.Size = new Size(677, 230);
+            dataGridViewProductos.Size = new Size(774, 307);
             dataGridViewProductos.TabIndex = 1;
             dataGridViewProductos.CellValueChanged += dataGridViewProductos_CellValueChanged;
+            dataGridViewProductos.SelectionChanged += dataGridViewProductos_SelectionChanged;
             dataGridViewProductos.KeyDown += dataGridViewProductos_KeyDown;
             // 
             // DataGridViewTextBoxColumnCantidad
@@ -235,14 +240,22 @@
             DataGridViewTextBoxColumnImporte.ReadOnly = true;
             DataGridViewTextBoxColumnImporte.Width = 125;
             // 
+            // DataGridViewTextBoxColumnAlicuotaIVA
+            // 
+            DataGridViewTextBoxColumnAlicuotaIVA.HeaderText = "AlicuotaIVA";
+            DataGridViewTextBoxColumnAlicuotaIVA.MinimumWidth = 6;
+            DataGridViewTextBoxColumnAlicuotaIVA.Name = "DataGridViewTextBoxColumnAlicuotaIVA";
+            DataGridViewTextBoxColumnAlicuotaIVA.Visible = false;
+            DataGridViewTextBoxColumnAlicuotaIVA.Width = 125;
+            // 
             // lblAlicuotaProcentaje
             // 
             lblAlicuotaProcentaje.AutoSize = true;
             lblAlicuotaProcentaje.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblAlicuotaProcentaje.ForeColor = SystemColors.Highlight;
-            lblAlicuotaProcentaje.Location = new Point(102, 170);
+            lblAlicuotaProcentaje.Location = new Point(117, 227);
             lblAlicuotaProcentaje.Name = "lblAlicuotaProcentaje";
-            lblAlicuotaProcentaje.Size = new Size(41, 15);
+            lblAlicuotaProcentaje.Size = new Size(50, 20);
             lblAlicuotaProcentaje.TabIndex = 41;
             lblAlicuotaProcentaje.Text = "0,00%";
             // 
@@ -255,9 +268,11 @@
             groupBoxTotales.Controls.Add(label2);
             groupBoxTotales.Controls.Add(label1);
             groupBoxTotales.Controls.Add(lblTotales);
-            groupBoxTotales.Location = new Point(6, 243);
+            groupBoxTotales.Location = new Point(7, 324);
+            groupBoxTotales.Margin = new Padding(3, 4, 3, 4);
             groupBoxTotales.Name = "groupBoxTotales";
-            groupBoxTotales.Size = new Size(677, 62);
+            groupBoxTotales.Padding = new Padding(3, 4, 3, 4);
+            groupBoxTotales.Size = new Size(774, 83);
             groupBoxTotales.TabIndex = 0;
             groupBoxTotales.TabStop = false;
             // 
@@ -266,9 +281,9 @@
             lblSubTotal.AutoSize = true;
             lblSubTotal.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblSubTotal.ForeColor = SystemColors.Highlight;
-            lblSubTotal.Location = new Point(125, 40);
+            lblSubTotal.Location = new Point(143, 53);
             lblSubTotal.Name = "lblSubTotal";
-            lblSubTotal.Size = new Size(31, 15);
+            lblSubTotal.Size = new Size(37, 20);
             lblSubTotal.TabIndex = 38;
             lblSubTotal.Text = "$0,0";
             // 
@@ -277,9 +292,9 @@
             lblVariacion.AutoSize = true;
             lblVariacion.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblVariacion.ForeColor = SystemColors.Highlight;
-            lblVariacion.Location = new Point(264, 40);
+            lblVariacion.Location = new Point(302, 53);
             lblVariacion.Name = "lblVariacion";
-            lblVariacion.Size = new Size(31, 15);
+            lblVariacion.Size = new Size(37, 20);
             lblVariacion.TabIndex = 37;
             lblVariacion.Text = "$0,0";
             // 
@@ -287,9 +302,9 @@
             // 
             lblTotal.AutoSize = true;
             lblTotal.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
-            lblTotal.Location = new Point(598, 19);
+            lblTotal.Location = new Point(683, 25);
             lblTotal.Name = "lblTotal";
-            lblTotal.Size = new Size(48, 17);
+            lblTotal.Size = new Size(61, 23);
             lblTotal.TabIndex = 34;
             lblTotal.Text = "TOTAL";
             // 
@@ -298,9 +313,9 @@
             lblMontoTotal.AutoSize = true;
             lblMontoTotal.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblMontoTotal.ForeColor = SystemColors.Highlight;
-            lblMontoTotal.Location = new Point(603, 40);
+            lblMontoTotal.Location = new Point(689, 53);
             lblMontoTotal.Name = "lblMontoTotal";
-            lblMontoTotal.Size = new Size(31, 15);
+            lblMontoTotal.Size = new Size(37, 20);
             lblMontoTotal.TabIndex = 33;
             lblMontoTotal.Text = "$0,0";
             // 
@@ -308,9 +323,9 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
-            label2.Location = new Point(264, 19);
+            label2.Location = new Point(302, 25);
             label2.Name = "label2";
-            label2.Size = new Size(49, 17);
+            label2.Size = new Size(63, 23);
             label2.TabIndex = 32;
             label2.Text = "Variac.";
             // 
@@ -318,9 +333,9 @@
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
-            label1.Location = new Point(125, 19);
+            label1.Location = new Point(143, 25);
             label1.Name = "label1";
-            label1.Size = new Size(66, 17);
+            label1.Size = new Size(85, 23);
             label1.TabIndex = 31;
             label1.Text = "Sub Total";
             // 
@@ -328,17 +343,18 @@
             // 
             lblTotales.AutoSize = true;
             lblTotales.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
-            lblTotales.Location = new Point(6, 40);
+            lblTotales.Location = new Point(7, 53);
             lblTotales.Name = "lblTotales";
-            lblTotales.Size = new Size(62, 17);
+            lblTotales.Size = new Size(80, 23);
             lblTotales.TabIndex = 30;
             lblTotales.Text = "TOTALES";
             // 
             // btnSalir
             // 
-            btnSalir.Location = new Point(726, 27);
+            btnSalir.Location = new Point(830, 36);
+            btnSalir.Margin = new Padding(3, 4, 3, 4);
             btnSalir.Name = "btnSalir";
-            btnSalir.Size = new Size(118, 23);
+            btnSalir.Size = new Size(135, 31);
             btnSalir.TabIndex = 2;
             btnSalir.Text = "Salir";
             btnSalir.UseVisualStyleBackColor = true;
@@ -347,9 +363,10 @@
             // 
             // btnConfirmar
             // 
-            btnConfirmar.Location = new Point(602, 27);
+            btnConfirmar.Location = new Point(688, 36);
+            btnConfirmar.Margin = new Padding(3, 4, 3, 4);
             btnConfirmar.Name = "btnConfirmar";
-            btnConfirmar.Size = new Size(118, 23);
+            btnConfirmar.Size = new Size(135, 31);
             btnConfirmar.TabIndex = 3;
             btnConfirmar.Text = "Confirmar - F11";
             btnConfirmar.UseVisualStyleBackColor = true;
@@ -357,9 +374,10 @@
             // 
             // btnNuevoPresupuesto
             // 
-            btnNuevoPresupuesto.Location = new Point(479, 27);
+            btnNuevoPresupuesto.Location = new Point(547, 36);
+            btnNuevoPresupuesto.Margin = new Padding(3, 4, 3, 4);
             btnNuevoPresupuesto.Name = "btnNuevoPresupuesto";
-            btnNuevoPresupuesto.Size = new Size(118, 23);
+            btnNuevoPresupuesto.Size = new Size(135, 31);
             btnNuevoPresupuesto.TabIndex = 4;
             btnNuevoPresupuesto.Text = "Nuevo - F9";
             btnNuevoPresupuesto.UseVisualStyleBackColor = true;
@@ -368,10 +386,9 @@
             // textBoxObservacion
             // 
             textBoxObservacion.CharacterCasing = CharacterCasing.Upper;
-            textBoxObservacion.Location = new Point(6, 28);
-            textBoxObservacion.Margin = new Padding(3, 2, 3, 2);
+            textBoxObservacion.Location = new Point(7, 37);
             textBoxObservacion.Name = "textBoxObservacion";
-            textBoxObservacion.Size = new Size(351, 23);
+            textBoxObservacion.Size = new Size(401, 27);
             textBoxObservacion.TabIndex = 30;
             // 
             // groupBoxInfoPresupuesto
@@ -385,11 +402,9 @@
             groupBoxInfoPresupuesto.Controls.Add(lblCategoriaCliente);
             groupBoxInfoPresupuesto.Controls.Add(lblArticulos);
             groupBoxInfoPresupuesto.Controls.Add(lblAlicuota);
-            groupBoxInfoPresupuesto.Location = new Point(709, 187);
-            groupBoxInfoPresupuesto.Margin = new Padding(3, 2, 3, 2);
+            groupBoxInfoPresupuesto.Location = new Point(810, 249);
             groupBoxInfoPresupuesto.Name = "groupBoxInfoPresupuesto";
-            groupBoxInfoPresupuesto.Padding = new Padding(3, 2, 3, 2);
-            groupBoxInfoPresupuesto.Size = new Size(154, 315);
+            groupBoxInfoPresupuesto.Size = new Size(176, 420);
             groupBoxInfoPresupuesto.TabIndex = 4;
             groupBoxInfoPresupuesto.TabStop = false;
             // 
@@ -426,110 +441,104 @@
             gpDatosCliente.Controls.Add(lblZona);
             gpDatosCliente.Controls.Add(lblVendedor);
             gpDatosCliente.Controls.Add(lblCuenta);
-            gpDatosCliente.Location = new Point(10, 55);
-            gpDatosCliente.Margin = new Padding(3, 2, 3, 2);
+            gpDatosCliente.Location = new Point(11, 73);
             gpDatosCliente.Name = "gpDatosCliente";
-            gpDatosCliente.Padding = new Padding(3, 2, 3, 2);
-            gpDatosCliente.Size = new Size(853, 128);
+            gpDatosCliente.Size = new Size(975, 171);
             gpDatosCliente.TabIndex = 3;
             gpDatosCliente.TabStop = false;
             // 
             // textBoxCUIT
             // 
-            textBoxCUIT.Location = new Point(278, 65);
-            textBoxCUIT.Margin = new Padding(3, 2, 3, 2);
+            textBoxCUIT.Location = new Point(318, 87);
             textBoxCUIT.Mask = "00-00000000-0";
             textBoxCUIT.Name = "textBoxCUIT";
-            textBoxCUIT.Size = new Size(100, 23);
+            textBoxCUIT.Size = new Size(114, 27);
             textBoxCUIT.TabIndex = 32;
             textBoxCUIT.Leave += textBoxCUIT_Leave;
             // 
             // maskedTextBoxPresupAsociado
             // 
-            maskedTextBoxPresupAsociado.Location = new Point(721, 38);
+            maskedTextBoxPresupAsociado.Location = new Point(824, 51);
+            maskedTextBoxPresupAsociado.Margin = new Padding(3, 4, 3, 4);
             maskedTextBoxPresupAsociado.Mask = " \"0000-000000\"";
             maskedTextBoxPresupAsociado.Name = "maskedTextBoxPresupAsociado";
-            maskedTextBoxPresupAsociado.Size = new Size(110, 23);
+            maskedTextBoxPresupAsociado.Size = new Size(125, 27);
             maskedTextBoxPresupAsociado.TabIndex = 30;
             maskedTextBoxPresupAsociado.Text = "0000000000";
             maskedTextBoxPresupAsociado.Visible = false;
             // 
             // maskedTextBoxNumeroComprob
             // 
-            maskedTextBoxNumeroComprob.Location = new Point(721, 11);
+            maskedTextBoxNumeroComprob.Location = new Point(824, 15);
+            maskedTextBoxNumeroComprob.Margin = new Padding(3, 4, 3, 4);
             maskedTextBoxNumeroComprob.Mask = " \"0000-000000\"";
             maskedTextBoxNumeroComprob.Name = "maskedTextBoxNumeroComprob";
-            maskedTextBoxNumeroComprob.Size = new Size(110, 23);
+            maskedTextBoxNumeroComprob.Size = new Size(125, 27);
             maskedTextBoxNumeroComprob.TabIndex = 2;
             maskedTextBoxNumeroComprob.Text = "0000000000";
             // 
             // lblCuit
             // 
             lblCuit.AutoSize = true;
-            lblCuit.Location = new Point(241, 70);
+            lblCuit.Location = new Point(275, 93);
             lblCuit.Name = "lblCuit";
-            lblCuit.Size = new Size(36, 15);
+            lblCuit.Size = new Size(43, 20);
             lblCuit.TabIndex = 31;
             lblCuit.Text = "CUIT:";
             // 
             // lblCondicionVta
             // 
             lblCondicionVta.AutoSize = true;
-            lblCondicionVta.Location = new Point(259, 100);
+            lblCondicionVta.Location = new Point(296, 133);
             lblCondicionVta.Name = "lblCondicionVta";
-            lblCondicionVta.Size = new Size(65, 15);
+            lblCondicionVta.Size = new Size(79, 20);
             lblCondicionVta.TabIndex = 29;
             lblCondicionVta.Text = "Cond. Vta.:";
             // 
             // textBoxDNI
             // 
-            textBoxDNI.Location = new Point(52, 66);
-            textBoxDNI.Margin = new Padding(3, 2, 3, 2);
+            textBoxDNI.Location = new Point(59, 88);
             textBoxDNI.Name = "textBoxDNI";
-            textBoxDNI.Size = new Size(143, 23);
+            textBoxDNI.Size = new Size(163, 27);
             textBoxDNI.TabIndex = 28;
             // 
             // textBoxVariacionPresupuesto
             // 
-            textBoxVariacionPresupuesto.Location = new Point(572, 38);
-            textBoxVariacionPresupuesto.Margin = new Padding(3, 2, 3, 2);
+            textBoxVariacionPresupuesto.Location = new Point(654, 51);
             textBoxVariacionPresupuesto.Name = "textBoxVariacionPresupuesto";
-            textBoxVariacionPresupuesto.Size = new Size(48, 23);
+            textBoxVariacionPresupuesto.Size = new Size(54, 27);
             textBoxVariacionPresupuesto.TabIndex = 27;
             textBoxVariacionPresupuesto.TextChanged += textBoxVariacionPresupuesto_TextChanged;
             // 
             // textBoxTelCliente
             // 
-            textBoxTelCliente.Location = new Point(418, 38);
-            textBoxTelCliente.Margin = new Padding(3, 2, 3, 2);
+            textBoxTelCliente.Location = new Point(478, 51);
             textBoxTelCliente.Name = "textBoxTelCliente";
-            textBoxTelCliente.Size = new Size(110, 23);
+            textBoxTelCliente.Size = new Size(125, 27);
             textBoxTelCliente.TabIndex = 26;
             // 
             // textBoxDireccion
             // 
             textBoxDireccion.CharacterCasing = CharacterCasing.Upper;
-            textBoxDireccion.Location = new Point(85, 38);
-            textBoxDireccion.Margin = new Padding(3, 2, 3, 2);
+            textBoxDireccion.Location = new Point(97, 51);
             textBoxDireccion.Name = "textBoxDireccion";
-            textBoxDireccion.Size = new Size(294, 23);
+            textBoxDireccion.Size = new Size(335, 27);
             textBoxDireccion.TabIndex = 25;
             // 
             // lblTipo
             // 
             lblTipo.AutoSize = true;
-            lblTipo.Location = new Point(439, 70);
+            lblTipo.Location = new Point(502, 93);
             lblTipo.Name = "lblTipo";
-            lblTipo.Size = new Size(34, 15);
+            lblTipo.Size = new Size(42, 20);
             lblTipo.TabIndex = 3;
             lblTipo.Text = "Tipo:";
             // 
             // textBoxNumCuenta
             // 
-            textBoxNumCuenta.Location = new Point(70, 11);
-            textBoxNumCuenta.Margin = new Padding(3, 2, 3, 2);
+            textBoxNumCuenta.Location = new Point(80, 15);
             textBoxNumCuenta.Name = "textBoxNumCuenta";
-            textBoxNumCuenta.Size = new Size(41, 23);
+            textBoxNumCuenta.Size = new Size(46, 27);
             textBoxNumCuenta.TabIndex = 24;
             textBoxNumCuenta.KeyDown += textBoxNumCuenta_KeyDown;
             textBoxNumCuenta.KeyPress += textBoxNumCuenta_KeyPress;
@@ -537,36 +546,34 @@
             // lblPorcentajeVariacion
             // 
             lblPorcentajeVariacion.AutoSize = true;
-            lblPorcentajeVariacion.Location = new Point(617, 42);
+            lblPorcentajeVariacion.Location = new Point(705, 56);
             lblPorcentajeVariacion.Name = "lblPorcentajeVariacion";
-            lblPorcentajeVariacion.Size = new Size(17, 15);
+            lblPorcentajeVariacion.Size = new Size(21, 20);
             lblPorcentajeVariacion.TabIndex = 4;
             lblPorcentajeVariacion.Text = "%";
             // 
             // textBoxNombreCLiente
             // 
             textBoxNombreCLiente.CharacterCasing = CharacterCasing.Upper;
-            textBoxNombreCLiente.Location = new Point(116, 11);
-            textBoxNombreCLiente.Margin = new Padding(3, 2, 3, 2);
+            textBoxNombreCLiente.Location = new Point(133, 15);
             textBoxNombreCLiente.Name = "textBoxNombreCLiente";
-            textBoxNombreCLiente.Size = new Size(263, 23);
+            textBoxNombreCLiente.Size = new Size(300, 27);
             textBoxNombreCLiente.TabIndex = 23;
             // 
             // lblVar
             // 
             lblVar.AutoSize = true;
-            lblVar.Location = new Point(536, 42);
+            lblVar.Location = new Point(613, 56);
             lblVar.Name = "lblVar";
-            lblVar.Size = new Size(29, 15);
+            lblVar.Size = new Size(36, 20);
             lblVar.TabIndex = 2;
             lblVar.Text = "Var.:";
             // 
             // btnBuscarCliente
             // 
-            btnBuscarCliente.Location = new Point(383, 11);
-            btnBuscarCliente.Margin = new Padding(3, 2, 3, 2);
+            btnBuscarCliente.Location = new Point(438, 15);
             btnBuscarCliente.Name = "btnBuscarCliente";
-            btnBuscarCliente.Size = new Size(31, 21);
+            btnBuscarCliente.Size = new Size(35, 28);
             btnBuscarCliente.TabIndex = 22;
             btnBuscarCliente.Text = "...";
             btnBuscarCliente.UseVisualStyleBackColor = true;
@@ -574,38 +581,35 @@
             // 
             // textBoxFecha
             // 
-            textBoxFecha.Location = new Point(488, 11);
-            textBoxFecha.Margin = new Padding(3, 2, 3, 2);
+            textBoxFecha.Location = new Point(558, 15);
             textBoxFecha.Name = "textBoxFecha";
-            textBoxFecha.Size = new Size(110, 23);
+            textBoxFecha.Size = new Size(125, 27);
             textBoxFecha.TabIndex = 21;
             // 
             // lblTelefono
             // 
             lblTelefono.AutoSize = true;
-            lblTelefono.Location = new Point(383, 42);
+            lblTelefono.Location = new Point(438, 56);
             lblTelefono.Name = "lblTelefono";
-            lblTelefono.Size = new Size(28, 15);
+            lblTelefono.Size = new Size(34, 20);
             lblTelefono.TabIndex = 1;
             lblTelefono.Text = "Tel.:";
             // 
             // textBoxZona
             // 
             textBoxZona.CharacterCasing = CharacterCasing.Upper;
-            textBoxZona.Location = new Point(721, 66);
-            textBoxZona.Margin = new Padding(3, 2, 3, 2);
+            textBoxZona.Location = new Point(824, 88);
             textBoxZona.Name = "textBoxZona";
-            textBoxZona.Size = new Size(110, 23);
+            textBoxZona.Size = new Size(125, 27);
             textBoxZona.TabIndex = 18;
             textBoxZona.KeyDown += textBoxZona_KeyDown;
             // 
             // textBoxVendedor
             // 
             textBoxVendedor.CharacterCasing = CharacterCasing.Upper;
-            textBoxVendedor.Location = new Point(721, 95);
-            textBoxVendedor.Margin = new Padding(3, 2, 3, 2);
+            textBoxVendedor.Location = new Point(824, 127);
             textBoxVendedor.Name = "textBoxVendedor";
-            textBoxVendedor.Size = new Size(110, 23);
+            textBoxVendedor.Size = new Size(125, 27);
             textBoxVendedor.TabIndex = 17;
             textBoxVendedor.Enter += textBoxVendedor_Enter;
             textBoxVendedor.KeyDown += textBoxVendedor_KeyDown;
@@ -613,38 +617,34 @@
             // comboBoxTipo
             // 
             comboBoxTipo.FormattingEnabled = true;
-            comboBoxTipo.Location = new Point(479, 66);
-            comboBoxTipo.Margin = new Padding(3, 2, 3, 2);
+            comboBoxTipo.Location = new Point(547, 88);
             comboBoxTipo.Name = "comboBoxTipo";
-            comboBoxTipo.Size = new Size(158, 23);
+            comboBoxTipo.Size = new Size(180, 28);
             comboBoxTipo.TabIndex = 15;
-            comboBoxTipo.SelectedValueChanged += comboBoxTipo_SelectedValueChanged;
             // 
             // comboBoxCondicionVenta
             // 
             comboBoxCondicionVenta.FormattingEnabled = true;
-            comboBoxCondicionVenta.Location = new Point(330, 95);
-            comboBoxCondicionVenta.Margin = new Padding(3, 2, 3, 2);
+            comboBoxCondicionVenta.Location = new Point(377, 127);
             comboBoxCondicionVenta.Name = "comboBoxCondicionVenta";
-            comboBoxCondicionVenta.Size = new Size(129, 23);
+            comboBoxCondicionVenta.Size = new Size(147, 28);
             comboBoxCondicionVenta.TabIndex = 14;
             // 
             // comboBoxTipoComprobante
             // 
             comboBoxTipoComprobante.FormattingEnabled = true;
-            comboBoxTipoComprobante.Location = new Point(85, 95);
-            comboBoxTipoComprobante.Margin = new Padding(3, 2, 3, 2);
+            comboBoxTipoComprobante.Location = new Point(97, 127);
             comboBoxTipoComprobante.Name = "comboBoxTipoComprobante";
-            comboBoxTipoComprobante.Size = new Size(158, 23);
+            comboBoxTipoComprobante.Size = new Size(180, 28);
             comboBoxTipoComprobante.TabIndex = 13;
             comboBoxTipoComprobante.SelectedValueChanged += comboBoxTipoComprobante_SelectedValueChanged;
             // 
             // lblFecha
             // 
             lblFecha.AutoSize = true;
-            lblFecha.Location = new Point(439, 14);
+            lblFecha.Location = new Point(502, 19);
             lblFecha.Name = "lblFecha";
-            lblFecha.Size = new Size(41, 15);
+            lblFecha.Size = new Size(50, 20);
             lblFecha.TabIndex = 12;
             lblFecha.Text = "Fecha:";
             lblFecha.TextAlign = ContentAlignment.TopCenter;
@@ -652,45 +652,45 @@
             // lblNumero
             // 
             lblNumero.AutoSize = true;
-            lblNumero.Location = new Point(654, 14);
+            lblNumero.Location = new Point(747, 19);
             lblNumero.Name = "lblNumero";
-            lblNumero.Size = new Size(21, 15);
+            lblNumero.Size = new Size(26, 20);
             lblNumero.TabIndex = 11;
             lblNumero.Text = "N°";
             // 
             // lblDireccion
             // 
             lblDireccion.AutoSize = true;
-            lblDireccion.Location = new Point(14, 42);
+            lblDireccion.Location = new Point(16, 56);
             lblDireccion.Name = "lblDireccion";
-            lblDireccion.Size = new Size(60, 15);
+            lblDireccion.Size = new Size(75, 20);
             lblDireccion.TabIndex = 10;
             lblDireccion.Text = "Dirección:";
             // 
             // lblDni
             // 
             lblDni.AutoSize = true;
-            lblDni.Location = new Point(14, 70);
+            lblDni.Location = new Point(16, 93);
             lblDni.Name = "lblDni";
-            lblDni.Size = new Size(30, 15);
+            lblDni.Size = new Size(38, 20);
             lblDni.TabIndex = 9;
             lblDni.Text = "DNI:";
             // 
             // lblComprobante
             // 
             lblComprobante.AutoSize = true;
-            lblComprobante.Location = new Point(14, 100);
+            lblComprobante.Location = new Point(16, 133);
             lblComprobante.Name = "lblComprobante";
-            lblComprobante.Size = new Size(61, 15);
+            lblComprobante.Size = new Size(75, 20);
             lblComprobante.TabIndex = 8;
             lblComprobante.Text = "Comprob:";
             // 
             // lblPresup
             // 
             lblPresup.AutoSize = true;
-            lblPresup.Location = new Point(654, 42);
+            lblPresup.Location = new Point(747, 56);
             lblPresup.Name = "lblPresup";
-            lblPresup.Size = new Size(46, 15);
+            lblPresup.Size = new Size(56, 20);
             lblPresup.TabIndex = 7;
             lblPresup.Text = "Presup.";
             lblPresup.Visible = false;
@@ -698,27 +698,27 @@
             // lblZona
             // 
             lblZona.AutoSize = true;
-            lblZona.Location = new Point(654, 70);
+            lblZona.Location = new Point(747, 93);
             lblZona.Name = "lblZona";
-            lblZona.Size = new Size(37, 15);
+            lblZona.Size = new Size(46, 20);
             lblZona.TabIndex = 6;
             lblZona.Text = "Zona:";
             // 
             // lblVendedor
             // 
             lblVendedor.AutoSize = true;
-            lblVendedor.Location = new Point(649, 100);
+            lblVendedor.Location = new Point(742, 133);
             lblVendedor.Name = "lblVendedor";
-            lblVendedor.Size = new Size(60, 15);
+            lblVendedor.Size = new Size(76, 20);
             lblVendedor.TabIndex = 5;
             lblVendedor.Text = "Vendedor:";
             // 
             // lblCuenta
             // 
             lblCuenta.AutoSize = true;
-            lblCuenta.Location = new Point(14, 14);
+            lblCuenta.Location = new Point(16, 19);
             lblCuenta.Name = "lblCuenta";
-            lblCuenta.Size = new Size(48, 15);
+            lblCuenta.Size = new Size(58, 20);
             lblCuenta.TabIndex = 0;
             lblCuenta.Text = "Cuenta:";
             // 
@@ -729,11 +729,9 @@
             groupBoxObservaciones.Controls.Add(btnNuevoPresupuesto);
             groupBoxObservaciones.Controls.Add(textBoxObservacion);
             groupBoxObservaciones.Controls.Add(lblObservacion);
-            groupBoxObservaciones.Location = new Point(12, 497);
-            groupBoxObservaciones.Margin = new Padding(3, 2, 3, 2);
+            groupBoxObservaciones.Location = new Point(14, 663);
             groupBoxObservaciones.Name = "groupBoxObservaciones";
-            groupBoxObservaciones.Padding = new Padding(3, 2, 3, 2);
-            groupBoxObservaciones.Size = new Size(851, 61);
+            groupBoxObservaciones.Size = new Size(973, 81);
             groupBoxObservaciones.TabIndex = 5;
             groupBoxObservaciones.TabStop = false;
             // 
@@ -741,24 +739,32 @@
             // 
             groupBoxArticulosVendidos.Controls.Add(dataGridViewProductos);
             groupBoxArticulosVendidos.Controls.Add(groupBoxTotales);
-            groupBoxArticulosVendidos.Location = new Point(12, 187);
-            groupBoxArticulosVendidos.Margin = new Padding(3, 2, 3, 2);
+            groupBoxArticulosVendidos.Location = new Point(14, 249);
             groupBoxArticulosVendidos.Name = "groupBoxArticulosVendidos";
-            groupBoxArticulosVendidos.Padding = new Padding(3, 2, 3, 2);
-            groupBoxArticulosVendidos.Size = new Size(689, 315);
+            groupBoxArticulosVendidos.Size = new Size(787, 420);
             groupBoxArticulosVendidos.TabIndex = 6;
             groupBoxArticulosVendidos.TabStop = false;
             // 
+            // DataGridViewTextBoxColumnAlicuotaIVAId
+            // 
+            DataGridViewTextBoxColumnAlicuotaIVAId.HeaderText = "AlicuotaIVAId";
+            DataGridViewTextBoxColumnAlicuotaIVAId.MinimumWidth = 6;
+            DataGridViewTextBoxColumnAlicuotaIVAId.Name = "DataGridViewTextBoxColumnAlicuotaIVAId";
+            DataGridViewTextBoxColumnAlicuotaIVAId.ReadOnly = true;
+            DataGridViewTextBoxColumnAlicuotaIVAId.Visible = false;
+            DataGridViewTextBoxColumnAlicuotaIVAId.Width = 125;
+            // 
             // PresupuestoForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(897, 569);
+            ClientSize = new Size(1025, 759);
             Controls.Add(groupBoxInfoPresupuesto);
             Controls.Add(gpDatosCliente);
             Controls.Add(groupBoxObservaciones);
             Controls.Add(groupBoxArticulosVendidos);
             KeyPreview = true;
+            Margin = new Padding(3, 4, 3, 4);
             Name = "PresupuestoForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Presupuesto";
@@ -842,5 +848,7 @@
         private Label lblPresup;
         private MaskedTextBox textBoxCUIT;
         private Label lblCuit;
+        private DataGridViewTextBoxColumn DataGridViewTextBoxColumnAlicuotaIVA;
+        private DataGridViewTextBoxColumn DataGridViewTextBoxColumnAlicuotaIVAId;
     }
 }
