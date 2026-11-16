@@ -1,7 +1,9 @@
-﻿using ElBrezal.Application.Interfaces.ARCA;
+﻿using ElBrezal.Application.Calculations;
+using ElBrezal.Application.Interfaces.ARCA;
 using ElBrezal.Application.Models.ARCA;
 using ElBrezal.Infrastructure.ARCA;
 using ElBrezal.Infrastructure.Data;
+using ElBrezal.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ using System.Text;
 
 namespace ElBrezal.Infrastructure.Services
 {
-    public class ComprobanteAutorizacionService: IComprobanteAutorizacionService
+    public class ComprobanteAutorizacionService : IComprobanteAutorizacionService
     {
 
         private readonly ElBrezalDbContext _context;
@@ -345,6 +347,260 @@ namespace ElBrezal.Infrastructure.Services
 
             throw new InvalidOperationException(
                 $"Ambiente ARCA no reconocido: {ambiente}");
+        }
+
+        /// <summary>
+        /// Calcula el desglose fiscal de un comprobante persistido,
+        /// utilizando los importes y porcentajes históricos de IVA.
+        /// </summary>
+        private static ComprobanteFiscalResultado CalcularImportesFiscales(
+            Comprobantes comprobante)
+        {
+            ArgumentNullException.ThrowIfNull(comprobante);
+
+            if (comprobante.ComprobantesDetalle.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "El comprobante no contiene detalles.");
+            }
+
+            var detallesFiscales = new List<ComprobanteFiscalDetalle>();
+
+            foreach (var detalle in comprobante.ComprobantesDetalle)
+            {
+                if (!detalle.AlicuotaIVAId.HasValue ||
+                    !detalle.PorcentajeIVA.HasValue ||
+                    detalle.AlicuotaIVA is null)
+                {
+                    throw new InvalidOperationException(
+                        $"El detalle {detalle.Id} no tiene una alícuota de IVA válida.");
+                }
+
+                if (!detalle.AlicuotaIVA.CodigoArca.HasValue)
+                {
+                    throw new InvalidOperationException(
+                        $"La alícuota de IVA del detalle {detalle.Id} " +
+                        "no tiene código ARCA configurado.");
+                }
+
+                // En el catálogo actual, el código ARCA 3
+                // corresponde al tratamiento EXENTO.
+                bool esExento = detalle.AlicuotaIVA.CodigoArca.Value == 3;
+
+                detallesFiscales.Add(new ComprobanteFiscalDetalle
+                {
+                    Importe = detalle.Importe,
+                    PorcentajeIVA = detalle.PorcentajeIVA.Value,
+                    CodigoArcaIVA = detalle.AlicuotaIVA.CodigoArca.Value,
+                    EsExento = esExento
+                });
+            }
+
+            return ComprobanteFiscalCalculations.Calcular(
+                detallesFiscales,
+                comprobante.MontoVariacion,
+                comprobante.Total);
+        }
+
+
+        /// <summary>
+        /// Construye la solicitud fiscal de ARCA a partir de un
+        /// comprobante persistido y su numeración fiscal reservada.
+        /// </summary>
+        private static ArcaSolicitudCaeDto ConstruirSolicitudCae(
+            Comprobantes comprobante,
+            long numeroFiscal,
+            int docTipo,
+            long docNro)
+        {
+            ArgumentNullException.ThrowIfNull(comprobante);
+
+            if (!comprobante.TipoComprobante.CodigoArca.HasValue)
+            {
+                throw new InvalidOperationException(
+                    "El tipo de comprobante no tiene código ARCA configurado.");
+            }
+
+            if (!comprobante.SituacionImpositiva.CodigoArca.HasValue)
+            {
+                throw new InvalidOperationException(
+                    "La situación impositiva no tiene código ARCA configurado.");
+            }
+
+            if (numeroFiscal <= 0)
+            {
+                throw new InvalidOperationException(
+                    "El número fiscal debe ser mayor a cero.");
+            }
+
+            if (docTipo <= 0 || docNro < 0)
+            {
+                throw new InvalidOperationException(
+                    "El documento del receptor no es válido.");
+            }
+
+            var fiscal = CalcularImportesFiscales(comprobante);
+
+            return new ArcaSolicitudCaeDto
+            {
+                PuntoVenta = comprobante.PuntoVenta,
+                TipoComprobante =
+                    comprobante.TipoComprobante.CodigoArca.Value,
+
+                Numero = numeroFiscal,
+                Fecha = DateOnly.FromDateTime(comprobante.Fecha),
+
+                Concepto = 1,
+
+                DocTipo = docTipo,
+                DocNro = docNro,
+
+                CondicionIvaReceptorId =
+                    comprobante.SituacionImpositiva.CodigoArca.Value,
+
+                ImporteTotal = fiscal.ImporteTotal,
+                ImporteNeto = fiscal.ImporteNeto,
+                ImporteNoGravado = fiscal.ImporteNoGravado,
+                ImporteExento = fiscal.ImporteExento,
+                ImporteIVA = fiscal.ImporteIVA,
+                ImporteTributos = fiscal.ImporteTributos,
+
+                AlicuotasIVA = fiscal.AlicuotasIVA
+                    .Select(x => new ArcaAlicuotaIvaDto
+                    {
+                        Id = x.CodigoArcaIVA,
+                        BaseImponible = x.BaseImponible,
+                        Importe = x.ImporteIVA
+                    })
+                    .ToList()
+            };
+        }
+
+
+        /// <summary>
+        /// Resuelve el tipo y número de documento del receptor
+        /// para una Factura A o B.
+        /// Permite consumidores finales sin identificar cuando
+        /// las reglas fiscales de la operación lo admiten.
+        /// </summary>
+        private static (int DocTipo, long DocNro) ResolverDocumentoReceptor(
+            Comprobantes comprobante,
+            bool requiereIdentificacion)
+        {
+            ArgumentNullException.ThrowIfNull(comprobante);
+
+            if (comprobante.Cliente is null)
+            {
+                throw new InvalidOperationException(
+                    "No se cargaron los datos del cliente.");
+            }
+
+            int codigoComprobante = comprobante.TipoComprobante.CodigoArca
+                ?? throw new InvalidOperationException(
+                    "El comprobante no tiene código ARCA.");
+
+            int codigoSituacion = comprobante.SituacionImpositiva.CodigoArca
+                ?? throw new InvalidOperationException(
+                    "La situación impositiva no tiene código ARCA.");
+
+            string cuit = new string(
+                (comprobante.Cliente.CUIT ?? string.Empty)
+                .Where(char.IsDigit)
+                .ToArray());
+
+            string dni = new string(
+                (comprobante.Cliente.DNI ?? string.Empty)
+                .Where(char.IsDigit)
+                .ToArray());
+
+            // Factura A: requiere CUIT del receptor.
+            if (codigoComprobante == 1)
+            {
+                if (!ValidarCuit(cuit))
+                {
+                    throw new InvalidOperationException(
+                        "La Factura A requiere un CUIT válido.");
+                }
+
+                return (80, long.Parse(cuit));
+            }
+
+            // Por ahora solamente contemplamos Factura B.
+            if (codigoComprobante != 6)
+            {
+                throw new InvalidOperationException(
+                    "La resolución de documentos todavía no está " +
+                    "implementada para este tipo de comprobante.");
+            }
+
+            // Si se informó CUIT, debe ser válido.
+            if (!string.IsNullOrEmpty(cuit))
+            {
+                if (!ValidarCuit(cuit))
+                {
+                    throw new InvalidOperationException(
+                        "El CUIT informado no es válido.");
+                }
+
+                return (80, long.Parse(cuit));
+            }
+
+            // Si se informó DNI, debe ser válido.
+            if (!string.IsNullOrEmpty(dni))
+            {
+                if (dni.Length < 7 ||
+                    dni.Length > 8 ||
+                    !long.TryParse(dni, out long numeroDni) ||
+                    numeroDni <= 0)
+                {
+                    throw new InvalidOperationException(
+                        "El DNI informado no es válido.");
+                }
+
+                return (96, numeroDni);
+            }
+
+            // Código 5: Consumidor Final en nuestro catálogo ARCA.
+            bool esConsumidorFinal = codigoSituacion == 5;
+
+            if (!esConsumidorFinal || requiereIdentificacion)
+            {
+                throw new InvalidOperationException(
+                    "La operación requiere identificar al receptor " +
+                    "mediante un documento válido.");
+            }
+
+            // Consumidor Final no identificado.
+            return (99, 0);
+        }
+
+        /// <summary>
+        /// Verifica el dígito de control de un CUIT argentino.
+        /// </summary>
+        private static bool ValidarCuit(string cuit)
+        {
+            if (cuit.Length != 11 || !cuit.All(char.IsDigit))
+                return false;
+
+            int[] multiplicadores = { 5, 4, 3, 2, 7, 6, 5, 4, 3, 2 };
+
+            int suma = 0;
+
+            for (int i = 0; i < 10; i++)
+            {
+                suma += (cuit[i] - '0') * multiplicadores[i];
+            }
+
+            int resto = suma % 11;
+
+            int digitoVerificador = resto switch
+            {
+                0 => 0,
+                1 => 9,
+                _ => 11 - resto
+            };
+
+            return digitoVerificador == cuit[10] - '0';
         }
 
 

@@ -1,4 +1,5 @@
-﻿using ElBrezal.Application.Interfaces.Comprobantes;
+﻿using ElBrezal.Application.Calculations;
+using ElBrezal.Application.Interfaces.Comprobantes;
 using ElBrezal.Application.Models.Comprobantes;
 using ElBrezal.Infrastructure.Data;
 using ElBrezal.Infrastructure.Data.Entities;
@@ -19,6 +20,7 @@ namespace ElBrezal.Infrastructure.Services
         {
             // Validaciones que no requieren consultar la base de datos.
             ValidarComprobante(dto);
+            ValidarImportesComprobante(dto);
 
             await using var transaction =
                 await _context.Database.BeginTransactionAsync();
@@ -489,7 +491,12 @@ namespace ElBrezal.Infrastructure.Services
                 .FirstOrDefaultAsync();
         }
 
-        private static void ValidarComprobante( CrearComprobanteDto dto)
+
+        /// <summary>
+        /// Valida los datos generales, comerciales y fiscales
+        /// necesarios para registrar un comprobante.
+        /// </summary>
+        private static void ValidarComprobante(CrearComprobanteDto dto)
         {
             if (dto.TipoComprobanteId <= 0)
                 throw new InvalidOperationException(
@@ -511,17 +518,31 @@ namespace ElBrezal.Infrastructure.Services
                 throw new InvalidOperationException(
                     "Debe seleccionar una situación impositiva.");
 
-            if (dto.Detalles.Count == 0)
+            if (dto.Detalles is null || dto.Detalles.Count == 0)
                 throw new InvalidOperationException(
                     "El comprobante debe contener al menos un artículo.");
 
             if (dto.Detalles.Any(x =>
                 x.ProductoId <= 0 ||
                 x.Cantidad <= 0 ||
-                x.PrecioUnitario < 0))
+                x.PrecioUnitario < 0 ||
+                x.Importe < 0))
             {
                 throw new InvalidOperationException(
                     "Existen artículos con datos inválidos.");
+            }
+
+            // Verificamos que cada artículo conserve
+            // la alícuota utilizada al calcular su precio.
+            if (dto.Detalles.Any(x =>
+                !x.AlicuotaIVAId.HasValue ||
+                x.AlicuotaIVAId.Value <= 0 ||
+                !x.PorcentajeIVA.HasValue ||
+                x.PorcentajeIVA.Value < 0 ||
+                x.PorcentajeIVA.Value > 100))
+            {
+                throw new InvalidOperationException(
+                    "Existen artículos sin una alícuota de IVA válida.");
             }
 
             if (!dto.ClienteId.HasValue && dto.ClienteRapido is null)
@@ -533,9 +554,11 @@ namespace ElBrezal.Infrastructure.Services
             if (dto.ClienteId.HasValue && dto.ClienteRapido is not null)
             {
                 throw new InvalidOperationException(
-                    "El comprobante no puede contener simultáneamente un cliente existente y un alta rápida.");
+                    "El comprobante no puede contener simultáneamente " +
+                    "un cliente existente y un alta rápida.");
             }
         }
+
 
         private async Task ValidarComprobanteOrigenAsync(CrearComprobanteDto dto)
         {
@@ -675,5 +698,64 @@ namespace ElBrezal.Infrastructure.Services
                 producto.Stock += movimiento;
             }
         }
+
+
+        /// <summary>
+        /// Verifica que los importes generales del comprobante
+        /// coincidan con sus detalles y variación comercial.
+        /// </summary>
+        private static void ValidarImportesComprobante(
+            CrearComprobanteDto dto)
+        {
+            decimal subtotalCalculado =
+                dto.Detalles.Sum(x => x.Importe);
+
+            decimal montoVariacionCalculado =
+                OperacionComercialCalculations.CalcularMontoVariacion(
+                    subtotalCalculado,
+                    dto.PorcentajeVariacion);
+
+            decimal totalCalculado =
+                OperacionComercialCalculations.CalcularTotal(
+                    subtotalCalculado,
+                    montoVariacionCalculado);
+
+            if (dto.Subtotal != subtotalCalculado)
+            {
+                throw new InvalidOperationException(
+                    "El subtotal del comprobante no coincide " +
+                    "con la suma de los artículos.");
+            }
+
+            if (dto.MontoVariacion != montoVariacionCalculado)
+            {
+                throw new InvalidOperationException(
+                    "El monto de variación no coincide " +
+                    "con el porcentaje informado.");
+            }
+
+            if (dto.Total != totalCalculado)
+            {
+                throw new InvalidOperationException(
+                    "El total del comprobante no coincide " +
+                    "con los importes calculados.");
+            }
+
+            foreach (var detalle in dto.Detalles)
+            {
+                decimal importeCalculado =
+                    OperacionComercialCalculations.CalcularImporte(
+                        detalle.Cantidad,
+                        detalle.PrecioUnitario);
+
+                if (detalle.Importe != importeCalculado)
+                {
+                    throw new InvalidOperationException(
+                        $"El importe del artículo {detalle.ProductoId} " +
+                        "no coincide con su cantidad y precio.");
+                }
+            }
+        }
+
     }
 }

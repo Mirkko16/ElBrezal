@@ -280,6 +280,15 @@ namespace ElBrezal.Infrastructure.Services
                 $"Consultando último número. Ambiente={ambiente}, CUIT={cuitEmisor}, PV={puntoVenta}, Tipo={tipoComprobante}");
             string xml = await EjecutarOperacionSoapAsync(operacion, cuerpo, cancellationToken);
             var respuesta = ProcesarRespuestaUltimoComprobante(xml);
+
+            if (respuesta.PuntoVenta != puntoVenta ||
+                respuesta.TipoComprobante != tipoComprobante ||
+                respuesta.UltimoNumero < 0)
+            {
+                throw new InvalidOperationException(
+                    "ARCA devolvió una numeración inconsistente " +
+                    "con el punto de venta o tipo solicitado.");
+            }
             await EscribirLogAsync("INFO", operacion,
                 $"Último autorizado={respuesta.UltimoNumero}, PV={respuesta.PuntoVenta}, Tipo={respuesta.TipoComprobante}");
             return respuesta;

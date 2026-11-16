@@ -4,26 +4,65 @@ using System.Text;
 
 namespace ElBrezal.Application.Calculations
 {
+
+
     public static class OperacionComercialCalculations
     {
-        public static decimal CalcularImporte(decimal cantidad, decimal precio)
+        /// <summary>
+        /// Redondea un importe monetario a dos decimales.
+        /// </summary>
+        public static decimal RedondearImporte(decimal importe)
         {
-            return cantidad * precio;
+            return Math.Round(
+                importe,
+                2,
+                MidpointRounding.AwayFromZero);
         }
 
-        public static decimal CalcularVariacion(decimal subtotal, decimal porcentajeVariacion)
+        /// <summary>
+        /// Calcula el importe total de una línea comercial.
+        /// </summary>
+        public static decimal CalcularImporte(
+            decimal cantidad,
+            decimal precio)
         {
-            return subtotal * porcentajeVariacion / 100m;
+            return RedondearImporte(cantidad * precio);
         }
 
-        public static decimal CalcularMontoVariacion(decimal subtotal, decimal porcentajeVariacion)
+        /// <summary>
+        /// Calcula el monto correspondiente a una variación porcentual.
+        /// </summary>
+        public static decimal CalcularVariacion(
+            decimal subtotal,
+            decimal porcentajeVariacion)
         {
-            return subtotal * porcentajeVariacion / 100m;
+            return CalcularMontoVariacion(
+                subtotal,
+                porcentajeVariacion);
         }
 
-        public static decimal CalcularTotal(decimal subtotal, decimal montoVariacion)
+        /// <summary>
+        /// Calcula el importe monetario de la variación comercial.
+        /// Un porcentaje positivo representa un descuento.
+        /// </summary>
+        public static decimal CalcularMontoVariacion(
+            decimal subtotal,
+            decimal porcentajeVariacion)
         {
-            return subtotal - montoVariacion;
+            return RedondearImporte(
+                subtotal * porcentajeVariacion / 100m);
+        }
+
+        /// <summary>
+        /// Calcula el total después de aplicar la variación.
+        /// </summary>
+        public static decimal CalcularTotal(
+            decimal subtotal,
+            decimal montoVariacion)
+        {
+            return RedondearImporte(subtotal - montoVariacion);
         }
     }
+
+
 }
