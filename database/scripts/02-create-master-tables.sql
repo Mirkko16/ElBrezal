@@ -522,3 +522,59 @@ CREATE TABLE dbo.ArcaCredenciales
     CONSTRAINT CK_ArcaCredenciales_Ambiente
         CHECK (Ambiente IN ('HOMOLOGACION', 'PRODUCCION'))
 );
+
+
+IF COL_LENGTH('dbo.ComprobantesDetalle', 'AlicuotaIVAId') IS NULL
+BEGIN
+    ALTER TABLE dbo.ComprobantesDetalle
+    ADD AlicuotaIVAId INT NULL;
+END;
+
+IF COL_LENGTH('dbo.ComprobantesDetalle', 'PorcentajeIVA') IS NULL
+BEGIN
+    ALTER TABLE dbo.ComprobantesDetalle
+    ADD PorcentajeIVA DECIMAL(5,2) NULL;
+END;
+
+
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = 'FK_ComprobantesDetalle_AlicuotasIVA'
+      AND parent_object_id = OBJECT_ID('dbo.ComprobantesDetalle')
+)
+BEGIN
+    ALTER TABLE dbo.ComprobantesDetalle
+    ADD CONSTRAINT FK_ComprobantesDetalle_AlicuotasIVA
+        FOREIGN KEY (AlicuotaIVAId)
+        REFERENCES dbo.AlicuotasIVA(Id);
+END;
+
+
+SELECT
+    Id,
+    ComprobanteId,
+    ProductoId,
+    Cantidad,
+    PrecioUnitario,
+    Importe,
+    AlicuotaIVAId,
+    PorcentajeIVA
+FROM dbo.ComprobantesDetalle
+WHERE ComprobanteId IN (5004, 5005);
+
+CREATE UNIQUE INDEX UX_Comprobantes_IdentificacionFiscal
+ON dbo.Comprobantes
+(
+    ArcaCUITEmisor,
+    ArcaAmbiente,
+    ArcaPuntoVenta,
+    ArcaTipoComprobante,
+    ArcaNumero
+)
+WHERE ArcaCUITEmisor IS NOT NULL
+  AND ArcaAmbiente IS NOT NULL
+  AND ArcaPuntoVenta IS NOT NULL
+  AND ArcaTipoComprobante IS NOT NULL
+  AND ArcaNumero IS NOT NULL;
