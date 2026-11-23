@@ -15,5 +15,7 @@ namespace ElBrezal.Application.Models.Comprobantes
         public short Signo { get; set; }
 
         public short MovimientoStock { get; set; }
+
+        public int? CodigoArca { get; set; }
     }
 }

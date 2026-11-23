@@ -60,10 +60,19 @@ namespace ElBrezal.Application.Calculations
     /// </summary>
     public static class ComprobanteFiscalCalculations
     {
+
         /// <summary>
-        /// Calcula el desglose fiscal distribuyendo proporcionalmente
-        /// el descuento o recargo comercial entre las alícuotas.
+        /// Calcula el desglose fiscal de un comprobante cuyos precios incluyen IVA.
+        /// Distribuye proporcionalmente los descuentos o recargos entre las alícuotas,
+        /// valida los importes comerciales y garantiza que el total fiscal coincida
+        /// con el total del comprobante.
         /// </summary>
+        /// <param name="detalles">Artículos del comprobante con sus importes y alícuotas.</param>
+        /// <param name="montoVariacion">
+        /// Importe del descuento (positivo) o recargo (negativo).
+        /// </param>
+        /// <param name="totalComprobante">Importe final del comprobante con IVA incluido.</param>
+        /// <returns>Desglose fiscal listo para construir la solicitud a ARCA.</returns>
         public static ComprobanteFiscalResultado Calcular(
             IEnumerable<ComprobanteFiscalDetalle> detalles,
             decimal montoVariacion,
@@ -73,14 +82,21 @@ namespace ElBrezal.Application.Calculations
 
             var items = detalles.ToList();
 
+            // 1. Validar que existan artículos.
             if (items.Count == 0)
+            {
                 throw new InvalidOperationException(
                     "El comprobante no contiene artículos.");
+            }
 
+            // 2. Validar importes negativos.
             if (items.Any(x => x.Importe < 0))
+            {
                 throw new InvalidOperationException(
                     "Existen artículos con importes negativos.");
+            }
 
+            // 3. Validar porcentajes de IVA.
             if (items.Any(x =>
                 x.PorcentajeIVA < 0 ||
                 x.PorcentajeIVA > 100))
@@ -89,6 +105,7 @@ namespace ElBrezal.Application.Calculations
                     "Existen porcentajes de IVA inválidos.");
             }
 
+            // 4. Validar que los artículos gravados tengan código ARCA.
             if (items.Any(x =>
                 !x.EsExento && x.CodigoArcaIVA <= 0))
             {
@@ -96,28 +113,66 @@ namespace ElBrezal.Application.Calculations
                     "Existen alícuotas sin código ARCA.");
             }
 
+            // 5. Validar que los artículos exentos no tengan IVA.
             if (items.Any(x =>
-                x.EsExento && x.PorcentajeIVA != 0))
+                x.EsExento && x.PorcentajeIVA != 0m))
             {
                 throw new InvalidOperationException(
                     "Un artículo exento no puede tener IVA gravado.");
             }
 
+            // 6. Validar correspondencia entre porcentaje y código ARCA.
+            // Códigos utilizados actualmente en ElBrezal:
+            // 3 = Exento
+            // 4 = IVA 10,5 %
+            // 5 = IVA 21 %
+            // 6 = IVA 27 %
+            if (items.Any(x =>
+                x.CodigoArcaIVA switch
+                {
+                    3 => !x.EsExento || x.PorcentajeIVA != 0m,
+                    4 => x.EsExento || x.PorcentajeIVA != 10.5m,
+                    5 => x.EsExento || x.PorcentajeIVA != 21m,
+                    6 => x.EsExento || x.PorcentajeIVA != 27m,
+                    _ => true
+                }))
+            {
+                throw new InvalidOperationException(
+                    "Existen artículos con alícuotas de IVA incompatibles " +
+                    "con su código ARCA.");
+            }
+
+            // 7. Validar precisión de los importes comerciales.
+            if (Redondear(totalComprobante) != totalComprobante ||
+                Redondear(montoVariacion) != montoVariacion)
+            {
+                throw new InvalidOperationException(
+                    "Los importes comerciales deben tener como máximo dos decimales.");
+            }
+
+            // 8. Calcular subtotal comercial.
             decimal subtotal = Redondear(
                 items.Sum(x => x.Importe));
 
             if (subtotal <= 0 || totalComprobante <= 0)
+            {
                 throw new InvalidOperationException(
                     "Los importes del comprobante deben ser positivos.");
+            }
 
+            // 9. Verificar que el total coincida con el descuento o recargo.
+            // montoVariacion positivo = descuento.
+            // montoVariacion negativo = recargo.
             decimal totalEsperado = Redondear(
                 subtotal - montoVariacion);
 
             if (totalEsperado != totalComprobante)
+            {
                 throw new InvalidOperationException(
                     "El total comercial no coincide con la variación aplicada.");
+            }
 
-            // Agrupamos por tratamiento fiscal y alícuota.
+            // 10. Agrupar artículos por tratamiento fiscal y alícuota.
             var grupos = items
                 .GroupBy(x => new
                 {
@@ -137,8 +192,8 @@ namespace ElBrezal.Application.Calculations
                 .ThenBy(x => x.CodigoArcaIVA)
                 .ToList();
 
-            // Distribuimos el total final proporcionalmente.
-            // El último grupo absorbe los centavos residuales.
+            // 11. Distribuir el total final proporcionalmente.
+            // El último grupo absorbe cualquier diferencia de centavos.
             decimal acumulado = 0m;
 
             for (int i = 0; i < grupos.Count; i++)
@@ -160,17 +215,24 @@ namespace ElBrezal.Application.Calculations
                 }
 
                 if (grupo.ImporteFinal < 0)
+                {
                     throw new InvalidOperationException(
                         "La distribución produjo un importe negativo.");
+                }
             }
 
+            // 12. Inicializar el resultado fiscal.
             var resultado = new ComprobanteFiscalResultado
             {
                 ImporteTotal = totalComprobante,
-                ImporteTributos = 0m,
-                ImporteNoGravado = 0m
+                ImporteNeto = 0m,
+                ImporteNoGravado = 0m,
+                ImporteExento = 0m,
+                ImporteIVA = 0m,
+                ImporteTributos = 0m
             };
 
+            // 13. Calcular base imponible e IVA por grupo.
             foreach (var grupo in grupos)
             {
                 if (grupo.EsExento)
@@ -181,7 +243,8 @@ namespace ElBrezal.Application.Calculations
                     continue;
                 }
 
-                // El importe comercial incluye IVA.
+                // Los precios comerciales incluyen IVA.
+                // Se extrae el impuesto, no se suma nuevamente.
                 decimal baseImponible = Redondear(
                     grupo.ImporteFinal /
                     (1m + grupo.PorcentajeIVA / 100m));
@@ -202,6 +265,7 @@ namespace ElBrezal.Application.Calculations
                 resultado.ImporteIVA += importeIVA;
             }
 
+            // 14. Normalizar importes fiscales.
             resultado.ImporteNeto =
                 Redondear(resultado.ImporteNeto);
 
@@ -211,6 +275,7 @@ namespace ElBrezal.Application.Calculations
             resultado.ImporteExento =
                 Redondear(resultado.ImporteExento);
 
+            // 15. Verificar consistencia del desglose fiscal.
             decimal totalFiscal =
                 resultado.ImporteNeto +
                 resultado.ImporteIVA +
@@ -226,6 +291,7 @@ namespace ElBrezal.Application.Calculations
 
             return resultado;
         }
+
 
         /// <summary>
         /// Redondea importes monetarios a dos decimales.

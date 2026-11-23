@@ -29,7 +29,8 @@ namespace ElBrezal.Infrastructure.Services
                     Nombre = x.Nombre,
                     Abreviatura = x.Abreviatura,
                     Signo = x.Signo,
-                    MovimientoStock = x.MovimientoStock
+                    MovimientoStock = x.MovimientoStock,
+                    CodigoArca = x.CodigoArca
                 })
                 .ToListAsync();
         }

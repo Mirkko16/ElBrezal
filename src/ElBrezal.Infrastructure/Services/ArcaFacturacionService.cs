@@ -357,18 +357,20 @@ namespace ElBrezal.Infrastructure.Services
         }
 
         /// <summary>Solicita a WSFEv1 la autorización fiscal de un comprobante; no persiste el resultado.</summary>
+
         public async Task<ArcaResultadoCaeDto> SolicitarCaeAsync(
-    ArcaAuthDto auth,
-    long cuitEmisor,
-    string ambiente,
-    ArcaSolicitudCaeDto solicitud,
-    CancellationToken cancellationToken = default)
+            ArcaAuthDto auth,
+            long cuitEmisor,
+            string ambiente,
+            ArcaSolicitudCaeDto solicitud,
+            CancellationToken cancellationToken = default)
         {
             const string operacion = "FECAESolicitar";
 
             ValidarCredencialesArca(auth, cuitEmisor, ambiente);
             ArgumentNullException.ThrowIfNull(solicitud);
 
+            // 1. Validar identificación fiscal.
             if (solicitud.PuntoVenta <= 0 ||
                 solicitud.TipoComprobante <= 0 ||
                 solicitud.Numero <= 0)
@@ -377,20 +379,49 @@ namespace ElBrezal.Infrastructure.Services
                     "La identificación fiscal del comprobante no es válida.");
             }
 
+            // 2. Por ahora solamente admitimos productos.
             if (solicitud.Concepto != 1)
             {
                 throw new NotSupportedException(
                     "Esta primera implementación admite solamente productos.");
             }
 
+            // 3. Validar datos fiscales obligatorios.
             if (solicitud.ImporteTotal <= 0 ||
                 solicitud.DocTipo <= 0 ||
+                solicitud.DocNro < 0 ||
                 solicitud.CondicionIvaReceptorId <= 0)
             {
                 throw new ArgumentException(
                     "Los datos fiscales de la solicitud están incompletos.");
             }
 
+            // 4. Validar identificación del receptor.
+            if (solicitud.DocTipo == 99 && solicitud.DocNro != 0)
+            {
+                throw new ArgumentException(
+                    "Un Consumidor Final sin identificar debe tener " +
+                    "número de documento cero.");
+            }
+
+            if (solicitud.DocTipo != 99 && solicitud.DocNro <= 0)
+            {
+                throw new ArgumentException(
+                    "El documento del receptor debe ser mayor a cero.");
+            }
+
+            // 5. Validar importes negativos.
+            if (solicitud.ImporteNeto < 0 ||
+                solicitud.ImporteNoGravado < 0 ||
+                solicitud.ImporteExento < 0 ||
+                solicitud.ImporteIVA < 0 ||
+                solicitud.ImporteTributos < 0)
+            {
+                throw new ArgumentException(
+                    "Los importes fiscales no pueden ser negativos.");
+            }
+
+            // 6. Validar que los importes fiscales coincidan.
             decimal totalCalculado =
                 solicitud.ImporteNeto +
                 solicitud.ImporteNoGravado +
@@ -398,50 +429,130 @@ namespace ElBrezal.Infrastructure.Services
                 solicitud.ImporteIVA +
                 solicitud.ImporteTributos;
 
-            if (Math.Abs(totalCalculado - solicitud.ImporteTotal) > 0.01m)
+            if (totalCalculado != solicitud.ImporteTotal)
             {
                 throw new ArgumentException(
                     "El importe total no coincide con sus componentes fiscales.");
             }
 
+            // 7. Validar el detalle de alícuotas.
+            if (solicitud.AlicuotasIVA is null)
+            {
+                throw new ArgumentException(
+                    "No se informó el detalle de alícuotas de IVA.");
+            }
+
+            if (solicitud.AlicuotasIVA.Any(x =>
+                x.Id <= 0 ||
+                x.BaseImponible < 0 ||
+                x.Importe < 0))
+            {
+                throw new ArgumentException(
+                    "Existen alícuotas de IVA con valores inválidos.");
+            }
+
+            decimal netoAlicuotas =
+                solicitud.AlicuotasIVA.Sum(x => x.BaseImponible);
+
+            decimal ivaAlicuotas =
+                solicitud.AlicuotasIVA.Sum(x => x.Importe);
+
+            if (netoAlicuotas != solicitud.ImporteNeto ||
+                ivaAlicuotas != solicitud.ImporteIVA)
+            {
+                throw new ArgumentException(
+                    "El desglose de alícuotas no coincide " +
+                    "con los importes fiscales del comprobante.");
+            }
+
+            // 8. Construir el detalle fiscal SOAP.
             XNamespace wsfe = NamespaceWsfe;
 
-            var detalle = new XElement(wsfe + "FECAEDetRequest",
-                new XElement(wsfe + "Concepto", solicitud.Concepto),
-                new XElement(wsfe + "DocTipo", solicitud.DocTipo),
-                new XElement(wsfe + "DocNro", solicitud.DocNro),
-                new XElement(wsfe + "CbteDesde", solicitud.Numero),
-                new XElement(wsfe + "CbteHasta", solicitud.Numero),
-                new XElement(wsfe + "CbteFch",
+            var detalle = new XElement(
+                wsfe + "FECAEDetRequest",
+
+                new XElement(
+                    wsfe + "Concepto",
+                    solicitud.Concepto),
+
+                new XElement(
+                    wsfe + "DocTipo",
+                    solicitud.DocTipo),
+
+                new XElement(
+                    wsfe + "DocNro",
+                    solicitud.DocNro),
+
+                new XElement(
+                    wsfe + "CbteDesde",
+                    solicitud.Numero),
+
+                new XElement(
+                    wsfe + "CbteHasta",
+                    solicitud.Numero),
+
+                new XElement(
+                    wsfe + "CbteFch",
                     solicitud.Fecha.ToString("yyyyMMdd")),
-                new XElement(wsfe + "ImpTotal",
+
+                new XElement(
+                    wsfe + "ImpTotal",
                     FormatearImporteArca(solicitud.ImporteTotal)),
-                new XElement(wsfe + "ImpTotConc",
+
+                new XElement(
+                    wsfe + "ImpTotConc",
                     FormatearImporteArca(solicitud.ImporteNoGravado)),
-                new XElement(wsfe + "ImpNeto",
+
+                new XElement(
+                    wsfe + "ImpNeto",
                     FormatearImporteArca(solicitud.ImporteNeto)),
-                new XElement(wsfe + "ImpOpEx",
+
+                new XElement(
+                    wsfe + "ImpOpEx",
                     FormatearImporteArca(solicitud.ImporteExento)),
-                new XElement(wsfe + "ImpTrib",
+
+                new XElement(
+                    wsfe + "ImpTrib",
                     FormatearImporteArca(solicitud.ImporteTributos)),
-                new XElement(wsfe + "ImpIVA",
+
+                new XElement(
+                    wsfe + "ImpIVA",
                     FormatearImporteArca(solicitud.ImporteIVA)),
-                new XElement(wsfe + "MonId", "PES"),
-                new XElement(wsfe + "MonCotiz", "1"),
-                new XElement(wsfe + "CondicionIVAReceptorId",
+
+                new XElement(
+                    wsfe + "MonId",
+                    "PES"),
+
+                new XElement(
+                    wsfe + "MonCotiz",
+                    "1"),
+
+                new XElement(
+                    wsfe + "CondicionIVAReceptorId",
                     solicitud.CondicionIvaReceptorId)
             );
 
+            // 9. Incorporar las alícuotas de IVA.
             if (solicitud.AlicuotasIVA.Count > 0)
             {
                 detalle.Add(
-                    new XElement(wsfe + "Iva",
+                    new XElement(
+                        wsfe + "Iva",
+
                         solicitud.AlicuotasIVA.Select(x =>
-                            new XElement(wsfe + "AlicIva",
-                                new XElement(wsfe + "Id", x.Id),
-                                new XElement(wsfe + "BaseImp",
+                            new XElement(
+                                wsfe + "AlicIva",
+
+                                new XElement(
+                                    wsfe + "Id",
+                                    x.Id),
+
+                                new XElement(
+                                    wsfe + "BaseImp",
                                     FormatearImporteArca(x.BaseImponible)),
-                                new XElement(wsfe + "Importe",
+
+                                new XElement(
+                                    wsfe + "Importe",
                                     FormatearImporteArca(x.Importe))
                             )
                         )
@@ -449,18 +560,38 @@ namespace ElBrezal.Infrastructure.Services
                 );
             }
 
-            var cuerpo = new XElement(wsfe + operacion,
+            // 10. Construir la solicitud FECAESolicitar.
+            var cuerpo = new XElement(
+                wsfe + operacion,
+
                 CrearAuthSoap(auth, cuitEmisor),
-                new XElement(wsfe + "FeCAEReq",
-                    new XElement(wsfe + "FeCabReq",
-                        new XElement(wsfe + "CantReg", 1),
-                        new XElement(wsfe + "PtoVta", solicitud.PuntoVenta),
-                        new XElement(wsfe + "CbteTipo", solicitud.TipoComprobante)
+
+                new XElement(
+                    wsfe + "FeCAEReq",
+
+                    new XElement(
+                        wsfe + "FeCabReq",
+
+                        new XElement(
+                            wsfe + "CantReg",
+                            1),
+
+                        new XElement(
+                            wsfe + "PtoVta",
+                            solicitud.PuntoVenta),
+
+                        new XElement(
+                            wsfe + "CbteTipo",
+                            solicitud.TipoComprobante)
                     ),
-                    new XElement(wsfe + "FeDetReq", detalle)
+
+                    new XElement(
+                        wsfe + "FeDetReq",
+                        detalle)
                 )
             );
 
+            // 11. Registrar el intento de autorización.
             await EscribirLogAsync(
                 "INFO",
                 operacion,
@@ -469,11 +600,13 @@ namespace ElBrezal.Infrastructure.Services
                 $"Tipo={solicitud.TipoComprobante}, " +
                 $"Numero={solicitud.Numero}");
 
+            // 12. Ejecutar la operación SOAP.
             string xml = await EjecutarOperacionSoapAsync(
                 operacion,
                 cuerpo,
                 cancellationToken);
 
+            // 13. Interpretar la respuesta.
             var documento = XDocument.Parse(xml);
 
             var resultado = documento.Descendants()
@@ -486,36 +619,106 @@ namespace ElBrezal.Infrastructure.Services
             {
                 PuntoVenta = solicitud.PuntoVenta,
                 TipoComprobante = solicitud.TipoComprobante,
-                Numero = solicitud.Numero
+                Numero = solicitud.Numero,
+                Resultado = "SIN_RESPUESTA"
             };
 
+            // 14. Recuperar errores generales.
             respuesta.Errores.AddRange(
-                ObtenerMensajesArca(resultado, "Errors", "Err"));
+                ObtenerMensajesArca(
+                    resultado,
+                    "Errors",
+                    "Err"));
 
             var cabecera = resultado.Descendants()
-                .FirstOrDefault(x => x.Name.LocalName == "FeCabResp");
+                .FirstOrDefault(x =>
+                    x.Name.LocalName == "FeCabResp");
 
             var detalleRespuesta = resultado.Descendants()
                 .FirstOrDefault(x =>
                     x.Name.LocalName == "FECAEDetResponse");
 
-            respuesta.Resultado =
-                detalleRespuesta == null
-                    ? ObtenerValor(cabecera!, "Resultado") ?? "R"
-                    : ObtenerValor(detalleRespuesta, "Resultado") ?? "R";
+
+            if (detalleRespuesta != null && cabecera is null)
+            {
+                throw new InvalidOperationException(
+                    "ARCA devolvió un detalle fiscal sin cabecera. " +
+                    "El comprobante requiere conciliación.");
+            }
+
+            // 15. Validar la identidad fiscal de la respuesta.
+            // No se debe registrar un CAE si ARCA responde
+            // con otro punto de venta, tipo o número.
+            if (cabecera != null)
+            {
+                string? puntoVentaRespuesta =
+                    ObtenerValor(cabecera, "PtoVta");
+
+                string? tipoComprobanteRespuesta =
+                    ObtenerValor(cabecera, "CbteTipo");
+
+                if (!int.TryParse(
+                        puntoVentaRespuesta,
+                        out int puntoVentaArca) ||
+                    !int.TryParse(
+                        tipoComprobanteRespuesta,
+                        out int tipoArca) ||
+                    puntoVentaArca != solicitud.PuntoVenta ||
+                    tipoArca != solicitud.TipoComprobante)
+                {
+                    throw new InvalidOperationException(
+                        "La cabecera de respuesta de ARCA no coincide " +
+                        "con la identificación fiscal solicitada.");
+                }
+            }
 
             if (detalleRespuesta != null)
             {
-                respuesta.CAE = ObtenerValor(detalleRespuesta, "CAE");
+                string? numeroDesdeRespuesta =
+                    ObtenerValor(detalleRespuesta, "CbteDesde");
 
-                respuesta.CAEVencimiento = ParsearFechaArca(
-                    ObtenerValor(detalleRespuesta, "CAEFchVto"));
+                string? numeroHastaRespuesta =
+                    ObtenerValor(detalleRespuesta, "CbteHasta");
+
+                if (!long.TryParse(
+                        numeroDesdeRespuesta,
+                        out long numeroDesdeArca) ||
+                    !long.TryParse(
+                        numeroHastaRespuesta,
+                        out long numeroHastaArca) ||
+                    numeroDesdeArca != solicitud.Numero ||
+                    numeroHastaArca != solicitud.Numero)
+                {
+                    throw new InvalidOperationException(
+                        "La numeración devuelta por ARCA no coincide " +
+                        "con el comprobante solicitado.");
+                }
+
+                // 16. Recuperar el resultado fiscal.
+                respuesta.Resultado =
+                    ObtenerValor(detalleRespuesta, "Resultado")
+                    ?? "SIN_RESPUESTA";
+
+                respuesta.CAE =
+                    ObtenerValor(detalleRespuesta, "CAE");
+
+                respuesta.CAEVencimiento =
+                    ParsearFechaArca(
+                        ObtenerValor(
+                            detalleRespuesta,
+                            "CAEFchVto"));
 
                 respuesta.Observaciones.AddRange(
                     ObtenerMensajesArca(
-                        detalleRespuesta, "Observaciones", "Obs"));
+                        detalleRespuesta,
+                        "Observaciones",
+                        "Obs"));
             }
 
+            // Si no existe detalle, no asumimos rechazo.
+            // Se conserva SIN_RESPUESTA para conciliación.
+
+            // 17. Registrar resultado.
             await EscribirLogAsync(
                 "INFO",
                 operacion,
@@ -525,6 +728,7 @@ namespace ElBrezal.Infrastructure.Services
 
             return respuesta;
         }
+
 
         /// <summary>
         /// Consulta un comprobante fiscal en ARCA mediante FECompConsultar.
@@ -542,8 +746,15 @@ namespace ElBrezal.Infrastructure.Services
         /// Datos del comprobante consultado o null cuando ARCA
         /// confirma que no existe.
         /// </returns>
-        public async Task<ArcaResultadoCaeDto?> ConsultarComprobanteAsync(ArcaAuthDto auth, long cuitEmisor, string ambiente, int puntoVenta,
-            int tipoComprobante,  long numero, CancellationToken cancellationToken = default)
+
+        public async Task<ArcaResultadoCaeDto?> ConsultarComprobanteAsync(
+            ArcaAuthDto auth,
+            long cuitEmisor,
+            string ambiente,
+            int puntoVenta,
+            int tipoComprobante,
+            long numero,
+            CancellationToken cancellationToken = default)
         {
             const string operacion = "FECompConsultar";
 
@@ -574,7 +785,10 @@ namespace ElBrezal.Infrastructure.Services
                 $"Consultando CUIT={cuitEmisor}, PV={puntoVenta}, " +
                 $"Tipo={tipoComprobante}, Numero={numero}");
 
-            string xml = await EjecutarOperacionSoapAsync(operacion, cuerpo, cancellationToken);
+            string xml = await EjecutarOperacionSoapAsync(
+                operacion,
+                cuerpo,
+                cancellationToken);
 
             var documento = XDocument.Parse(xml);
 
@@ -584,7 +798,10 @@ namespace ElBrezal.Infrastructure.Services
                 ?? throw new InvalidOperationException(
                     "ARCA no devolvió FECompConsultarResult.");
 
-            var errores = ObtenerMensajesArca(resultado, "Errors", "Err");
+            var errores = ObtenerMensajesArca(
+                resultado,
+                "Errors",
+                "Err");
 
             var datos = resultado.Descendants()
                 .FirstOrDefault(x => x.Name.LocalName == "ResultGet");
@@ -615,7 +832,13 @@ namespace ElBrezal.Infrastructure.Services
                     string.Join(" | ", errores));
             }
 
-            // Leer los identificadores desde la respuesta de ARCA.
+            // ============================================================
+            // IDENTIFICACIÓN FISCAL
+            //
+            // FECompConsultar utiliza CbteDesde y CbteHasta
+            // en la respuesta, no CbteNro.
+            // ============================================================
+
             if (!int.TryParse(
                     ObtenerValor(datos, "PtoVta"),
                     out int puntoVentaRespuesta) ||
@@ -623,42 +846,98 @@ namespace ElBrezal.Infrastructure.Services
                     ObtenerValor(datos, "CbteTipo"),
                     out int tipoRespuesta) ||
                 !long.TryParse(
-                    ObtenerValor(datos, "CbteNro"),
-                    out long numeroRespuesta))
+                    ObtenerValor(datos, "CbteDesde"),
+                    out long numeroDesde) ||
+                !long.TryParse(
+                    ObtenerValor(datos, "CbteHasta"),
+                    out long numeroHasta))
             {
                 throw new InvalidOperationException(
                     "ARCA devolvió una identificación fiscal incompleta.");
             }
 
-            string? codigoAutorizacion = ObtenerValor(datos, "CodAutorizacion");
+            // La consulta corresponde a un comprobante individual.
+            if (numeroDesde != numeroHasta)
+            {
+                throw new InvalidOperationException(
+                    "ARCA devolvió un rango de comprobantes inesperado.");
+            }
 
-            DateOnly? fechaComprobante = ParsearFechaArca(ObtenerValor(datos, "CbteFch"));
+            if (puntoVentaRespuesta != puntoVenta ||
+                tipoRespuesta != tipoComprobante ||
+                numeroDesde != numero)
+            {
+                throw new InvalidOperationException(
+                    "La identificación fiscal devuelta por ARCA " +
+                    "no coincide con la consulta realizada.");
+            }
 
-            DateOnly? vencimiento = ParsearFechaArca(ObtenerValor(datos, "FchVto"));
+            // ============================================================
+            // AUTORIZACIÓN
+            // ============================================================
 
-            int? tipoDocumento = int.TryParse(ObtenerValor(datos, "DocTipo"), out int docTipo) ? docTipo : null;
+            string resultadoArca =
+                ObtenerValor(datos, "Resultado")?.Trim()
+                ?? string.Empty;
 
-            long? numeroDocumento = long.TryParse(ObtenerValor(datos, "DocNro"), out long docNro) ? docNro : null;
+            string? codigoAutorizacion =
+                ObtenerValor(datos, "CodAutorizacion");
 
-            decimal? importeTotal = decimal.TryParse(
-                ObtenerValor(datos, "ImpTotal"),
-                System.Globalization.NumberStyles.Number,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out decimal importe)
-                    ? importe
-                    : null;
+            string? tipoEmision =
+                ObtenerValor(datos, "EmisionTipo");
+
+            DateOnly? fechaComprobante = ParsearFechaArca(
+                ObtenerValor(datos, "CbteFch"));
+
+            DateOnly? vencimiento = ParsearFechaArca(
+                ObtenerValor(datos, "FchVto"));
+
+            // ============================================================
+            // DOCUMENTO DEL RECEPTOR
+            // ============================================================
+
+            int? tipoDocumento =
+                int.TryParse(
+                    ObtenerValor(datos, "DocTipo"),
+                    out int docTipo)
+                        ? docTipo
+                        : null;
+
+            long? numeroDocumento =
+                long.TryParse(
+                    ObtenerValor(datos, "DocNro"),
+                    out long docNro)
+                        ? docNro
+                        : null;
+
+            // ============================================================
+            // IMPORTE TOTAL
+            // ============================================================
+
+            decimal? importeTotal =
+                decimal.TryParse(
+                    ObtenerValor(datos, "ImpTotal"),
+                    System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out decimal importe)
+                        ? importe
+                        : null;
+
+            // ============================================================
+            // CONSTRUIR RESPUESTA
+            // ============================================================
 
             var respuesta = new ArcaResultadoCaeDto
             {
                 PuntoVenta = puntoVentaRespuesta,
                 TipoComprobante = tipoRespuesta,
-                Numero = numeroRespuesta,
+                Numero = numeroDesde,
 
-                Resultado = string.IsNullOrWhiteSpace(codigoAutorizacion) ? "R" : "A",
+                Resultado = resultadoArca,
 
                 CAE = codigoAutorizacion,
                 CAEVencimiento = vencimiento,
-                TipoEmision = ObtenerValor(datos, "EmisionTipo"),
+                TipoEmision = tipoEmision,
 
                 FechaComprobante = fechaComprobante,
                 TipoDocumentoReceptor = tipoDocumento,
@@ -668,14 +947,35 @@ namespace ElBrezal.Infrastructure.Services
 
             respuesta.Errores.AddRange(errores);
 
+            // Recuperar observaciones si ARCA las informa.
+            var observaciones = datos
+                .Descendants()
+                .Where(x => x.Name.LocalName == "Obs")
+                .Select(x =>
+                {
+                    string codigo =
+                        ObtenerValor(x, "Code") ?? string.Empty;
+
+                    string mensaje =
+                        ObtenerValor(x, "Msg") ?? string.Empty;
+
+                    return $"{codigo}: {mensaje}".Trim();
+                })
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            respuesta.Observaciones.AddRange(observaciones);
+
             await EscribirLogAsync(
                 "INFO",
                 operacion,
-                $"Consulta finalizada. Numero={numeroRespuesta}, " +
+                $"Consulta finalizada. Numero={numeroDesde}, " +
+                $"Resultado={respuesta.Resultado}, " +
                 $"Autorizado={respuesta.Aprobado}");
 
             return respuesta;
         }
+
 
 
         private static void ValidarCredencialesArca(

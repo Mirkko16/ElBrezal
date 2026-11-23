@@ -4,6 +4,7 @@ using ElBrezal.Application.Interfaces.Configuraciones;
 using ElBrezal.Application.Models.ARCA;
 using ElBrezal.Application.Models.Config;
 using ElBrezal.Desktop.Forms.Configs.Arca;
+using ElBrezal.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,10 +21,12 @@ namespace ElBrezal.Desktop.Forms.Configs
         private readonly IArcaAuthService _arcaAuthService;
         private readonly IArcaFacturacionService _arcaFacturacionService;
         private readonly IArcaCredencialesService _arcaCredencialesService;
+
+        private readonly IComprobanteAutorizacionService  _comprobanteAutorizacionService;
         private ConfigDto? _config;
         private bool _cargando;
 
-        public ConfigForm(IConfigService configService, IArcaAuthService arcaAuthService,
+        public ConfigForm(IConfigService configService, IArcaAuthService arcaAuthService, IComprobanteAutorizacionService comprobanteAutorizacionService,
             IArcaFacturacionService arcaFacturacionService, IArcaCredencialesService arcaCredencialesService)
         {
             InitializeComponent();
@@ -32,6 +35,7 @@ namespace ElBrezal.Desktop.Forms.Configs
             _arcaAuthService = arcaAuthService;
             _arcaFacturacionService = arcaFacturacionService;
             _arcaCredencialesService = arcaCredencialesService;
+            _comprobanteAutorizacionService = comprobanteAutorizacionService;
 
             ConfigurarControles();
             ConfigurarControlesDatosNegocio();
@@ -758,6 +762,7 @@ namespace ElBrezal.Desktop.Forms.Configs
         }
 
 
+
         private async void btnConsultarUltimoComprobante_Click(
             object sender,
             EventArgs e)
@@ -800,10 +805,10 @@ namespace ElBrezal.Desktop.Forms.Configs
                 btnConsultarUltimoComprobante.Enabled = false;
                 Cursor = Cursors.WaitCursor;
 
-                // Recuperamos Token y Sign desde el caché.
                 var auth = await ObtenerAuthArcaAsync();
 
-                var resultado = await _arcaFacturacionService
+                // 1. Consultar el último número autorizado.
+                var ultimo = await _arcaFacturacionService
                     .ObtenerUltimoComprobanteAutorizadoAsync(
                         auth,
                         cuitEmisor,
@@ -811,13 +816,48 @@ namespace ElBrezal.Desktop.Forms.Configs
                         puntoVenta,
                         tipoComprobante);
 
+                if (ultimo.UltimoNumero <= 0)
+                {
+                    MessageBox.Show(
+                        "No existen comprobantes autorizados para " +
+                        "este punto de venta y tipo.",
+                        "ARCA",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return;
+                }
+
+                // 2. Consultar los datos fiscales del último comprobante.
+                var comprobante = await _arcaFacturacionService
+                    .ConsultarComprobanteAsync(
+                        auth,
+                        cuitEmisor,
+                        ambiente,
+                        puntoVenta,
+                        tipoComprobante,
+                        ultimo.UltimoNumero);
+
+                if (comprobante is null)
+                {
+                    MessageBox.Show(
+                        $"Último número autorizado: {ultimo.UltimoNumero}\n\n" +
+                        "No se pudieron obtener los datos del comprobante.",
+                        "ARCA",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
                 MessageBox.Show(
-                    "Consulta realizada correctamente.\n\n" +
-                    $"Punto de venta: {resultado.PuntoVenta}\n" +
-                    $"Tipo de comprobante: {resultado.TipoComprobante}\n" +
-                    $"Último número autorizado: {resultado.UltimoNumero}\n" +
-                    $"Próximo número estimado: {resultado.UltimoNumero + 1}",
-                    "ARCA - Último comprobante",
+                    "CONSULTA DE COMPROBANTE ARCA\n\n" +
+                    $"Punto de venta: {comprobante.PuntoVenta}\n" +
+                    $"Tipo de comprobante: {comprobante.TipoComprobante}\n" +
+                    $"Número fiscal: {comprobante.Numero}\n" +
+                    $"Resultado: {comprobante.Resultado}\n" +
+                    $"CAE: {comprobante.CAE}\n" +
+                    $"Vencimiento: {comprobante.CAEVencimiento:dd/MM/yyyy}\n\n" +
+                    $"Próximo número estimado: {ultimo.UltimoNumero + 1}",
+                    "ARCA - Consulta fiscal",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
@@ -828,7 +868,7 @@ namespace ElBrezal.Desktop.Forms.Configs
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "No se pudo consultar el último comprobante autorizado.\n\n" +
+                    "No se pudo consultar el comprobante en ARCA.\n\n" +
                     ex.Message,
                     "ARCA - Error",
                     MessageBoxButtons.OK,
@@ -841,6 +881,87 @@ namespace ElBrezal.Desktop.Forms.Configs
             }
         }
 
+        private async void btnConsultarAutorizacion_Click(
+    object sender,
+    EventArgs e)
+        {
+            const int comprobanteId = 6004;
+
+            string ambiente =
+                cmbAmbienteArca.SelectedItem?.ToString()
+                ?? string.Empty;
+
+            if (ambiente != "HOMOLOGACION")
+            {
+                MessageBox.Show(
+                    "Esta prueba solamente está habilitada en homologación.",
+                    "ARCA",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            try
+            {
+                btnConsultarAutorizacion.Enabled = false;
+                Cursor = Cursors.WaitCursor;
+
+                // Consultamos una autorización fiscal existente.
+                // No solicitamos un nuevo CAE.
+                var resultado = await _comprobanteAutorizacionService
+                    .ConsultarAutorizacionAsync(comprobanteId);
+
+                if (resultado == null)
+                {
+                    MessageBox.Show(
+                        $"ARCA no encontró el comprobante {comprobanteId}.\n\n" +
+                        "No se modificaron los datos fiscales.",
+                        "ARCA - Consulta",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    return;
+                }
+
+                string mensaje =
+                    "CONSULTA DE AUTORIZACIÓN ARCA\n\n" +
+                    $"Comprobante interno: {comprobanteId}\n" +
+                    $"Punto de venta: {resultado.PuntoVenta}\n" +
+                    $"Tipo de comprobante: {resultado.TipoComprobante}\n" +
+                    $"Número fiscal: {resultado.Numero}\n\n" +
+                    $"Resultado: {resultado.Resultado}\n" +
+                    $"CAE: {resultado.CAE}\n" +
+                    $"Vencimiento: {resultado.CAEVencimiento:dd/MM/yyyy}\n\n" +
+                    $"Fecha del comprobante: {resultado.FechaComprobante}\n" +
+                    $"Importe total: {resultado.ImporteTotal:N2}\n\n" +
+                    "Consulta finalizada.";
+
+                MessageBox.Show(
+                    mensaje,
+                    "ARCA - Verificación de autorización",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (OperationCanceledException)
+            {
+                // Consulta cancelada.
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "No se pudo verificar la autorización en ARCA.\n\n" +
+                    ex.Message,
+                    "ARCA - Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnConsultarAutorizacion.Enabled = true;
+                Cursor = Cursors.Default;
+            }
+        }
     }
 
 }

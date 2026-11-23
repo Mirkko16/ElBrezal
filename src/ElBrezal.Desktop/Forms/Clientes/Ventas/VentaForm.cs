@@ -39,6 +39,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
         private const int PuntoVenta = 1;
         private VendedorDto? _vendedorSeleccionado;
 
+        private bool _actualizandoTipoComprobante;
+
         private int? _presupuestoAsociadoId;
         private bool _inicializandoFormulario;
         private bool _guardandoVenta;
@@ -224,6 +226,8 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
                 LimpiarVendedor();
             }
 
+            // Aplicar el tipo de comprobante correspondiente.
+            ValidarTipoComprobanteConsumidorFinal();
         }
 
         private void MostrarLocalidad(LocalidadDto localidad)
@@ -1065,10 +1069,14 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             dataGridViewProductos.Focus();
         }
 
-        private async void comboBoxTipoComprobante_SelectedValueChanged(object sender, EventArgs e)
+        private async void comboBoxTipoComprobante_SelectedValueChanged(
+      object sender,
+      EventArgs e)
         {
-            if (_inicializandoFormulario)
+            if (_inicializandoFormulario || _actualizandoTipoComprobante)
                 return;
+
+            ValidarTipoComprobanteConsumidorFinal();
 
             await CargarNumeracionComprobanteAsync();
         }
@@ -1708,6 +1716,59 @@ namespace ElBrezal.Desktop.Forms.Clientes.Ventas
             EventArgs e)
         {
             ActualizarAlicuotaProductoSeleccionado();
+        }
+
+        
+        /// <summary>
+        /// Impide seleccionar Factura A o Nota de Crédito A
+        /// para el cliente Consumidor Final (cuenta 1).
+        /// Selecciona automáticamente el comprobante equivalente B.
+        /// </summary>
+        private void ValidarTipoComprobanteConsumidorFinal()
+        {
+            if (_actualizandoTipoComprobante)
+                return;
+
+            if (_clienteSeleccionado?.Id != CuentaConsumidorFinal)
+                return;
+
+            if (comboBoxTipoComprobante.SelectedItem
+                is not TipoComprobanteDto tipoActual)
+                return;
+
+            int? codigoDestino = tipoActual.CodigoArca switch
+            {
+                1 => 6, // Factura A -> Factura B
+                3 => 8, // Nota de Crédito A -> Nota de Crédito B
+                _ => null
+            };
+
+            if (!codigoDestino.HasValue)
+                return;
+
+            if (comboBoxTipoComprobante.DataSource
+                is not IEnumerable<TipoComprobanteDto> tipos)
+                return;
+
+            var tipoDestino = tipos.FirstOrDefault(
+                x => x.CodigoArca == codigoDestino.Value);
+
+            if (tipoDestino is null)
+            {
+                throw new InvalidOperationException(
+                    "No se encontró el comprobante equivalente de tipo B.");
+            }
+
+            try
+            {
+                _actualizandoTipoComprobante = true;
+
+                comboBoxTipoComprobante.SelectedValue = tipoDestino.Id;
+            }
+            finally
+            {
+                _actualizandoTipoComprobante = false;
+            }
         }
     }
 

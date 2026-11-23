@@ -90,10 +90,18 @@ namespace ElBrezal.Infrastructure.Services
                 throw new InvalidOperationException(
                     "El punto de venta no es válido.");
 
-            // Política conservadora para esta primera emisión:
-            // exigimos identificar al receptor.
-            var (docTipo, docNro) =
-                ResolverDocumentoReceptor(
+            // El cliente 1 representa al Consumidor Final genérico.
+            // Para esta operación de prueba, permitimos documento 99/0
+            // cuando corresponde a una Factura B.
+            bool esConsumidorFinalGenerico =
+                comprobante.ClienteId == 1 &&
+                comprobante.SituacionImpositiva?.CodigoArca == 5 &&
+                tipoArca == 6;
+
+            // Resolver documento del receptor.
+            (int docTipo, long docNro) = esConsumidorFinalGenerico
+                ? (99, 0)
+                : ResolverDocumentoReceptor(
                     comprobante,
                     requiereIdentificacion: true);
 
@@ -341,9 +349,8 @@ namespace ElBrezal.Infrastructure.Services
                 resultado.Observaciones.Concat(resultado.Errores));
 
             // Una respuesta aprobada debe contener CAE y vencimiento.
-            bool autorizacionCompleta =
-                resultado.Aprobado &&
-                resultado.CAEVencimiento.HasValue;
+            bool autorizacionCompleta = resultado.Resultado == "A" && !string.IsNullOrWhiteSpace(resultado.CAE) &&
+                                        resultado.CAEVencimiento.HasValue;
 
             // Solamente consideramos definitivo un rechazo
             // explícito informado por ARCA.
@@ -438,7 +445,7 @@ namespace ElBrezal.Infrastructure.Services
             }
 
             return resultado;
-        
+
         }
 
 
@@ -473,6 +480,7 @@ namespace ElBrezal.Infrastructure.Services
         /// Resultado de la consulta o null cuando ARCA confirma
         /// que el comprobante no existe.
         /// </returns>
+
         public async Task<ArcaResultadoCaeDto?> ConsultarAutorizacionAsync(
             int comprobanteId,
             CancellationToken cancellationToken = default)
@@ -495,12 +503,31 @@ namespace ElBrezal.Infrastructure.Services
                     "No se puede consultar un comprobante anulado.");
             }
 
+            // ============================================================
+            // VALIDACIÓN ORIGINAL - DESHABILITADA TEMPORALMENTE
+            //
+            // Esta validación impedía consultar comprobantes que ya
+            // tenían un CAE registrado.
+            //
+            // Se deshabilita para permitir verificar contra ARCA
+            // comprobantes previamente autorizados.
+            // ============================================================
+
+            /*
             if (comprobante.ArcaEstado == "AUTORIZADO" &&
                 !string.IsNullOrWhiteSpace(comprobante.CAE))
             {
                 throw new InvalidOperationException(
                     "El comprobante ya tiene un CAE registrado.");
             }
+            */
+
+            // Identificar si el comprobante ya está autorizado.
+            // En ese caso solamente verificaremos la información
+            // contra ARCA, sin modificar los datos locales.
+            bool yaAutorizado =
+                comprobante.ArcaEstado == "AUTORIZADO" &&
+                !string.IsNullOrWhiteSpace(comprobante.CAE);
 
             // 2. Verificar la identificación fiscal original.
             if (!comprobante.ArcaCUITEmisor.HasValue ||
@@ -515,6 +542,7 @@ namespace ElBrezal.Infrastructure.Services
             }
 
             long cuit = comprobante.ArcaCUITEmisor.Value;
+
             string ambiente =
                 comprobante.ArcaAmbiente.Trim().ToUpperInvariant();
 
@@ -549,7 +577,8 @@ namespace ElBrezal.Infrastructure.Services
             }
 
             string ambienteConfigurado =
-                config.AmbienteArca.Trim().ToUpperInvariant();
+                config.AmbienteArca?.Trim().ToUpperInvariant()
+                ?? string.Empty;
 
             long cuitConfigurado = ResolverCuitEmisor(
                 ambienteConfigurado,
@@ -564,7 +593,8 @@ namespace ElBrezal.Infrastructure.Services
             }
 
             string rutaPfx =
-                config.RutaCertificadoPfx?.Trim() ?? string.Empty;
+                config.RutaCertificadoPfx?.Trim()
+                ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(rutaPfx))
             {
@@ -581,6 +611,7 @@ namespace ElBrezal.Infrastructure.Services
                     cancellationToken: cancellationToken);
 
             // 5. Consultar el comprobante fiscal en ARCA.
+            // FECompConsultar no genera un nuevo CAE.
             var resultado = await _arcaFacturacionService
                 .ConsultarComprobanteAsync(
                     auth,
@@ -594,6 +625,14 @@ namespace ElBrezal.Infrastructure.Services
             // No encontrado no equivale a rechazado.
             if (resultado == null)
             {
+                if (yaAutorizado)
+                {
+                    throw new InvalidOperationException(
+                        "El comprobante figura como AUTORIZADO en ElBrezal, " +
+                        "pero ARCA no devolvió información para su " +
+                        "identificación fiscal.");
+                }
+
                 return null;
             }
 
@@ -607,11 +646,19 @@ namespace ElBrezal.Infrastructure.Services
                     "a la del comprobante consultado.");
             }
 
-            // Si no existe una autorización completa, no persistimos CAE.
-            if (!resultado.Aprobado ||
+            // Una autorización completa debe incluir
+            // resultado aprobado, CAE y vencimiento.
+            if (resultado.Resultado != "A" ||
                 string.IsNullOrWhiteSpace(resultado.CAE) ||
                 !resultado.CAEVencimiento.HasValue)
             {
+                if (yaAutorizado)
+                {
+                    throw new InvalidOperationException(
+                        "ARCA no devolvió una autorización completa " +
+                        "para un comprobante registrado como AUTORIZADO.");
+                }
+
                 return resultado;
             }
 
@@ -648,7 +695,7 @@ namespace ElBrezal.Infrastructure.Services
                     "con el comprobante registrado en ElBrezal.");
             }
 
-            // 8. Verificar disponibilidad del documento receptor.
+            // 8. Verificar documento receptor.
             if (!resultado.TipoDocumentoReceptor.HasValue ||
                 !resultado.NumeroDocumentoReceptor.HasValue)
             {
@@ -656,7 +703,6 @@ namespace ElBrezal.Infrastructure.Services
                     "ARCA no devolvió los datos del documento receptor. " +
                     "No se puede confirmar la autorización.");
             }
-
 
             if (string.IsNullOrWhiteSpace(comprobante.ArcaSolicitudJson))
             {
@@ -678,27 +724,101 @@ namespace ElBrezal.Infrastructure.Services
                 solicitudOriginal.Fecha != resultado.FechaComprobante ||
                 Math.Abs(
                     solicitudOriginal.ImporteTotal -
-                    resultado.ImporteTotal!.Value) > 0.01m)
+                    resultado.ImporteTotal.Value) > 0.01m)
             {
                 throw new InvalidOperationException(
                     "Los datos fiscales recuperados de ARCA no coinciden " +
                     "con la solicitud original. No se registró el CAE.");
             }
 
-            comprobante.CAE = resultado.CAE;
-            comprobante.CAEVencimiento = resultado.CAEVencimiento;
-            comprobante.ArcaFechaAutorizacion = DateTime.Now;
-            comprobante.ArcaEstado = "AUTORIZADO";
-            comprobante.ArcaUltimoError = null;
+            // ============================================================
+            // 9. VERIFICACIÓN DE COMPROBANTE YA AUTORIZADO
+            //
+            // Si ya tenemos CAE en SQL Server, solamente verificamos
+            // que coincida con el informado por ARCA.
+            //
+            // No modificamos estado, CAE, vencimiento ni fecha.
+            // ============================================================
 
-            comprobante.ArcaObservaciones =
-                string.Join(" | ", resultado.Observaciones);
+            if (yaAutorizado)
+            {
+                if (!string.Equals(
+                        comprobante.CAE,
+                        resultado.CAE,
+                        StringComparison.Ordinal) ||
+                    comprobante.CAEVencimiento != resultado.CAEVencimiento)
+                {
+                    throw new InvalidOperationException(
+                        "La autorización registrada en ARCA no coincide " +
+                        "con el CAE o vencimiento almacenado en ElBrezal.");
+                }
 
-            await _context.SaveChangesAsync(cancellationToken);
+                return resultado;
+            }
+
+            // ============================================================
+            // 10. RECUPERACIÓN DE AUTORIZACIÓN
+            //
+            // Si el comprobante todavía no estaba autorizado,
+            // recuperamos el CAE que ARCA ya había generado.
+            // ============================================================
+
+            // No convertir estados ajenos a una recuperación
+            // en AUTORIZADO automáticamente.
+            if (comprobante.ArcaEstado != "SIN_RESPUESTA" &&
+                comprobante.ArcaEstado != "EN_PROCESO")
+            {
+                throw new InvalidOperationException(
+                    "El estado fiscal actual no permite recuperar " +
+                    "automáticamente una autorización.");
+            }
+
+            // Actualización condicional para evitar sobrescribir
+            // cambios realizados por otro proceso.
+            int registrosActualizados = await _context.Comprobantes
+                .Where(x =>
+                    x.Id == comprobanteId &&
+                    x.ArcaCUITEmisor == cuit &&
+                    x.ArcaAmbiente == ambiente &&
+                    x.ArcaPuntoVenta == puntoVenta &&
+                    x.ArcaTipoComprobante == tipoComprobante &&
+                    x.ArcaNumero == numero &&
+                    (x.ArcaEstado == "SIN_RESPUESTA" ||
+                     x.ArcaEstado == "EN_PROCESO") &&
+                    (x.CAE == null || x.CAE == ""))
+                .ExecuteUpdateAsync(
+                    setters => setters
+                        .SetProperty(
+                            x => x.CAE,
+                            resultado.CAE)
+                        .SetProperty(
+                            x => x.CAEVencimiento,
+                            resultado.CAEVencimiento)
+                        .SetProperty(
+                            x => x.ArcaFechaAutorizacion,
+                            DateTime.Now)
+                        .SetProperty(
+                            x => x.ArcaEstado,
+                            "AUTORIZADO")
+                        .SetProperty(
+                            x => x.ArcaUltimoError,
+                            (string?)null)
+                        .SetProperty(
+                            x => x.ArcaObservaciones,
+                            string.Join(" | ", resultado.Observaciones)),
+                    CancellationToken.None);
+
+            if (registrosActualizados != 1)
+            {
+                throw new InvalidOperationException(
+                    "ARCA confirmó la autorización, pero no se pudo " +
+                    "actualizar el comprobante local. " +
+                    "Consultá nuevamente antes de realizar otra operación.");
+            }
 
             return resultado;
-
         }
+
 
 
 
@@ -836,6 +956,7 @@ namespace ElBrezal.Infrastructure.Services
         }
 
 
+
         /// <summary>
         /// Construye la solicitud fiscal de ARCA a partir de un
         /// comprobante persistido y su numeración fiscal reservada.
@@ -848,6 +969,20 @@ namespace ElBrezal.Infrastructure.Services
         {
             ArgumentNullException.ThrowIfNull(comprobante);
 
+            // Validar relaciones obligatorias.
+            if (comprobante.TipoComprobante is null)
+            {
+                throw new InvalidOperationException(
+                    "No se cargó el tipo de comprobante.");
+            }
+
+            if (comprobante.SituacionImpositiva is null)
+            {
+                throw new InvalidOperationException(
+                    "No se cargó la situación impositiva del receptor.");
+            }
+
+            // Validar configuración fiscal.
             if (!comprobante.TipoComprobante.CodigoArca.HasValue)
             {
                 throw new InvalidOperationException(
@@ -860,29 +995,57 @@ namespace ElBrezal.Infrastructure.Services
                     "La situación impositiva no tiene código ARCA configurado.");
             }
 
+            if (comprobante.PuntoVenta <= 0)
+            {
+                throw new InvalidOperationException(
+                    "El punto de venta debe ser mayor a cero.");
+            }
+
             if (numeroFiscal <= 0)
             {
                 throw new InvalidOperationException(
                     "El número fiscal debe ser mayor a cero.");
             }
 
+            // Validar documento del receptor.
             if (docTipo <= 0 || docNro < 0)
             {
                 throw new InvalidOperationException(
                     "El documento del receptor no es válido.");
             }
 
+            // Consumidor Final sin identificar.
+            if (docTipo == 99 && docNro != 0)
+            {
+                throw new InvalidOperationException(
+                    "Un Consumidor Final sin identificar debe tener " +
+                    "número de documento cero.");
+            }
+
+            // Documentos identificados.
+            if (docTipo != 99 && docNro <= 0)
+            {
+                throw new InvalidOperationException(
+                    "El documento del receptor debe ser mayor a cero.");
+            }
+
+            // Calcular el desglose fiscal.
+            // Los importes comerciales incluyen IVA.
             var fiscal = CalcularImportesFiscales(comprobante);
 
+            // Construir solicitud para WSFEv1.
             return new ArcaSolicitudCaeDto
             {
                 PuntoVenta = comprobante.PuntoVenta,
+
                 TipoComprobante =
                     comprobante.TipoComprobante.CodigoArca.Value,
 
                 Numero = numeroFiscal,
+
                 Fecha = DateOnly.FromDateTime(comprobante.Fecha),
 
+                // Concepto 1: productos.
                 Concepto = 1,
 
                 DocTipo = docTipo,
@@ -910,6 +1073,8 @@ namespace ElBrezal.Infrastructure.Services
         }
 
 
+
+
         /// <summary>
         /// Resuelve el tipo y número de documento del receptor
         /// para una Factura A o B.
@@ -922,12 +1087,26 @@ namespace ElBrezal.Infrastructure.Services
         {
             ArgumentNullException.ThrowIfNull(comprobante);
 
+            // 1. Validar que las relaciones necesarias estén cargadas.
             if (comprobante.Cliente is null)
             {
                 throw new InvalidOperationException(
                     "No se cargaron los datos del cliente.");
             }
 
+            if (comprobante.TipoComprobante is null)
+            {
+                throw new InvalidOperationException(
+                    "No se cargó el tipo de comprobante.");
+            }
+
+            if (comprobante.SituacionImpositiva is null)
+            {
+                throw new InvalidOperationException(
+                    "No se cargó la situación impositiva del receptor.");
+            }
+
+            // 2. Obtener los códigos fiscales.
             int codigoComprobante = comprobante.TipoComprobante.CodigoArca
                 ?? throw new InvalidOperationException(
                     "El comprobante no tiene código ARCA.");
@@ -936,6 +1115,7 @@ namespace ElBrezal.Infrastructure.Services
                 ?? throw new InvalidOperationException(
                     "La situación impositiva no tiene código ARCA.");
 
+            // 3. Normalizar los documentos del cliente.
             string cuit = new string(
                 (comprobante.Cliente.CUIT ?? string.Empty)
                 .Where(char.IsDigit)
@@ -946,9 +1126,17 @@ namespace ElBrezal.Infrastructure.Services
                 .Where(char.IsDigit)
                 .ToArray());
 
-            // Factura A: requiere CUIT del receptor.
+            // 4. Factura A: requiere CUIT válido.
             if (codigoComprobante == 1)
             {
+                // No permitir Factura A a Consumidor Final.
+                if (codigoSituacion == 5)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede emitir una Factura A a un " +
+                        "Consumidor Final. Seleccione Factura B.");
+                }
+
                 if (!ValidarCuit(cuit))
                 {
                     throw new InvalidOperationException(
@@ -958,7 +1146,7 @@ namespace ElBrezal.Infrastructure.Services
                 return (80, long.Parse(cuit));
             }
 
-            // Por ahora solamente contemplamos Factura B.
+            // 5. Por ahora solamente contemplamos Factura B.
             if (codigoComprobante != 6)
             {
                 throw new InvalidOperationException(
@@ -966,7 +1154,7 @@ namespace ElBrezal.Infrastructure.Services
                     "implementada para este tipo de comprobante.");
             }
 
-            // Si se informó CUIT, debe ser válido.
+            // 6. Factura B con CUIT.
             if (!string.IsNullOrEmpty(cuit))
             {
                 if (!ValidarCuit(cuit))
@@ -978,7 +1166,7 @@ namespace ElBrezal.Infrastructure.Services
                 return (80, long.Parse(cuit));
             }
 
-            // Si se informó DNI, debe ser válido.
+            // 7. Factura B con DNI.
             if (!string.IsNullOrEmpty(dni))
             {
                 if (dni.Length < 7 ||
@@ -993,7 +1181,8 @@ namespace ElBrezal.Infrastructure.Services
                 return (96, numeroDni);
             }
 
-            // Código 5: Consumidor Final en nuestro catálogo ARCA.
+            // 8. Consumidor Final sin identificar.
+            // Código ARCA 5 = Consumidor Final.
             bool esConsumidorFinal = codigoSituacion == 5;
 
             if (!esConsumidorFinal || requiereIdentificacion)
@@ -1003,9 +1192,9 @@ namespace ElBrezal.Infrastructure.Services
                     "mediante un documento válido.");
             }
 
-            // Consumidor Final no identificado.
             return (99, 0);
         }
+
 
         /// <summary>
         /// Verifica el dígito de control de un CUIT argentino.
@@ -1035,141 +1224,6 @@ namespace ElBrezal.Infrastructure.Services
 
             return digitoVerificador == cuit[10] - '0';
         }
-
-        /// <summary>
-        /// Reserva de forma transaccional la identificación fiscal de un comprobante.
-        /// Evita reservas concurrentes para el mismo CUIT, ambiente,
-        /// punto de venta y tipo de comprobante.
-        /// </summary>
-        private async Task ReservarNumeroFiscalAsync(int comprobanteId, long cuitEmisor,
-            string ambiente, int puntoVenta, int tipoComprobante, long numeroFiscal,
-            ArcaSolicitudCaeDto solicitud,
-            CancellationToken cancellationToken = default)
-        {
-            if (numeroFiscal <= 0)
-            {
-                throw new ArgumentException(
-                    "El número fiscal debe ser mayor a cero.");
-            }
-
-            string recursoBloqueo =
-                $"ARCA:{cuitEmisor}:{ambiente}:{puntoVenta}:{tipoComprobante}";
-
-            await using var transaction =
-                await _context.Database.BeginTransactionAsync(
-                    IsolationLevel.ReadCommitted,
-                    cancellationToken);
-
-            // Bloqueo exclusivo asociado a la transacción SQL Server.
-            var conexion = _context.Database.GetDbConnection();
-
-            await using var comando = conexion.CreateCommand();
-
-            comando.Transaction =
-                transaction.GetDbTransaction();
-
-            comando.CommandText = """
-        DECLARE @resultado INT;
-
-        EXEC @resultado = sp_getapplock
-            @Resource = @recurso,
-            @LockMode = 'Exclusive',
-            @LockOwner = 'Transaction',
-            @LockTimeout = 15000;
-
-        SELECT @resultado;
-        """;
-
-            var parametro = comando.CreateParameter();
-            parametro.ParameterName = "@recurso";
-            parametro.Value = recursoBloqueo;
-            comando.Parameters.Add(parametro);
-
-            int resultadoBloqueo = Convert.ToInt32(
-                await comando.ExecuteScalarAsync(cancellationToken));
-
-            if (resultadoBloqueo < 0)
-            {
-                throw new InvalidOperationException(
-                    "No se pudo obtener el bloqueo de numeración fiscal.");
-            }
-
-            // Recuperar el comprobante dentro de la transacción.
-            var comprobante = await _context.Comprobantes
-                .FirstOrDefaultAsync(
-                    x => x.Id == comprobanteId,
-                    cancellationToken);
-
-            if (comprobante == null)
-            {
-                throw new InvalidOperationException(
-                    "No se encontró el comprobante.");
-            }
-
-            if (comprobante.Anulado)
-            {
-                throw new InvalidOperationException(
-                    "No se puede autorizar un comprobante anulado.");
-            }
-
-            if (comprobante.ArcaNumero.HasValue)
-            {
-                throw new InvalidOperationException(
-                    "El comprobante ya tiene un número fiscal reservado. " +
-                    "Debe resolverse la solicitud existente.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(comprobante.CAE))
-            {
-                throw new InvalidOperationException(
-                    "El comprobante ya tiene un CAE registrado.");
-            }
-
-            // Verificar que la solicitud corresponda a la reserva.
-            if (solicitud.PuntoVenta != puntoVenta ||
-                solicitud.TipoComprobante != tipoComprobante ||
-                solicitud.Numero != numeroFiscal)
-            {
-                throw new InvalidOperationException(
-                    "La solicitud fiscal no coincide con la numeración reservada.");
-            }
-
-            // No permitir reutilizar una identificación fiscal.
-            bool numeroExistente = await _context.Comprobantes
-                .AsNoTracking()
-                .AnyAsync(
-                    x => x.Id != comprobanteId
-                        && x.ArcaCUITEmisor == cuitEmisor
-                        && x.ArcaAmbiente == ambiente
-                        && x.ArcaPuntoVenta == puntoVenta
-                        && x.ArcaTipoComprobante == tipoComprobante
-                        && x.ArcaNumero == numeroFiscal,
-                    cancellationToken);
-
-            if (numeroExistente)
-            {
-                throw new InvalidOperationException(
-                    $"El número fiscal {numeroFiscal} ya está reservado.");
-            }
-
-            // Persistir la identificación fiscal antes de llamar a ARCA.
-            comprobante.ArcaCUITEmisor = cuitEmisor;
-            comprobante.ArcaAmbiente = ambiente;
-            comprobante.ArcaPuntoVenta = puntoVenta;
-            comprobante.ArcaTipoComprobante = tipoComprobante;
-            comprobante.ArcaNumero = numeroFiscal;
-
-            comprobante.ArcaSolicitudJson =
-                JsonSerializer.Serialize(solicitud);
-
-            comprobante.ArcaEstado = "EN_PROCESO";
-            comprobante.ArcaUltimoError = null;
-
-            await _context.SaveChangesAsync(cancellationToken);
-
-            await transaction.CommitAsync(cancellationToken);
-        }
-
 
         /// <summary>
         /// Marca una solicitud fiscal como incierta sin liberar
@@ -1215,10 +1269,5 @@ namespace ElBrezal.Infrastructure.Services
                     $"el comprobante {comprobanteId}: {ex}");
             }
         }
-
-
-
     }
-
-
 }
